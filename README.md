@@ -3,7 +3,7 @@
 <div align="center">
   <img src="./frontend_nextjs/public/KamerCare-logo.png" alt="KamerCare Logo" width="300" height="auto">
   
-  <p><strong>Une plateforme moderne de gestion médicale pour le Cameroun</strong></p>
+  <p><strong>Une plateforme moderne de gestion de RDV médicaux pour le Cameroun</strong></p>
   
   [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
   [![Laravel](https://img.shields.io/badge/Laravel-8-red?style=for-the-badge&logo=laravel)](https://laravel.com/)
