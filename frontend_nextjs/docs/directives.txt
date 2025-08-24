@@ -1,0 +1,231 @@
+# Objectif
+
+Crée une interface web complète (HTML/CSS + un soupçon de JS vanilla pour les interactions) pour une **plateforme publique de prise de rendez‑vous médicaux au Cameroun**.
+
+Livrer **3 vues majeures** :
+
+1. **Landing page** grand public
+2. **Dashboard Médecin**
+3. **Dashboard Super Admin**
+
+> Contraintes techniques : **HTML5 sémantique**, **CSS moderne** (préférence **Tailwind CSS** si possible), animations légères (CSS/JS), pas de frameworks lourds. Respect **WCAG 2.1 AA**, **responsive mobile‑first**, **dark & light mode**, **FR/EN** avec un sélecteur de langue (prévoir l’extension vers d’autres langues locales).
+
+> Contexte : Hôpitaux publics au Cameroun, usage fréquent en **connexion faible**. Optimiser les performances (images compressées/SVG, lazy‑loading, code split si besoin), offrir une UX claire même hors‑ligne (bandeau "Hors connexion").
+
+---
+
+## Direction artistique
+
+* **Ambiance santé** : rassurant, moderne, institutionnel.
+* **Palette** (exemples, ajustables) :
+
+  * Vert santé `#1E7D4E`
+  * Bleu clinique `#2563EB`
+  * Jaune accent `#F2C94C`
+  * Gris neutres `#0F172A` / `#475569` / `#94A3B8` / `#F1F5F9`
+  * Rouge alerte (parcimonie) `#D94B4B`
+* **Typo** : Inter ou équivalent système; tailles hiérarchisées (H1‑H3 clairs, body confortable).
+* **Icônes** : style line (Lucide/Feather‑like), SVG inline.
+* **Micro‑interactions** : hover/focus, transitions 150–250ms, skeleton loaders.
+
+---
+
+## 1) Landing page (grand public)
+
+**Objectif** : informer, rassurer, convertir (prendre RDV).
+
+### Sections & structure
+
+1. **Header sticky**
+
+   * Logo (République du Cameroun / Ministère de la Santé – placeholder), navigation, CTA « Prendre RDV », sélecteur de langue, switch Dark/Light.
+2. **Hero**
+
+   * Titre fort : « Prenez rendez‑vous à l’hôpital public, en quelques clics ». Sous‑titre sur la simplicité et la gratuité du service.
+   * **Widget de recherche rapide** (voir composants) : Ville/Région → Hôpital → Spécialité → Date → Bouton « Rechercher ».
+   * Illustration SVG médicale légère.
+3. **Fonctionnement en 3 étapes** (cartes icônées)
+
+   * Chercher un hôpital / Choisir un créneau / Recevoir la confirmation (SMS/Email).
+4. **Services & spécialités** (grille)
+
+   * Médecine générale, Pédiatrie, Gynécologie, Chirurgie, Ophtalmo, etc. + liens rapides.
+5. **Carte des hôpitaux par région**
+
+   * Liste / grille par **Région → Ville → Hôpital** (exemples locaux : Yaoundé, Douala, Garoua, Bafoussam, Bertoua, Maroua, Ebolowa, Ngaoundéré, Buéa, Bamenda…).
+   * Cartes hôpital : nom, adresse, horaires, bouton « Voir disponibilités ».
+6. **Avantages & engagements**
+
+   * Gratuit, sécurisé, soutenu par l’État, compatible Mobile Money pour frais de consultation.
+7. **Témoignages** (cartes avec notes ★ et avatars SVG) + **Stats** (rdv pris, hôpitaux connectés).
+8. **FAQ** (accordéons) – contenu santé validé.
+9. **Bandeau Info**
+
+   * Messages du Ministère : campagnes (paludisme, vaccination), alertes (grippe saisonnière), maintenance planifiée.
+10. **CTA final**
+
+    * Gros bouton « Créer mon compte patient » et « Prendre un RDV ».
+11. **Footer**
+
+    * Contacts, liens utiles (MinSanté, Hôpitaux), mentions légales, réseaux sociaux.
+
+### Composants clés à intégrer
+
+* **Widget de recherche RDV** : Select Région/Ville, Select Hôpital, Select Spécialité, Datepicker, bouton Rechercher.
+* **Cartes Hôpital** : photo/illustration, infos, badges (Urgences 24/7, Accessibilité), actions.
+* **Modales Auth** : Connexion/Inscription patient, **OTP par SMS** (saisie code 6 chiffres), consentement RGPD‑like.
+* **Modale Paiement (mock)** : Mobile Money (MTN/Orange) – champs factices + état « payé ».
+* **Toast/Alertes** : succès/erreur, offline, maintenance.
+
+### États & UX
+
+* **Chargement** (skeleton), **Vide** (aucune dispo), **Erreur réseau**, **Hors connexion** (bandeau + actions SMS), **Validation** (messages FR/EN, lisibles).
+
+---
+
+## 2) Dashboard Médecin
+
+**Objectif** : gérer ses disponibilités, ses rendez‑vous, ses patients, et communiquer.
+
+### Layout
+
+* **Sidebar** : Accueil, Mes rendez‑vous, Calendrier, Disponibilités, Files d’attente, Prescriptions & Examens, Messages, Profil & Paramètres.
+* **Topbar** : recherche, notifications, statut en ligne/hors‑ligne, avatar.
+* **Contenu** : cartes + tableau + calendrier.
+
+### Pages & composants
+
+* **Accueil**
+
+  * KPIs rapides (Aujourd’hui : rdv confirmés, en attente, annulés ; Semaine : taux de présence ; Satisfaction moyenne ★).
+  * **File d’attente du jour** (liste ordonnée, ticket virtuel, ETA).
+* **Mes rendez‑vous**
+
+  * Tableau (patient, motif, canal, statut : Confirmé/En attente/Annulé/Terminé) + filtres (date, spécialité, hôpital).
+  * Actions par ligne : Voir fiche patient, Marquer terminé, Annuler, Reprogrammer.
+* **Calendrier**
+
+  * Vue mensuelle/hebdo/jour (drag‑&‑drop faux), création de créneaux, exceptions.
+* **Disponibilités**
+
+  * Formulaire pour plages récurrentes, absences, garde/astreinte ; bouton « Publier ».
+* **Fiche patient (drawer/modale)**
+
+  * Infos patient (nom, CNI, tél., historique RDV, allergies), notes privées, documents (ordonnances PDF mock).
+* **Prescriptions & examens**
+
+  * Formulaire ordonnance (texte + posologie), envoi vers pharmacie/labo (mock) ; upload résultats.
+* **Messages**
+
+  * Messagerie simple (liste conversations, champ saisie), modèles de réponses.
+* **Paramètres**
+
+  * Profil, spécialités, hôpitaux rattachés, préférences notifications (SMS/Email), sécurité (2FA/OTP), export de données.
+
+### États & garde‑fous
+
+* Confirmations d’action, toasts d’erreur, modales de confirmation, skeleton sur listes, badge « Hors connexion ».
+
+---
+
+## 3) Dashboard Super Admin
+
+**Objectif** : piloter le réseau, les utilisateurs, le contenu et la conformité.
+
+### Layout
+
+* **Sidebar** : Vue d’ensemble, Hôpitaux, Utilisateurs, Rôles & permissions, Spécialités, Plannings système, Paiements & facturation, Contenus (FAQ/Annonces), Journaux & conformité, Rapports.
+* **Topbar** : recherche globale, filtres par région, export.
+
+### Pages & composants
+
+* **Vue d’ensemble**
+
+  * KPIs : RDV/jour, taux d’occupation par spécialité, no‑show %, temps d’attente moyen, incidents.
+  * **Heatmap** par région (SVG) + graphiques barres/ligne (placeholders SVG/Canvas simple).
+* **Hôpitaux**
+
+  * Tableau CRUD : Nom, Région/Ville, Capacité, Services, Contact, Statut (Actif/Inactif), Actions (Éditer/Publier/Maintenance).
+  * Détail hôpital : coordonnées, services, équipements, plannings, file d’attente temps réel.
+* **Utilisateurs**
+
+  * Patients, Médecins, Admins – filtres, reset OTP, suspension, vérification identité (mock).
+* **Rôles & permissions**
+
+  * Matrice rôles → scopes (lecture/écriture/administration) – UI de toggles.
+* **Spécialités**
+
+  * Taxonomie (arbre), alias multilingue, codes internes.
+* **Plannings système**
+
+  * Fenêtres de maintenance, réaffectations automatiques en cas d’absence, priorités d’urgence.
+* **Paiements & facturation**
+
+  * Vue Mobile Money (MTN/Orange) : transactions, états, réconciliations (mock), export CSV.
+* **Contenus**
+
+  * Annonces ministérielles (bandeau info), FAQ, pages statiques.
+* **Journaux & conformité**
+
+  * Audit logs (qui a fait quoi, quand), téléchargements, consentements.
+* **Rapports**
+
+  * Exports CSV/PDF (boutons placeholder), planification d’envoi.
+
+### États & sécurité
+
+* Session expirée, rôles insuffisants (403), erreurs réseau, politiques mot de passe, 2FA obligatoire pour admins.
+
+---
+
+## Composants & patterns transverses
+
+* **Boutons** : primaires/secondaires/tertiary, tailles sm/md/lg, états disabled/loading.
+* **Formulaires** : labels clairs, aides contextuelles, erreurs sous champs, masque numéro de téléphone + code pays **+237**.
+* **Sélecteurs** : Région/Ville (dépendants), Hôpital, Spécialité, Date/Heure (time slots).
+* **Badges** : Statut RDV (Confirmé / En attente / Annulé / Terminé), Urgence, Hors‑ligne.
+* **Tables** : tri, recherche, pagination, cellules d’actions.
+* **Toasts/Alertes** : succès/erreur/info, persistants pour critiques.
+* **I18n** : fichiers clés/valeurs FR & EN (prévois des `data-i18n` sur les nœuds).
+* **Accessibilité** : contraste suffisant, focus visible, ARIA sur modales/onglets/accordéons, navigation clavier.
+
+---
+
+## Contenu d’exemple (data seeds)
+
+* **Régions** : Centre, Littoral, Ouest, Extrême‑Nord, Nord, Adamaoua, Sud, Est, Nord‑Ouest, Sud‑Ouest.
+* **Hôpitaux** : Hôpital Central de Yaoundé, Hôpital Laquintinie de Douala, Hôpital Régional de Bafoussam, Hôpital Régional de Garoua, Hôpital Régional de Bertoua, Hôpital Régional de Maroua, Hôpital Régional d’Ebolowa, CHU de Yaoundé (placeholders si besoin).
+* **Spécialités** : Médecine générale, Pédiatrie, Gynécologie‑Obstétrique, Chirurgie, Ophtalmologie, ORL, Cardiologie, Dermatologie.
+* **Textes FR/EN** pour titres, CTA, validations, toasts.
+
+---
+
+## Interactions minimales (JS vanilla acceptable)
+
+* Ouverture/fermeture de modales (Auth, Paiement, Fiche patient).
+* Inversion Dark/Light (via `data-theme` ou classe).
+* Accordéons (FAQ), Tabs, Toasts temporisés.
+* Simuler la sélection dépendante Région → Ville → Hôpital.
+* Datepicker minimal (ou input type="date").
+* Stockage local de la préférence langue & thème (localStorage).
+
+---
+
+## Livrables attendus
+
+* **Un fichier CSS** (ou Tailwind intégré) + **un fichier JS léger** si nécessaire.
+* Code **propre, commenté**, classes utilitaires réutilisables, sections nettes, composants cohérents.
+
+---
+
+## Bonus (si possible)
+
+* **Mode hors‑ligne** (bannière + cache basique via Service Worker en commentaire/placeholder).
+* **Impression** des rendez‑vous (styles print CSS).
+* **Placeholders d’intégration** : boutons « Démarrer téléconsultation », « Envoyer à la pharmacie/labo », sans logique réseau réelle.
+
+---
+
+### Résultat attendu
+
+Une UI élégante, professionnelle et accessible, qui donne l’impression d’un produit prêt pour pilote national. Prioriser la clarté, la confiance et la performance.
