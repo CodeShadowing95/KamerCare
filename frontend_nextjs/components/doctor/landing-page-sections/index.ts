@@ -1,0 +1,6 @@
+export { default as DoctorNavbar } from './doctor-navbar'
+export { default as DoctorHero } from './doctor-hero'
+export { default as DoctorFeatures } from './doctor-features'
+export { default as DoctorBenefits } from './doctor-benefits'
+export { default as DoctorCTA } from './doctor-cta'
+export { default as DoctorFooter } from './doctor-footer'

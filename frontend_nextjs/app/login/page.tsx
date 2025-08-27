@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Mail, Lock, Heart, ArrowLeft, Shield, Stethoscope, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, Heart, ArrowLeft, Shield, Stethoscope, CheckCircle, Pill, Syringe, Thermometer, Activity, Cross, Zap, Brain, Microscope, Bandage, Clipboard } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -102,9 +102,10 @@ export default function LoginPage() {
               description: "Redirection vers la page d'accueil...",
               variant: "default",
             })
-            setTimeout(() => {
-              router.push('/')
-            }, 1000)
+            // setTimeout(() => {
+            //   router.push('/')
+            // }, 1000)
+            window.location.href = '/'
           }
         } else {
           // Fallback redirect for patients
@@ -138,10 +139,69 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-green-200/30 to-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse delay-500"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-green-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-200/20 to-green-200/20 rounded-full blur-3xl"></div>
+        
+        {/* Static medical icons scattered across the page */}
+        <div className="absolute top-10 left-10">
+          <Heart className="w-6 h-6 text-red-500 opacity-60" />
+        </div>
+        <div className="absolute top-20 right-20">
+          <Stethoscope className="w-7 h-7 text-emerald-500 opacity-50" />
+        </div>
+        <div className="absolute top-32 left-1/4">
+          <Pill className="w-5 h-5 text-blue-500 opacity-70" />
+        </div>
+        <div className="absolute top-40 right-1/3">
+          <Syringe className="w-6 h-6 text-purple-500 opacity-60" />
+        </div>
+        <div className="absolute top-1/2 left-16">
+          <Thermometer className="w-6 h-6 text-orange-500 opacity-50" />
+        </div>
+        <div className="absolute top-1/3 right-16">
+          <Activity className="w-7 h-7 text-green-500 opacity-65" />
+        </div>
+        <div className="absolute bottom-1/3 left-1/3">
+          <Cross className="w-8 h-8 text-yellow-500 opacity-55" />
+        </div>
+        <div className="absolute bottom-40 right-1/4">
+          <Zap className="w-5 h-5 text-pink-500 opacity-60" />
+        </div>
+        <div className="absolute bottom-32 left-20">
+          <Brain className="w-6 h-6 text-cyan-500 opacity-70" />
+        </div>
+        <div className="absolute bottom-20 right-10">
+          <Microscope className="w-7 h-7 text-amber-500 opacity-50" />
+        </div>
+        <div className="absolute top-1/4 left-1/2">
+          <Bandage className="w-6 h-6 text-indigo-500 opacity-65" />
+        </div>
+        <div className="absolute bottom-1/4 right-1/2">
+          <Clipboard className="w-5 h-5 text-teal-500 opacity-55" />
+        </div>
+        <div className="absolute top-3/4 left-1/5">
+          <Shield className="w-6 h-6 text-rose-500 opacity-60" />
+        </div>
+        <div className="absolute top-16 left-3/4">
+          <Heart className="w-5 h-5 text-violet-500 opacity-50" />
+        </div>
+        <div className="absolute bottom-16 left-1/2">
+          <Stethoscope className="w-6 h-6 text-blue-400 opacity-65" />
+        </div>
+        <div className="absolute top-60 left-32">
+          <Pill className="w-5 h-5 text-lime-500 opacity-60" />
+        </div>
+        <div className="absolute bottom-60 right-32">
+          <Brain className="w-6 h-6 text-fuchsia-500 opacity-55" />
+        </div>
+        <div className="absolute top-80 right-40">
+          <Activity className="w-7 h-7 text-sky-500 opacity-65" />
+        </div>
+        <div className="absolute bottom-80 left-40">
+          <Cross className="w-6 h-6 text-emerald-600 opacity-50" />
+        </div>
       </div>
       
       <div className="w-full max-w-md relative z-10">
@@ -152,7 +212,7 @@ export default function LoginPage() {
             Retour à l'accueil
           </Link>
           
-          <div className="flex items-center justify-center mb-6">
+          {/* <div className="flex items-center justify-center mb-6">
             <div className="relative">
               <div className="bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 p-4 rounded-2xl shadow-lg transform hover:scale-110 transition-all duration-300">
                 <div className="flex items-center space-x-2">
@@ -162,7 +222,7 @@ export default function LoginPage() {
               </div>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Login Form */}
@@ -302,23 +362,6 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
-
-        {/* Trust indicators */}
-        <div className="flex items-center justify-center mt-8 space-x-4 text-sm text-gray-500">
-          <div className="flex items-center space-x-1">
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span>Plateforme sécurisée</span>
-          </div>
-          <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-          {/* <div className="flex items-center space-x-1">
-            <span>🇨🇲</span>
-            <span>Service Public</span>
-          </div> */}
-          <div className="flex items-center space-x-1">
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span>Données protégées</span>
-          </div>
-        </div>
       </div>
       
       <style jsx>{`
@@ -371,6 +414,8 @@ export default function LoginPage() {
         .animate-shake {
           animation: shake 0.5s ease-in-out;
         }
+        
+
       `}</style>
       <Toaster />
     </div>

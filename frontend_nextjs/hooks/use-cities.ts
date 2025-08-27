@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { villesParRegion } from '@/constants/index'
 
 interface City {
   city: string
@@ -11,37 +12,6 @@ interface Region {
   cities_count: number
 }
 
-interface RegionsResponse {
-  success: boolean
-  message: string
-  data: {
-    regions_count: number
-    regions: Region[]
-  }
-}
-
-interface CitiesResponse {
-  success: boolean
-  message: string
-  data: {
-    region: string
-    cities_count: number
-    cities: City[]
-  }
-}
-
-interface SearchResponse {
-  success: boolean
-  message: string
-  data: {
-    search_term: string
-    cities_found: number
-    cities: City[]
-  }
-}
-
-const API_BASE_URL = 'http://127.0.0.1:8000/api/cities'
-
 export const useCities = () => {
   const [regionsList, setRegionsList] = useState<Region[]>([])
   const [cities, setCities] = useState<City[]>([])
@@ -49,46 +19,36 @@ export const useCities = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Récupérer toutes les régions
-  const fetchRegions = async () => {
+  // Récupérer toutes les régions depuis les données locales
+  const fetchRegions = useCallback(() => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE_URL}/regions`)
-      if (!response.ok) {
-        throw new Error('Erreur lors de la récupération des régions')
-      }
-      const data: RegionsResponse = await response.json()
-      if (data.success) {
-        setRegionsList(data.data.regions)
-      } else {
-        throw new Error(data.message)
-      }
+      const regions: Region[] = Object.keys(villesParRegion).map(regionName => ({
+        name: regionName,
+        cities_count: villesParRegion[regionName as keyof typeof villesParRegion].length
+      }))
+      setRegionsList(regions)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  // Récupérer les villes d'une région spécifique
-  const fetchCitiesByRegion = useCallback(async (regionName: string) => {
+  // Récupérer les villes d'une région spécifique depuis les données locales
+  const fetchCitiesByRegion = useCallback((regionName: string) => {
     console.log('Starting fetchCitiesByRegion for:', regionName)
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE_URL}/by-region?region=${encodeURIComponent(regionName)}`)
-      console.log('Response status:', response.status)
-      if (!response.ok) {
-        throw new Error('Erreur lors de la récupération des villes')
-      }
-      const data: CitiesResponse = await response.json()
-      console.log('API Response:', data)
-      if (data.success) {
-        setCities(data.data.cities)
-        console.log('Cities set:', data.data.cities.length, 'cities')
+      const regionCities = villesParRegion[regionName as keyof typeof villesParRegion]
+      if (regionCities) {
+        setCities(regionCities)
+        console.log('Cities set:', regionCities.length, 'cities')
       } else {
-        throw new Error(data.message)
+        setCities([])
+        console.log('No cities found for region:', regionName)
       }
     } catch (err) {
       console.error('Error in fetchCitiesByRegion:', err)
@@ -99,8 +59,8 @@ export const useCities = () => {
     }
   }, [])
 
-  // Rechercher des villes par nom
-  const searchCities = async (searchTerm: string) => {
+  // Rechercher des villes par nom dans les données locales
+  const searchCities = useCallback((searchTerm: string) => {
     if (!searchTerm.trim()) {
       setSearchResults([])
       return
@@ -109,22 +69,24 @@ export const useCities = () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${API_BASE_URL}/search?search=${encodeURIComponent(searchTerm)}`)
-      if (!response.ok) {
-        throw new Error('Erreur lors de la recherche')
-      }
-      const data: SearchResponse = await response.json()
-      if (data.success) {
-        setSearchResults(data.data.cities)
-      } else {
-        throw new Error(data.message)
-      }
+      const allCities: City[] = []
+      // Parcourir toutes les régions pour collecter toutes les villes
+      Object.values(villesParRegion).forEach(regionCities => {
+        allCities.push(...regionCities)
+      })
+      
+      // Filtrer les villes selon le terme de recherche
+      const filteredCities = allCities.filter(city => 
+        city.city.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      
+      setSearchResults(filteredCities)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // Charger les régions au montage du composant
   useEffect(() => {

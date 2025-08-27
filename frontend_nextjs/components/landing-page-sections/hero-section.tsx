@@ -68,13 +68,15 @@ export default function HeroSection({
       stats: {
         hospitals: "Hôpitaux",
         specialties: "Spécialités",
+        doctors: "Docteurs",
         available: "Disponible"
       },
       features: [
-        { text: "Gratuit et sécurisé", icon: Shield },
-        { text: "Confirmation instantanée", icon: CheckCircle },
-        { text: "Support 24/7", icon: Clock }
-      ],
+          { text: "Gratuit et sécurisé", icon: Shield },
+          { text: "Confirmation instantanée", icon: CheckCircle },
+          { text: "Support 24/7", icon: Clock },
+          { text: "Rendez-vous rapides", icon: Calendar }
+        ],
       trustBadge: "Plateforme officielle du Ministère de la Santé"
     },
     en: {
@@ -94,13 +96,15 @@ export default function HeroSection({
       stats: {
         hospitals: "Hospitals",
         specialties: "Specialties",
+        doctors: "Doctors",
         available: "Available"
       },
       features: [
-        { text: "Free and secure", icon: Shield },
-        { text: "Instant confirmation", icon: CheckCircle },
-        { text: "24/7 Support", icon: Clock }
-      ],
+          { text: "Free and secure", icon: Shield },
+          { text: "Instant confirmation", icon: CheckCircle },
+          { text: "24/7 Support", icon: Clock },
+          { text: "Quick appointments", icon: Calendar }
+        ],
       trustBadge: "Official platform of the Ministry of Health"
     }
   }
@@ -180,6 +184,11 @@ export default function HeroSection({
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-cyan-400/10 rounded-full blur-2xl animate-bounce"></div>
         <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-purple-400/10 rounded-full blur-2xl animate-bounce delay-500"></div>
+        <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-pink-400/15 rounded-full blur-xl animate-pulse delay-200"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-indigo-400/8 rounded-full blur-3xl animate-bounce delay-1500"></div>
+        <div className="absolute top-1/4 right-1/6 w-20 h-20 bg-yellow-400/20 rounded-full blur-lg animate-pulse delay-800"></div>
+        <div className="absolute bottom-1/2 left-1/6 w-56 h-56 bg-teal-400/12 rounded-full blur-2xl animate-bounce delay-1200"></div>
+        <div className="absolute top-3/4 right-1/2 w-40 h-40 bg-rose-400/18 rounded-full blur-xl animate-pulse delay-600"></div>
         
         {/* Floating elements */}
         <div className="absolute top-20 left-10 animate-float">
@@ -194,65 +203,79 @@ export default function HeroSection({
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col justify-center min-h-screen py-20">
+        <div className="flex flex-col justify-center min-h-screen pb-20">
           {/* Trust badge */}
           <div className="text-center mb-8">
             <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 px-4 py-2 text-sm font-medium border border-emerald-200 dark:border-emerald-700">
-              <Shield className="w-4 h-4 mr-2" />
+              <Shield className="w-4 h-4 mr-1" />
               {t.trustBadge}
             </Badge>
           </div>
 
-          {/* Main content */}
-          <div className="max-w-6xl mx-auto text-center mb-16">
-            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white mb-8 leading-tight">
-              <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
-                {t.title}
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-4xl mx-auto leading-relaxed">
-              {t.subtitle}
-            </p>
+          {/* Two-column layout */}
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left column - Content */}
+              <div className="space-y-8">
+                <div>
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
+                    <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                      {t.title}
+                    </span>
+                  </h1>
+                  <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
+                    {t.subtitle}
+                  </p>
+                </div>
 
-            {/* Features */}
-            <div className="flex flex-wrap justify-center gap-6 mb-16">
-              {t.features.map((feature, index) => {
-                const IconComponent = feature.icon
-                return (
-                  <div key={index} className="flex items-center space-x-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-white/20">
-                    <IconComponent className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{feature.text}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+                {/* Features */}
+                <div className="grid grid-cols-2 gap-4">
+                  {t.features.map((feature, index) => {
+                    const IconComponent = feature.icon
+                    const colors = [
+                      { bg: 'bg-emerald-50 dark:bg-emerald-950/30', icon: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800' },
+                      { bg: 'bg-blue-50 dark:bg-blue-950/30', icon: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800' },
+                      { bg: 'bg-purple-50 dark:bg-purple-950/30', icon: 'text-purple-600 dark:text-purple-400', border: 'border-purple-200 dark:border-purple-800' },
+                      { bg: 'bg-orange-50 dark:bg-orange-950/30', icon: 'text-orange-600 dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800' }
+                    ]
+                    const colorScheme = colors[index % colors.length]
+                    return (
+                      <div key={index} className={`group flex items-center space-x-3 rounded-xl px-4 py-4 transition-all duration-300 hover:scale-105 hover:shadow-lg border ${colorScheme.bg} ${colorScheme.border} backdrop-blur-sm`}>
+                        <div className={`p-2 rounded-lg ${colorScheme.bg} ${colorScheme.border} border transition-transform duration-300 group-hover:rotate-6`}>
+                          <IconComponent className={`w-4 h-4 ${colorScheme.icon} flex-shrink-0`} />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-300">{feature.text}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
 
-          {/* Search form */}
-          <div className="max-w-6xl mx-auto w-full">
-            <Card className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl shadow-2xl border-0 rounded-3xl overflow-hidden">
-              <CardContent className="p-8 md:p-12">
+              {/* Right column - Search form */}
+              <div className="w-full">
+            <Card className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl shadow-xl border-0 rounded-2xl overflow-hidden">
+              <CardContent className="p-6">
                 {/* Search Header */}
-                <div className="text-center mb-10">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4">
-                      <Sparkles className="w-6 h-6 text-white" />
+                <div className="text-center mb-6">
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mr-3">
+                      <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="text-3xl font-bold text-foreground">{t.searchTitle}</h3>
+                    <h3 className="text-xl font-bold text-foreground">{t.searchTitle}</h3>
                   </div>
-                  <p className="text-lg text-muted-foreground">{t.searchSubtitle}</p>
+                  <p className="text-sm text-muted-foreground">{t.searchSubtitle}</p>
                 </div>
 
                 {/* Main Search Form */}
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-foreground flex items-center">
-                        <MapPin className="w-5 h-5 mr-2 text-emerald-600" />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-foreground flex items-center">
+                        <MapPin className="w-3 h-3 mr-1 text-emerald-600" />
                         {t.region}
                       </label>
                       <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                        <SelectTrigger className="w-full h-14 bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-200 rounded-xl text-base">
+                        <SelectTrigger className="w-full h-10 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-200 rounded-lg text-sm">
                           <SelectValue placeholder={t.regionPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -265,13 +288,13 @@ export default function HeroSection({
                       </Select>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-foreground flex items-center">
-                        <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-foreground flex items-center">
+                        <MapPin className="w-3 h-3 mr-1 text-blue-600" />
                         {t.city}
                       </label>
                       <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedRegion || loading}>
-                        <SelectTrigger className="w-full h-14 bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 rounded-xl text-base disabled:opacity-50">
+                        <SelectTrigger className="w-full h-10 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 rounded-lg text-sm disabled:opacity-50">
                           <SelectValue placeholder={loading ? "Chargement des villes..." : t.cityPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -313,13 +336,13 @@ export default function HeroSection({
                       </Select>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-foreground flex items-center">
-                        <Heart className="w-5 h-5 mr-2 text-red-600" />
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-foreground flex items-center">
+                        <Heart className="w-3 h-3 mr-1 text-red-600" />
                         {t.hospital}
                       </label>
                       <Select value={selectedHospital} onValueChange={setSelectedHospital} disabled={!selectedCity}>
-                        <SelectTrigger className="w-full h-14 bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 hover:border-red-400 dark:hover:border-red-500 transition-all duration-200 rounded-xl text-base disabled:opacity-50">
+                        <SelectTrigger className="w-full h-10 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-red-400 dark:hover:border-red-500 transition-all duration-200 rounded-lg text-sm disabled:opacity-50">
                           <SelectValue placeholder={t.hospitalPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -334,13 +357,13 @@ export default function HeroSection({
                       </Select>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-foreground flex items-center">
-                        <Users className="w-5 h-5 mr-2 text-purple-600" />
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-foreground flex items-center">
+                        <Users className="w-3 h-3 mr-1 text-purple-600" />
                         {t.specialty}
                       </label>
                       <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                        <SelectTrigger className="w-full h-14 bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200 rounded-xl text-base">
+                        <SelectTrigger className="w-full h-10 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200 rounded-lg text-sm">
                           <SelectValue placeholder={t.specialtyPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
@@ -372,35 +395,41 @@ export default function HeroSection({
                   </div>
 
                   {/* Search Button */}
-                  <div className="pt-4">
+                  <div className="pt-3">
                     <Button
-                      size="lg"
-                      className="w-full h-16 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] group"
+                      size="sm"
+                      className="w-full h-12 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-semibold text-sm rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group"
                     >
-                      <Search className="w-6 h-6 mr-3 group-hover:animate-pulse" />
+                      <Search className="w-4 h-4 mr-2 group-hover:animate-pulse" />
                       {t.searchButton}
-                      <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </div>
 
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-200 dark:border-slate-700">
+                  <div className="grid grid-cols-4 gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <div className="text-center group">
-                      <div className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">150+</div>
-                      <div className="text-sm text-muted-foreground font-medium">{t.stats.hospitals}</div>
+                      <div className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">150+</div>
+                      <div className="text-xs text-muted-foreground font-medium">{t.stats.hospitals}</div>
                     </div>
                     <div className="text-center group">
-                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">50+</div>
-                      <div className="text-sm text-muted-foreground font-medium">{t.stats.specialties}</div>
+                      <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">20+</div>
+                      <div className="text-xs text-muted-foreground font-medium">{t.stats.specialties}</div>
                     </div>
                     <div className="text-center group">
-                      <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">24/7</div>
-                      <div className="text-sm text-muted-foreground font-medium">{t.stats.available}</div>
+                      <div className="text-lg font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">500+</div>
+                      <div className="text-xs text-muted-foreground font-medium">{t.stats.doctors}</div>
+                    </div>
+                    <div className="text-center group">
+                      <div className="text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-200">24/7</div>
+                      <div className="text-xs text-muted-foreground font-medium">{t.stats.available}</div>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>
