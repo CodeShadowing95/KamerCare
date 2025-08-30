@@ -10,6 +10,7 @@ class Patient extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'first_name',
         'last_name',
         'email',
@@ -39,6 +40,26 @@ class Patient extends Model
     public function medicalRecords()
     {
         return $this->hasMany(MedicalRecord::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function doctors()
+    {
+        return $this->belongsToMany(Doctor::class, 'doctor_patient')
+                    ->withPivot(['assigned_at', 'notes', 'is_active'])
+                    ->withTimestamps()
+                    ->wherePivot('is_active', true);
+    }
+
+    public function allDoctors()
+    {
+        return $this->belongsToMany(Doctor::class, 'doctor_patient')
+                    ->withPivot(['assigned_at', 'notes', 'is_active'])
+                    ->withTimestamps();
     }
 
     // Accessors

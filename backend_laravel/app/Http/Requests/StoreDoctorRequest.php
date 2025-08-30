@@ -30,11 +30,11 @@ class StoreDoctorRequest extends FormRequest
             // Doctor specific information
             'specialization' => ['required', 'string', 'max:100'],
             'license_number' => ['required', 'string', 'max:50', 'unique:doctors'],
-            'years_of_experience' => ['required', 'integer', 'min:0', 'max:60'],
+            'years_of_experience' => ['required', 'string', 'max:10'],
             'consultation_fee' => ['required', 'numeric', 'min:0'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'office_address' => ['nullable', 'string', 'max:500'],
-            'working_hours' => ['nullable', 'json'],
+            'consultation_hours' => ['nullable', 'json'],
             'is_available' => ['boolean'],
         ];
     }
@@ -65,9 +65,8 @@ class StoreDoctorRequest extends FormRequest
             'license_number.unique' => 'Ce numéro de licence est déjà utilisé.',
             
             'years_of_experience.required' => 'Les années d\'expérience sont obligatoires.',
-            'years_of_experience.integer' => 'Les années d\'expérience doivent être un nombre entier.',
-            'years_of_experience.min' => 'Les années d\'expérience ne peuvent pas être négatives.',
-            'years_of_experience.max' => 'Les années d\'expérience ne peuvent pas dépasser 60 ans.',
+            'years_of_experience.string' => 'Les années d\'expérience doivent être une chaîne de caractères.',
+            'years_of_experience.max' => 'Les années d\'expérience ne peuvent pas dépasser 10 caractères.',
             
             'consultation_fee.required' => 'Les frais de consultation sont obligatoires.',
             'consultation_fee.numeric' => 'Les frais de consultation doivent être un nombre.',
@@ -91,7 +90,7 @@ class StoreDoctorRequest extends FormRequest
             'consultation_fee' => 'frais de consultation',
             'bio' => 'biographie',
             'office_address' => 'adresse du cabinet',
-            'working_hours' => 'heures de travail',
+            'consultation_hours' => 'heures de consultation',
             'is_available' => 'disponibilité',
         ];
     }

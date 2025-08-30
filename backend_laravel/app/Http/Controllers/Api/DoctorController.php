@@ -62,14 +62,21 @@ class DoctorController extends Controller
             'password' => 'required|string|min:8',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
+            'date_of_birth' => 'nullable|date|before:today',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string|max:255',
             'specialization' => 'required|string|max:255',
+            'hospital' => 'nullable|string|max:255',
             'license_number' => 'required|string|unique:doctors,license_number',
             'phone' => 'required|string|max:20',
             'bio' => 'nullable|string',
-            'qualifications' => 'nullable|string',
-            'years_of_experience' => 'required|integer|min:0',
+            'qualifications' => 'nullable|array',
+            'education' => 'nullable|array',
+            'certifications' => 'nullable|array',
+            'references' => 'nullable|array',
+            'years_of_experience' => 'required|string',
             'office_address' => 'nullable|string',
-            'consultation_hours' => 'nullable|string',
+            'consultation_hours' => 'nullable|array',
             'consultation_fee' => 'required|numeric|min:0',
             'is_available' => 'boolean'
         ]);
@@ -120,14 +127,22 @@ class DoctorController extends Controller
         $validated = $request->validate([
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
+            'date_of_birth' => 'nullable|date|before:today',
+            'email' => ['nullable', 'email', Rule::unique('doctors')->ignore($doctor->id)],
+            'address' => 'nullable|string',
+            'city' => 'nullable|string|max:255',
             'specialization' => 'sometimes|required|string|max:255',
+            'hospital' => 'nullable|string|max:255',
             'license_number' => ['sometimes', 'required', 'string', Rule::unique('doctors')->ignore($doctor->id)],
             'phone' => 'sometimes|required|string|max:20',
             'bio' => 'nullable|string',
-            'qualifications' => 'nullable|string',
-            'years_of_experience' => 'sometimes|required|integer|min:0',
+            'qualifications' => 'nullable|array',
+            'education' => 'nullable|array',
+            'certifications' => 'nullable|array',
+            'references' => 'nullable|array',
+            'years_of_experience' => 'sometimes|required|string',
             'office_address' => 'nullable|string',
-            'consultation_hours' => 'nullable|string',
+            'consultation_hours' => 'nullable|array',
             'consultation_fee' => 'sometimes|required|numeric|min:0',
             'is_available' => 'boolean'
         ]);
@@ -144,6 +159,11 @@ class DoctorController extends Controller
         // Update user phone if changed
         if (isset($validated['phone'])) {
             $doctor->user->update(['phone' => $validated['phone']]);
+        }
+
+        // Update user email if changed
+        if (isset($validated['email'])) {
+            $doctor->user->update(['email' => $validated['email']]);
         }
 
         return response()->json([

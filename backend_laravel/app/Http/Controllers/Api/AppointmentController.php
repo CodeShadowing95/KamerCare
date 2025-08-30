@@ -70,8 +70,8 @@ class AppointmentController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:doctors,id',
+            'patient_id' => 'required|exists:users,id', // Maintenant on utilise l'ID de l'utilisateur
+            'doctor_id' => 'required|exists:users,id', // ID de l'utilisateur docteur
             'appointment_date' => 'required|date|after:now',
             'duration_minutes' => 'required|integer|min:15|max:240',
             'reason_for_visit' => 'required|string|max:500',
@@ -79,11 +79,63 @@ class AppointmentController extends Controller
             'consultation_fee' => 'required|numeric|min:0'
         ]);
 
+        // Récupérer l'utilisateur patient
+        $user = \App\Models\User::findOrFail($validated['patient_id']);
+        
+        // Vérifier que l'utilisateur a le rôle patient
+        if ($user->role !== 'patient') {
+            return response()->json([
+                'success' => false,
+                'message' => 'L\'utilisateur sélectionné n\'est pas un patient'
+            ], 422);
+        }
+
+        // Créer ou récupérer l'enregistrement patient
+        $patient = Patient::firstOrCreate(
+            ['email' => $user->email], // Utiliser l'email comme critère principal
+            [
+                'user_id' => $user->id,
+                'first_name' => explode(' ', $user->name)[0] ?? $user->name,
+                'last_name' => explode(' ', $user->name, 2)[1] ?? '',
+                'phone' => $user->phone,
+                'date_of_birth' => '1990-01-01', // Date par défaut, à mettre à jour par le patient
+            ]
+        );
+
+        // Récupérer l'utilisateur docteur
+        $doctorUser = \App\Models\User::findOrFail($validated['doctor_id']);
+        
+        // Vérifier que l'utilisateur a le rôle docteur
+        if ($doctorUser->role !== 'doctor') {
+            return response()->json([
+                'success' => false,
+                'message' => 'L\'utilisateur sélectionné n\'est pas un docteur'
+            ], 422);
+        }
+        
+        // Récupérer l'enregistrement docteur
+        $doctor = $doctorUser->doctor;
+        if (!$doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun profil docteur trouvé pour cet utilisateur'
+            ], 422);
+        }
+
+        // Créer la relation doctor_patient si elle n'existe pas
+        if (!$patient->doctors()->where('doctor_id', $doctor->id)->exists()) {
+            $patient->doctors()->attach($doctor->id, [
+                'assigned_at' => now(),
+                'is_active' => true,
+                'notes' => 'Assigné automatiquement lors de la création du rendez-vous'
+            ]);
+        }
+
         // Check if doctor is available at the requested time
         $appointmentDate = Carbon::parse($validated['appointment_date']);
         $endTime = $appointmentDate->copy()->addMinutes($validated['duration_minutes']);
 
-        $conflictingAppointment = Appointment::where('doctor_id', $validated['doctor_id'])
+        $conflictingAppointment = Appointment::where('doctor_id', $doctor->id)
             ->where('status', '!=', 'cancelled')
             ->where(function ($query) use ($appointmentDate, $endTime) {
                 $query->whereBetween('appointment_date', [$appointmentDate, $endTime])
@@ -101,10 +153,14 @@ class AppointmentController extends Controller
             ], 422);
         }
 
-        $validated['status'] = 'scheduled';
-        $validated['payment_status'] = 'pending';
+        // Créer le rendez-vous avec l'ID du patient créé
+        $appointmentData = $validated;
+        $appointmentData['patient_id'] = $patient->id; // Utiliser l'ID du patient créé
+        $appointmentData['doctor_id'] = $doctor->id; // Utiliser l'ID du docteur récupéré
+        $appointmentData['status'] = 'scheduled';
+        $appointmentData['payment_status'] = 'pending';
         
-        $appointment = Appointment::create($validated);
+        $appointment = Appointment::create($appointmentData);
         $appointment->load(['patient', 'doctor']);
 
         return response()->json([

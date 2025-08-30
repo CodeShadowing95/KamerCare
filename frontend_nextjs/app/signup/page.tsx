@@ -19,7 +19,7 @@ export default function SignupPage() {
     email: "",
     phone: "",
     dateOfBirth: "",
-    region: "",
+    gender: "",
     city: "",
     password: "",
     confirmPassword: "",
@@ -33,9 +33,10 @@ export default function SignupPage() {
   const [success, setSuccess] = useState("")
   const router = useRouter()
 
-  const cameroonRegions = [
-    "Adamaoua", "Centre", "Est", "Extrême-Nord", "Littoral",
-    "Nord", "Nord-Ouest", "Ouest", "Sud", "Sud-Ouest"
+  const genderOptions = [
+    { value: "male", label: "Masculin" },
+    { value: "female", label: "Féminin" },
+    { value: "other", label: "Autre" }
   ]
 
   const validateForm = () => {
@@ -59,8 +60,8 @@ export default function SignupPage() {
       setError("La date de naissance est requise")
       return false
     }
-    if (!formData.region) {
-      setError("La région est requise")
+    if (!formData.gender) {
+      setError("Le sexe est requis")
       return false
     }
     if (!formData.city.trim()) {
@@ -99,11 +100,12 @@ export default function SignupPage() {
 
     try {
       const registrationData = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        date_of_birth: formData.dateOfBirth,
-        region: formData.region,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
         city: formData.city,
         password: formData.password,
         password_confirmation: formData.confirmPassword,
@@ -129,7 +131,7 @@ export default function SignupPage() {
           email: "",
           phone: "",
           dateOfBirth: "",
-          region: "",
+          gender: "",
           city: "",
           password: "",
           confirmPassword: "",
@@ -400,18 +402,18 @@ export default function SignupPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-3 group">
-                      <Label htmlFor="region" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                        Région *
+                      <Label htmlFor="gender" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                        Sexe *
                         <span className="ml-1 text-red-500">•</span>
                       </Label>
-                      <Select onValueChange={(value) => handleSelectChange("region", value)}>
+                      <Select onValueChange={(value) => handleSelectChange("gender", value)}>
                         <SelectTrigger className="w-full h-10 min-h-[2.5rem] text-sm rounded-lg border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200 bg-white/50 dark:bg-gray-800/50 flex items-center">
-                          <SelectValue placeholder="Sélectionnez votre région" />
+                          <SelectValue placeholder="Sélectionnez votre sexe" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                          {cameroonRegions.map((region) => (
-                            <SelectItem key={region} value={region} className="rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                              {region}
+                          {genderOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value} className="rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                              {option.label}
                             </SelectItem>
                           ))}
                         </SelectContent>

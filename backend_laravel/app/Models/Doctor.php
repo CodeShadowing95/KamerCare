@@ -13,11 +13,19 @@ class Doctor extends Model
         'user_id',
         'first_name',
         'last_name',
+        'date_of_birth',
+        'email',
+        'address',
+        'city',
         'specialization',
+        'hospital',
         'license_number',
         'phone',
         'bio',
         'qualifications',
+        'education',
+        'certifications',
+        'references',
         'years_of_experience',
         'office_address',
         'consultation_hours',
@@ -26,9 +34,15 @@ class Doctor extends Model
     ];
 
     protected $casts = [
+        'date_of_birth' => 'date',
+        'qualifications' => 'array',
+        'education' => 'array',
+        'certifications' => 'array',
+        'references' => 'array',
+        'consultation_hours' => 'array',
         'consultation_fee' => 'decimal:2',
         'is_available' => 'boolean',
-        'years_of_experience' => 'integer',
+
     ];
 
     // Relations
@@ -45,6 +59,21 @@ class Doctor extends Model
     public function medicalRecords()
     {
         return $this->hasMany(MedicalRecord::class);
+    }
+
+    public function patients()
+    {
+        return $this->belongsToMany(Patient::class, 'doctor_patient')
+                    ->withPivot(['assigned_at', 'notes', 'is_active'])
+                    ->withTimestamps()
+                    ->wherePivot('is_active', true);
+    }
+
+    public function allPatients()
+    {
+        return $this->belongsToMany(Patient::class, 'doctor_patient')
+                    ->withPivot(['assigned_at', 'notes', 'is_active'])
+                    ->withTimestamps();
     }
 
     // Accessors

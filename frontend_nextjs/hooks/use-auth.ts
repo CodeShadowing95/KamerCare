@@ -7,6 +7,18 @@ export interface User {
   email: string;
   role: string;
   status: string;
+  speciality?: string;
+  doctor?: {
+    specialization: string;
+    hospital?: string;
+    license_number: string;
+    phone: string;
+    bio?: string;
+    years_of_experience: string;
+    consultation_fee: number;
+    is_available: boolean;
+    [key: string]: any;
+  };
 }
 
 export interface AuthState {
@@ -77,11 +89,21 @@ export function useAuth(): AuthState & AuthActions {
       const response = await apiService.login(credentials);
       
       if (response.success && response.data) {
-        const { user, token } = response.data;
+        const { user: userData, token } = response.data;
+        
+        // Map doctor specialization to user speciality and preserve doctor relation
+        const user = {
+          ...userData,
+          speciality: userData.doctor?.specialization || undefined,
+          doctor: userData.doctor || undefined
+        };
         
         // Store in localStorage
         localStorage.setItem(TOKEN_KEY, token);
         localStorage.setItem(USER_KEY, JSON.stringify(user));
+        
+        // Store token in cookie for middleware access
+        document.cookie = `auth_token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
         
         setState({
           user,
@@ -138,9 +160,12 @@ export function useAuth(): AuthState & AuthActions {
       
       // Don't throw the error, just log it since we want to clear local state anyway
     } finally {
-      // Clear localStorage and state regardless of API call result
+      // Clear localStorage, cookies and state regardless of API call result
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      
+      // Clear auth cookie
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       
       setState({
         user: null,

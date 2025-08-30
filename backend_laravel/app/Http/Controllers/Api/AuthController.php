@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Doctor;
+use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,8 +23,9 @@ class AuthController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "email", "password", "password_confirmation", "role"},
-     *             @OA\Property(property="name", type="string", example="Dr. Jean Dupont"),
+     *             required={"firstName", "lastName", "email", "password", "password_confirmation", "role"},
+     *             @OA\Property(property="firstName", type="string", example="Jean"),
+     *             @OA\Property(property="lastName", type="string", example="Dupont"),
      *             @OA\Property(property="email", type="string", format="email", example="jean.dupont@example.com"),
      *             @OA\Property(property="password", type="string", format="password", example="password123"),
      *             @OA\Property(property="password_confirmation", type="string", format="password", example="password123"),
@@ -65,11 +67,15 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:doctor,patient',
             'phone' => 'nullable|string|max:20',
+            // Patient specific fields
+            'dateOfBirth' => 'required_if:role,patient|date',
+            'gender' => 'required_if:role,patient|in:male,female,other',
             // Doctor specific fields
             'specialization' => 'required_if:role,doctor|string|max:255',
             'license_number' => 'required_if:role,doctor|string|max:255|unique:doctors',
@@ -91,7 +97,7 @@ class AuthController extends Controller
 
         // Create user
         $user = User::create([
-            'name' => $request->name,
+            'name' => trim($request->firstName . ' ' . $request->lastName),
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
@@ -101,14 +107,10 @@ class AuthController extends Controller
 
         // If user is a doctor, create doctor profile
         if ($request->role === 'doctor') {
-            $nameParts = explode(' ', $request->name, 2);
-            $firstName = $nameParts[0];
-            $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
-
             Doctor::create([
                 'user_id' => $user->id,
-                'first_name' => $firstName,
-                'last_name' => $lastName,
+                'first_name' => $request->firstName,
+                'last_name' => $request->lastName,
                 'specialization' => $request->specialization,
                 'license_number' => $request->license_number,
                 'phone' => $request->phone,
@@ -121,6 +123,8 @@ class AuthController extends Controller
                 'is_available' => true,
             ]);
         }
+        // Note: Les patients ne sont plus créés automatiquement lors de l'enregistrement
+        // Ils seront créés uniquement quand un docteur les ajoute à sa liste de patients
 
         // Create token
         $token = $user->createToken('auth_token')->plainTextToken;

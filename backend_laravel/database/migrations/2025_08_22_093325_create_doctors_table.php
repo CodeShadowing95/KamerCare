@@ -23,7 +23,7 @@ class CreateDoctorsTable extends Migration
             $table->string('phone')->nullable();
             $table->text('bio')->nullable();
             $table->json('qualifications')->nullable();
-            $table->integer('years_of_experience')->default(0);
+            $table->string('years_of_experience')->default('0');
             $table->text('office_address')->nullable();
             $table->json('consultation_hours')->nullable();
             $table->decimal('consultation_fee', 8, 2)->nullable();

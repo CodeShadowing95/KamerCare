@@ -2,21 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Shield, ArrowLeft, Heart, Activity, Zap, Star, Lock, UserPlus, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Shield, ArrowLeft, Heart, Activity, Zap, Star, Lock, UserPlus, User, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DoctorLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [error, setError] = useState("");
+  
+  const router = useRouter();
+  const { login, isLoading, isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsVisible(true);
@@ -29,14 +36,52 @@ export default function DoctorLogin() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && typeof window !== undefined) {
+      window.location.href = "/doctor"
+    }
+  }, [isAuthenticated, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setError("");
 
-    setTimeout(() => {
-      setIsLoading(false);
-      window.location.href = "/doctor";
-    }, 2000);
+    if (!email || !password) {
+      setError("Veuillez remplir tous les champs");
+      return;
+    }
+
+    try {
+      const result = await login({ email, password });
+      
+      if (result.success) {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue dans votre espace professionnel",
+        });
+
+        if (typeof window !== undefined) {
+          window.location.href = "/doctor"
+        }
+        
+      } else {
+        setError(result.error || "Échec de la connexion");
+        toast({
+          title: "Erreur de connexion",
+          description: result.error || "Vérifiez vos identifiants",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      const errorMessage = "Une erreur est survenue lors de la connexion";
+      setError(errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -75,7 +120,7 @@ export default function DoctorLogin() {
             <div className="text-center pt-3 sm:pt-4 absolute top-0 left-0">
               <div className="relative inline-block group">
                 <Link
-                  href="/doctor"
+                  href="/doctor-portal"
                   className="relative inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-all duration-300 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white/40 backdrop-blur-sm border border-gray-200/50 hover:border-gray-300/50 hover:bg-white/60 text-xs sm:text-sm"
                 >
                   <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -155,6 +200,13 @@ export default function DoctorLogin() {
             
               <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
                 <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                  {error && (
+                    <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+                  
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="email" className="text-gray-700 font-medium text-xs sm:text-sm flex items-center space-x-2">
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />

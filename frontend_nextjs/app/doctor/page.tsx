@@ -1,6 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
+import { useAppointments } from "@/hooks/use-appointments"
+
 import {
   Calendar,
   Users,
@@ -23,6 +27,9 @@ import {
   Send,
   ChevronLeft,
   ChevronRight,
+  List,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,9 +39,277 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 
+// Composant pour le tableau des prochains rendez-vous
+function UpcomingAppointmentsTable({ router }: { router: any }) {
+  const { user } = useAuth()
+  const { appointments, refetch, loading, error } = useAppointments({ 
+    upcoming: true,
+    doctor_id: user?.doctor?.id || user?.id
+  })
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', { 
+      weekday: 'short', 
+      day: 'numeric', 
+      month: 'short',
+      year: 'numeric'
+    })
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('fr-FR', { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    })
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'Confirmé'
+      case 'scheduled': return 'Programmé'
+      case 'completed': return 'Terminé'
+      case 'cancelled': return 'Annulé'
+      default: return 'En attente'
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
+          <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span>Prochains Rendez-vous</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <span className="ml-3 text-slate-600 dark:text-slate-400">Chargement des rendez-vous...</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
+          <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span>Prochains Rendez-vous</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Erreur de chargement</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+      <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div>
+              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <span>Prochains Rendez-vous</span>
+                <Badge className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 px-3 py-1 rounded-full">
+                  {appointments.length}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400 mt-2 text-base">
+                Aperçu des prochains rendez-vous programmés
+              </CardDescription>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => refetch()}
+              variant="ghost"
+              size="sm"
+              className="hover:bg-green-50 dark:hover:bg-green-900/30 border border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl text-green-600 dark:text-green-400"
+              title="Actualiser les données"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => router.push('/doctor/appointments')}
+              variant="outline"
+              size="sm"
+              className="hover:bg-indigo-50 dark:hover:bg-slate-600 border-indigo-200 hover:border-indigo-400 transition-all duration-300 hover:scale-105 rounded-xl"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Planning complet
+            </Button>
+          </div>
+          
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {appointments.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Clock className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Aucun rendez-vous à venir</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-4">Votre planning est libre pour les prochains jours</p>
+            <Button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+              <Plus className="w-4 h-4 mr-2" />
+              Planifier un rendez-vous
+            </Button>
+          </div>
+        ) : (
+          <div className="overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-50 dark:bg-slate-700/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Patient
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Date & Heure
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Motif
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Durée
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Statut
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-600">
+                {appointments.slice(0, 10).map((appointment, index) => (
+                  <tr key={appointment.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Avatar className="w-8 h-8 mr-3">
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold">
+                            {`${appointment.patient.first_name[0]}${appointment.patient.last_name[0]}`}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="text-sm font-medium text-slate-900 dark:text-white">
+                            {appointment.patient.first_name} {appointment.patient.last_name}
+                          </div>
+                          {appointment.patient.phone && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {appointment.patient.phone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-900 dark:text-white font-medium">
+                        {formatDate(appointment.appointment_date)}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        {formatTime(appointment.appointment_date)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs text-slate-500 dark:text-white max-w-xs truncate" title={appointment.reason_for_visit}>
+                        {appointment.reason_for_visit}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-900 dark:text-white font-medium">
+                        {appointment.duration_minutes} min
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge className={`${getStatusColor(appointment.status)} px-2 py-1 text-xs font-medium rounded-full`}>
+                        {getStatusText(appointment.status)}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
+                          title="Voir les détails"
+                        >
+                          <Eye className="w-3 h-3 text-indigo-600" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
+                          title="Modifier"
+                        >
+                          <Edit className="w-3 h-3 text-green-600" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function DoctorDashboard() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading, user } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [unreadMessages] = useState(12)
+
+  const [currentDate, setCurrentDate] = useState(new Date())
+
+  // Protection de route : rediriger vers /login si non authentifié
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/doctor/login')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  // Afficher un loader pendant la vérification d'authentification
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Chargement du tableau de bord...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Ne pas afficher le contenu si non authentifié
+  if (!isAuthenticated) {
+    return null
+  }
+
+
 
   const appointments = [
     {
@@ -151,636 +426,705 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-50">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-          <div className="flex items-center space-x-3">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src="/caring-doctor.png" />
-              <AvatarFallback className="bg-medical-primary text-white">DN</AvatarFallback>
-            </Avatar>
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="py-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
             <div>
-              <div className="font-semibold text-slate-900 dark:text-white">Dr. Ngono</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">Médecin généraliste</div>
-              <div className="text-xs text-medical-primary font-medium">CHU Yaoundé</div>
+              <h1 className="text-3xl font-semibold text-slate-700 dark:text-white mb-1">
+                How nonnn, Dr. {user?.name ? user.name.split(' ').slice(0, 2).join(' ') : 'Docteur'} 👋
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400 text-base">
+                Tu vas do quoi oday ?
+              </p>
             </div>
           </div>
-        </div>
-
-        <nav className="px-4 py-6 space-y-2">
-          <Button
-            variant={activeTab === "overview" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "overview" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("overview")}
-          >
-            <Activity className="w-4 h-4 mr-3" />
-            Tableau de bord
-          </Button>
-          <Button
-            variant={activeTab === "appointments" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "appointments" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("appointments")}
-          >
-            <Calendar className="w-4 h-4 mr-3" />
-            Mes rendez-vous
-          </Button>
-          <Button
-            variant={activeTab === "calendar" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "calendar" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("calendar")}
-          >
-            <Calendar className="w-4 h-4 mr-3" />
-            Calendrier
-          </Button>
-          <Button
-            variant={activeTab === "queue" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "queue" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("queue")}
-          >
-            <Users className="w-4 h-4 mr-3" />
-            File d'attente
-          </Button>
-          <Button
-            variant={activeTab === "prescriptions" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "prescriptions" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("prescriptions")}
-          >
-            <FileText className="w-4 h-4 mr-3" />
-            Prescriptions
-          </Button>
-          <Button
-            variant={activeTab === "messages" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "messages" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("messages")}
-          >
-            <MessageSquare className="w-4 h-4 mr-3" />
-            Messages
-            {messages.filter((m) => m.unread).length > 0 && (
-              <Badge className="ml-auto bg-red-500 text-white text-xs">{messages.filter((m) => m.unread).length}</Badge>
-            )}
-          </Button>
-          <Button
-            variant={activeTab === "settings" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${
-              activeTab === "settings" ? "bg-medical-primary/10 text-medical-primary" : ""
-            }`}
-            onClick={() => setActiveTab("settings")}
-          >
-            <Settings className="w-4 h-4 mr-3" />
-            Paramètres
-          </Button>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className="ml-64">
-        {/* Top Bar */}
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {activeTab === "overview" && "Tableau de bord"}
-                {activeTab === "appointments" && "Mes rendez-vous"}
-                {activeTab === "calendar" && "Calendrier"}
-                {activeTab === "queue" && "File d'attente"}
-                {activeTab === "prescriptions" && "Prescriptions"}
-                {activeTab === "messages" && "Messages"}
-                {activeTab === "settings" && "Paramètres"}
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                {new Date().toLocaleDateString("fr-FR", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
+          <div className="hidden md:flex items-center space-x-3">
+            <div className="text-right">
+              {/* <p className="text-sm text-slate-500 dark:text-slate-400">Aujourd'hui</p> */}
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {new Date().toLocaleDateString('fr-FR', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                {new Date().toLocaleTimeString('fr-FR', { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
                 })}
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                <Input placeholder="Rechercher..." className="pl-10 w-64" />
+            <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Aujourd'hui</p>
+                <p className="text-3xl font-bold text-emerald-800 dark:text-emerald-200 mt-2">{stats.todayAppointments}</p>
+                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Rendez-vous</p>
               </div>
-              <Button variant="ghost" size="sm">
-                <Bell className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-slate-600 dark:text-slate-400">En ligne</span>
+              <div className="bg-emerald-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium">Confirmés</p>
+                <p className="text-3xl font-bold text-green-800 dark:text-green-200 mt-2">
+                  {stats.confirmedAppointments}
+                </p>
+                <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Patients</p>
+              </div>
+              <div className="bg-green-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Taux présence</p>
+                <p className="text-3xl font-bold text-blue-800 dark:text-blue-200 mt-2">{stats.weeklyPresenceRate}%</p>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Cette semaine</p>
+              </div>
+              <div className="bg-blue-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Satisfaction</p>
+                <div className="flex items-center space-x-2 mt-2">
+                  <p className="text-3xl font-bold text-yellow-800 dark:text-yellow-200">{stats.averageRating}</p>
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`w-4 h-4 ${i < Math.floor(stats.averageRating) ? 'text-yellow-400 fill-current' : 'text-yellow-200'}`} />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-yellow-600/70 dark:text-yellow-400/70 mt-1">Note moyenne</p>
+              </div>
+              <div className="bg-yellow-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <Star className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6 mb-8">
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            variant={activeTab === 'overview' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('overview')}
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+          >
+            <Activity className="w-4 h-4" />
+            <span>Vue d'ensemble</span>
+          </Button>
+          
+          <Button 
+            variant={activeTab === 'appointments' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('appointments')}
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+          >
+            <Clock className="w-4 h-4" />
+            <span>Rendez-vous programmés</span>
+          </Button>
+          
+          <Button 
+            variant={activeTab === 'calendar' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('calendar')}
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Calendrier</span>
+          </Button>
+        </div>
+      </div>
+
+      {activeTab === "overview" && (
+        <div className="space-y-8">
+          {/* Today's Queue */}
+          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm">
+            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl shadow-lg">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">File d'attente du jour</h3>
+                    <p className="text-emerald-100 text-sm mt-1">Gestion des patients en temps réel</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-4 py-2 text-sm font-semibold">
+                    {queue.length} patients
+                  </Badge>
+                  <Button size="sm" className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {queue.length > 0 ? (
+                <div className="space-y-4">
+                  {queue.map((item, index) => (
+                    <div key={item.id} className="group relative">
+                      <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded-2xl border border-slate-200/60 dark:border-slate-600/60 p-6 hover:shadow-xl hover:border-emerald-200 dark:hover:border-emerald-600 transition-all duration-500 hover:scale-[1.02] group-hover:bg-gradient-to-r group-hover:from-emerald-50 group-hover:via-white group-hover:to-teal-50 dark:group-hover:from-emerald-900/20 dark:group-hover:via-slate-800 dark:group-hover:to-teal-900/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-6">
+                            {/* Position & Avatar */}
+                            <div className="relative flex items-center space-x-4">
+                              <div className="relative">
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg ring-4 transition-all duration-300 ${item.status === "current"
+                                    ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 text-white ring-emerald-200 shadow-emerald-200"
+                                    : "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-slate-700 ring-slate-200 shadow-slate-200"
+                                  }`}>
+                                  {item.ticket}
+                                </div>
+                                {item.status === "current" && (
+                                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-3 border-white shadow-lg animate-pulse flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full text-sm font-semibold">
+                                #{index + 1}
+                              </div>
+                            </div>
+
+                            {/* Patient Info */}
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">{item.patient}</h4>
+                                {item.status === "current" && (
+                                  <div className="flex items-center space-x-2 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span className="text-green-700 dark:text-green-300 text-sm font-medium">En consultation</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-6 text-sm text-slate-600 dark:text-slate-400">
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="w-4 h-4 text-emerald-500" />
+                                  <span className="font-medium">
+                                    {item.status === "current" ? "Consultation en cours" : `Temps d'attente: ${item.estimatedTime}`}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Calendar className="w-4 h-4 text-blue-500" />
+                                  <span>Arrivé à {item.arrivalTime || '09:00'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                              <Button variant="ghost" size="sm" className="hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <Badge className={`px-4 py-2 font-semibold text-sm rounded-xl shadow-sm ${item.status === "current"
+                                ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
+                                : "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200"
+                              }`}>
+                              {item.status === "current" ? "🩺 En consultation" : "⏳ En attente"}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar for Current Patient */}
+                        {item.status === "current" && (
+                          <div className="mt-4 pt-4 border-t border-emerald-100 dark:border-emerald-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Progression de la consultation</span>
+                              <span className="text-sm text-emerald-600 dark:text-emerald-400">65%</span>
+                            </div>
+                            <div className="w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full h-2">
+                              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-1000 animate-pulse" style={{ width: '65%' }}></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <Users className="w-12 h-12 text-slate-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-2">File d'attente vide</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mb-6">Aucun patient n'est actuellement en attente</p>
+                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Ajouter un patient
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "appointments" && (
+        <div className="space-y-8">
+          {/* Enhanced Header with Stats */}
+          <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">Gestion des Rendez-vous</h2>
+                  <p className="text-blue-100 text-lg">Suivez et gérez vos rendez-vous avec vos patients</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Nouveau RDV
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </header>
 
-        {/* Content */}
-        <main className="p-6">
-          {activeTab === "overview" && (
-            <div className="space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Aujourd'hui</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.todayAppointments}</p>
-                      </div>
-                      <Calendar className="w-8 h-8 text-emerald-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Confirmés</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {stats.confirmedAppointments}
-                        </p>
-                      </div>
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Taux présence</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.weeklyPresenceRate}%</p>
-                      </div>
-                      <TrendingUp className="w-8 h-8 text-blue-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Satisfaction</p>
-                        <div className="flex items-center space-x-1">
-                          <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.averageRating}</p>
-                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        </div>
-                      </div>
-                      <Star className="w-8 h-8 text-yellow-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Today's Queue */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>File d'attente du jour</CardTitle>
-                  <CardDescription>Patients en attente de consultation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {queue.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
-                              item.status === "current"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-slate-200 text-slate-600"
-                            }`}
-                          >
-                            {item.ticket}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900 dark:text-white">{item.patient}</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              {item.status === "current" ? "En cours" : `Attente: ${item.estimatedTime}`}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {item.status === "current" && (
-                            <Badge className="bg-emerald-100 text-emerald-800">En cours</Badge>
-                          )}
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {activeTab === "appointments" && (
-            <div className="space-y-6">
-              {/* Filters */}
-              <div className="flex items-center justify-between">
+          {/* Enhanced Filters */}
+          <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex flex-wrap items-center justify-between gap-6">
                 <div className="flex items-center space-x-4">
-                  <Select defaultValue="today">
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="today">Aujourd'hui</SelectItem>
-                      <SelectItem value="week">Cette semaine</SelectItem>
-                      <SelectItem value="month">Ce mois</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
+                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Période:</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-300 hover:scale-105"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Aujourd'hui
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hover:bg-blue-50 dark:hover:bg-slate-700 border-slate-300 hover:border-blue-400 transition-all duration-300 hover:scale-105"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Cette semaine
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hover:bg-blue-50 dark:hover:bg-slate-700 border-slate-300 hover:border-blue-400 transition-all duration-300 hover:scale-105"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Ce mois
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg">
+                      <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Statut:</span>
+                  </div>
                   <Select defaultValue="all">
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-52 border-slate-300 hover:border-purple-400 transition-colors duration-200 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les statuts</SelectItem>
-                      <SelectItem value="confirmed">Confirmés</SelectItem>
-                      <SelectItem value="waiting">En attente</SelectItem>
-                      <SelectItem value="completed">Terminés</SelectItem>
+                      <SelectItem value="all">🔍 Tous les statuts</SelectItem>
+                      <SelectItem value="confirmed">✅ Confirmés</SelectItem>
+                      <SelectItem value="waiting">⏳ En attente</SelectItem>
+                      <SelectItem value="completed">🎉 Terminés</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nouveau RDV
-                </Button>
-              </div>
-
-              {/* Appointments Table */}
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-slate-50 dark:bg-slate-800">
-                        <tr>
-                          <th className="text-left p-4 font-semibold text-slate-900 dark:text-white">Patient</th>
-                          <th className="text-left p-4 font-semibold text-slate-900 dark:text-white">Heure</th>
-                          <th className="text-left p-4 font-semibold text-slate-900 dark:text-white">Motif</th>
-                          <th className="text-left p-4 font-semibold text-slate-900 dark:text-white">Statut</th>
-                          <th className="text-left p-4 font-semibold text-slate-900 dark:text-white">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {appointments.map((appointment) => (
-                          <tr key={appointment.id} className="border-t border-slate-200 dark:border-slate-700">
-                            <td className="p-4">
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="w-8 h-8">
-                                  <AvatarFallback>
-                                    {appointment.patient
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-semibold text-slate-900 dark:text-white">{appointment.patient}</p>
-                                  <p className="text-sm text-slate-600 dark:text-slate-400">{appointment.phone}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Clock className="w-4 h-4 text-slate-400" />
-                                <span className="text-slate-900 dark:text-white">{appointment.time}</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <p className="text-slate-900 dark:text-white">{appointment.reason}</p>
-                            </td>
-                            <td className="p-4">
-                              <Badge className={getStatusColor(appointment.status)}>
-                                {getStatusText(appointment.status)}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="flex items-center space-x-2">
+                    <Input 
+                      placeholder="Rechercher un patient..."
+                      className="w-64 border-slate-300 hover:border-blue-400 focus:border-blue-500 transition-colors duration-200 rounded-xl"
+                    />
+                    <Button variant="outline" size="sm" className="hover:bg-blue-50 dark:hover:bg-slate-600 rounded-xl">
+                      <Search className="w-4 h-4" />
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {activeTab === "calendar" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Button variant="outline" size="sm">
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <h2 className="text-xl font-semibold">Janvier 2024</h2>
-                  <Button variant="outline" size="sm">
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    Aujourd'hui
-                  </Button>
-                  <Button size="sm" className="bg-medical-primary hover:bg-medical-primary/90">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nouveau créneau
-                  </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-7 gap-4 mb-4">
-                    {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
-                      <div key={day} className="text-center font-semibold text-slate-600 dark:text-slate-400 py-2">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7 gap-4">
-                    {Array.from({ length: 35 }, (_, i) => {
-                      const day = i - 6 + 1
-                      const hasAppointment = [8, 15, 22, 29].includes(day)
-                      return (
-                        <div
-                          key={i}
-                          className={`aspect-square flex flex-col items-center justify-center rounded-lg border cursor-pointer transition-colors ${
-                            day > 0 && day <= 31
-                              ? hasAppointment
-                                ? "bg-medical-primary/10 border-medical-primary text-medical-primary"
-                                : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
-                              : "text-slate-300 dark:text-slate-600"
-                          }`}
-                        >
-                          {day > 0 && day <= 31 && (
-                            <>
-                              <span className="text-sm font-medium">{day}</span>
-                              {hasAppointment && <div className="w-1 h-1 bg-medical-primary rounded-full mt-1"></div>}
-                            </>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {activeTab === "prescriptions" && (
-            <div className="space-y-6">
+          {/* Section Rendez-vous du jour */}
+          <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <Select defaultValue="all">
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes</SelectItem>
-                      <SelectItem value="active">Actives</SelectItem>
-                      <SelectItem value="completed">Terminées</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="sm">
+                  <div>
+                    <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                      <span>Rendez-vous du jour</span>
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">
+                        {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-400 mt-2 text-base">
+                      {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length} rendez-vous aujourd'hui • {appointments.length} total cette semaine
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button
+                    onClick={() => router.push('/doctor/appointments')}
+                    variant="outline"
+                    size="sm"
+                    className="hover:bg-blue-50 dark:hover:bg-slate-600 border-blue-200 hover:border-blue-400 transition-all duration-300 hover:scale-105 rounded-xl"
+                  >
+                    <List className="w-4 h-4 mr-2" />
+                    Voir tous
+                  </Button>
+                  <Button variant="outline" size="sm" className="hover:bg-green-50 dark:hover:bg-slate-600 border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl">
+                    <Download className="w-4 h-4 mr-2" />
+                    Exporter
+                  </Button>
+                  <Button variant="outline" size="sm" className="hover:bg-purple-50 dark:hover:bg-slate-600 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:scale-105 rounded-xl">
                     <Filter className="w-4 h-4 mr-2" />
                     Filtrer
                   </Button>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Exporter
-                  </Button>
-                  <Button size="sm" className="bg-medical-primary hover:bg-medical-primary/90">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nouvelle prescription
-                  </Button>
-                </div>
               </div>
-
-              <div className="grid gap-4">
-                {prescriptions.map((prescription) => (
-                  <Card key={prescription.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4">
-                          <Avatar className="w-10 h-10">
-                            <AvatarFallback>
-                              {prescription.patient
+            </CardHeader>
+            <CardContent className="p-6">
+              {/* Modern Card Layout */}
+              <div className="space-y-4">
+                {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).slice(0, 5).map((appointment, index) => (
+                  <div key={appointment.id} className="group bg-gradient-to-r from-white to-slate-50/50 dark:from-slate-800 dark:to-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500">
+                    <div className="flex items-center justify-between">
+                      {/* Patient Info */}
+                      <div className="flex items-center space-x-4 flex-1">
+                        <div className="relative">
+                          <Avatar className="w-16 h-16 ring-3 ring-white shadow-xl group-hover:ring-blue-200 transition-all duration-300">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+                              {appointment.patient
                                 .split(" ")
                                 .map((n) => n[0])
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">{prescription.patient}</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                              Prescrite le {new Date(prescription.date).toLocaleDateString("fr-FR")}
-                            </p>
-                            <div className="space-y-2">
-                              {prescription.medications.map((med, index) => (
-                                <div key={index} className="flex items-center space-x-2">
-                                  <div className="w-2 h-2 bg-medical-primary rounded-full"></div>
-                                  <span className="text-sm">{med}</span>
-                                </div>
-                              ))}
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-white shadow-lg animate-pulse"></div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="font-bold text-xl text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-200">
+                              {appointment.patient}
+                            </h3>
+                            <Badge className={`${getStatusColor(appointment.status)} px-3 py-1 text-sm font-semibold rounded-full shadow-sm`}>
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                  appointment.status === 'confirmed' ? 'bg-green-400' :
+                                  appointment.status === 'waiting' ? 'bg-yellow-400' :
+                                  appointment.status === 'completed' ? 'bg-blue-400' :
+                                  'bg-red-400'
+                                }`}></div>
+                                <span>{getStatusText(appointment.status)}</span>
+                              </div>
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="flex items-center space-x-2">
+                              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
+                                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Heure</p>
+                                <p className="font-semibold text-slate-900 dark:text-white">{appointment.time}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg">
+                                <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Motif</p>
+                                <p className="font-semibold text-slate-900 dark:text-white truncate max-w-[200px]">{appointment.reason}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
+                                <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Contact</p>
+                                <p className="font-semibold text-slate-900 dark:text-white">{appointment.phone}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            className={
-                              prescription.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }
-                          >
-                            {prescription.status === "active" ? "Active" : "Terminée"}
-                          </Badge>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 group/btn rounded-xl p-3"
+                          title="Voir les détails"
+                        >
+                          <Eye className="w-5 h-5 text-blue-600 group-hover/btn:scale-110 transition-transform duration-200" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 group/btn rounded-xl p-3"
+                          title="Modifier"
+                        >
+                          <Edit className="w-5 h-5 text-green-600 group-hover/btn:scale-110 transition-transform duration-200" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hover:bg-slate-100 dark:hover:bg-slate-600 transition-all duration-200 group/btn rounded-xl p-3"
+                          title="Plus d'options"
+                        >
+                          <MoreHorizontal className="w-5 h-5 text-slate-600 group-hover/btn:scale-110 transition-transform duration-200" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Progress indicator for current appointment */}
+                    {appointment.status === 'confirmed' && index === 0 && (
+                      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Prochain rendez-vous</span>
+                          <span className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Dans 15 min</span>
+                        </div>
+                        <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-2">
+                          <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-1000 animate-pulse" style={{ width: '85%' }}></div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
+              {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length === 0 && (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Calendar className="w-10 h-10 text-slate-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Aucun rendez-vous aujourd'hui</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mb-6">Vous n'avez pas de rendez-vous programmés pour aujourd'hui</p>
+                  <Button
+                    onClick={() => router.push('/doctor/appointments/new')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Planifier un rendez-vous
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          {activeTab === "messages" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
-                <Card className="lg:col-span-1">
-                  <CardHeader>
-                    <CardTitle>Messages</CardTitle>
-                    <div className="relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                      <Input placeholder="Rechercher..." className="pl-10" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="space-y-1">
-                      {messages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 border-l-4 ${
-                            message.unread ? "border-medical-primary bg-medical-primary/5" : "border-transparent"
-                          }`}
-                        >
-                          <div className="flex items-start space-x-3">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback>
-                                {message.patient
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <p
-                                  className={`font-medium truncate ${message.unread ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}
-                                >
-                                  {message.patient}
-                                </p>
-                                <span className="text-xs text-slate-500">{message.time}</span>
-                              </div>
-                              <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{message.message}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Section Prochains Rendez-vous */}
+          <UpcomingAppointmentsTable router={router} />
+        </div>
+      )}
 
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback>MN</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-base">Marie Ngono</CardTitle>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">En ligne</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex flex-col h-96">
-                    <div className="flex-1 space-y-4 mb-4">
-                      <div className="flex justify-start">
-                        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 max-w-xs">
-                          <p className="text-sm">
-                            Bonjour docteur, j'ai encore des douleurs au niveau de l'estomac depuis hier soir.
-                          </p>
-                          <span className="text-xs text-slate-500 mt-1 block">10:30</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-end">
-                        <div className="bg-medical-primary text-white rounded-lg p-3 max-w-xs">
-                          <p className="text-sm">Bonjour Marie. Pouvez-vous me décrire plus précisément la douleur ?</p>
-                          <span className="text-xs text-medical-primary/70 mt-1 block">10:32</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Textarea placeholder="Tapez votre message..." className="flex-1 min-h-[40px] max-h-[100px]" />
-                      <Button size="sm" className="bg-medical-primary hover:bg-medical-primary/90">
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+      {activeTab === "calendar" && (
+        <div className="space-y-8">
+          {/* Calendar Header */}
+          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-2xl p-6 text-white shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-3">
+                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <h2 className="text-3xl font-bold">
+                    {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                  </h2>
+                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button variant="ghost" className="bg-white/20 hover:bg-white/30 text-white border-white/30 font-semibold">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Aujourd'hui
+                </Button>
+                <Button className="bg-white text-purple-600 hover:bg-purple-50 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Nouveau créneau
+                </Button>
               </div>
             </div>
-          )}
+            <div className="mt-4 flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                <span className="text-purple-100 text-sm">Consultations</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                <span className="text-purple-100 text-sm">Urgences</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                <span className="text-purple-100 text-sm">Suivis</span>
+              </div>
+            </div>
+          </div>
 
-          {activeTab === "queue" && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>File d'attente en temps réel</CardTitle>
-                  <CardDescription>Gérez l'ordre de passage de vos patients</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {queue.map((item, index) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className="text-2xl font-bold text-slate-400">#{index + 1}</div>
-                          <div
-                            className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg ${
-                              item.status === "current"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-slate-200 text-slate-600"
-                            }`}
-                          >
-                            {item.ticket}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900 dark:text-white text-lg">{item.patient}</p>
-                            <p className="text-slate-600 dark:text-slate-400">
-                              {item.status === "current"
-                                ? "En consultation"
-                                : `Temps d'attente estimé: ${item.estimatedTime}`}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {item.status === "current" ? (
-                            <Button className="bg-emerald-600 hover:bg-emerald-700">Terminer consultation</Button>
-                          ) : (
-                            <Button variant="outline">Appeler patient</Button>
+          {/* Calendar Grid */}
+          <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+            <CardContent className="p-8">
+              <div className="grid grid-cols-7 gap-2">
+                {/* Days of week */}
+                {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map((day) => (
+                  <div key={day} className="text-center font-bold text-slate-700 dark:text-slate-300 p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-xl mb-2">
+                    <div className="text-sm">{day}</div>
+                  </div>
+                ))}
+
+                {/* Calendar days */}
+                {Array.from({ length: 35 }, (_, i) => {
+                  const day = i - 6; // Adjust for starting day
+                  const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                  const isToday = date.toDateString() === new Date().toDateString();
+                  const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+                  const hasAppointments = isCurrentMonth && date.getDate() % 3 === 0;
+                  const hasUrgency = isCurrentMonth && date.getDate() % 6 === 0;
+                  const hasFollowUp = isCurrentMonth && date.getDate() % 4 === 0;
+
+                  return (
+                    <div
+                      key={i}
+                      className={`group relative p-4 text-center cursor-pointer rounded-xl transition-all duration-300 hover:scale-105 min-h-[100px] ${isToday
+                          ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-xl ring-4 ring-blue-200'
+                          : isCurrentMonth
+                            ? 'hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-600'
+                            : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-900'
+                        }`}
+                    >
+                      <div className={`font-bold text-lg mb-2 ${isToday ? 'text-white' : 'text-slate-700 dark:text-slate-300'
+                        }`}>
+                        {date.getDate()}
+                      </div>
+
+                      {/* Appointments indicators */}
+                      {isCurrentMonth && (
+                        <div className="space-y-1">
+                          {hasAppointments && (
+                            <div className="group-hover:scale-110 transition-transform duration-200">
+                              <div className="w-full h-2 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full shadow-sm"></div>
+                              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">3 RDV</div>
+                            </div>
+                          )}
+                          {hasUrgency && (
+                            <div className="group-hover:scale-110 transition-transform duration-200">
+                              <div className="w-full h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full shadow-sm"></div>
+                              <div className="text-xs text-green-600 dark:text-green-400 font-medium mt-1">Urgence</div>
+                            </div>
+                          )}
+                          {hasFollowUp && (
+                            <div className="group-hover:scale-110 transition-transform duration-200">
+                              <div className="w-full h-2 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full shadow-sm"></div>
+                              <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mt-1">Suivi</div>
+                            </div>
                           )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                      )}
 
-          {/* Other tabs content would go here */}
-        </main>
-      </div>
+                      {/* Hover effect */}
+                      {isCurrentMonth && (
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/10 group-hover:to-purple-500/10 rounded-xl transition-all duration-300"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+              <CardContent className="p-6 text-center">
+                <div className="bg-blue-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-blue-800 dark:text-blue-200">24</h3>
+                <p className="text-blue-600 dark:text-blue-400 font-medium">RDV ce mois</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+              <CardContent className="p-6 text-center">
+                <div className="bg-green-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">3h 45m</h3>
+                <p className="text-green-600 dark:text-green-400 font-medium">Temps libre aujourd'hui</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+              <CardContent className="p-6 text-center">
+                <div className="bg-purple-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-purple-800 dark:text-purple-200">92%</h3>
+                <p className="text-purple-600 dark:text-purple-400 font-medium">Taux d'occupation</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Other tabs content would go here */}
     </div>
   )
 }

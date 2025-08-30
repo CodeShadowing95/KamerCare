@@ -15,9 +15,49 @@ export interface LoginResponse {
       email: string;
       role: string;
       status: string;
+      doctor?: {
+        specialization: string;
+        hospital?: string;
+        license_number: string;
+        phone: string;
+        bio?: string;
+        years_of_experience: string;
+        consultation_fee: number;
+        is_available: boolean;
+      };
     };
     token: string;
   };
+  errors?: Record<string, string[]>;
+}
+
+export interface DoctorRegistrationData {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth?: string;
+  address?: string;
+  city?: string;
+  specialization: string;
+  hospital?: string;
+  license_number: string;
+  phone: string;
+  bio?: string;
+  qualifications?: string[];
+  education?: string[];
+  certifications?: string[];
+  references?: string[];
+  years_of_experience: string;
+  office_address?: string;
+  consultation_fee: number;
+  is_available?: boolean;
+}
+
+export interface RegistrationResponse {
+  success: boolean;
+  message: string;
+  data?: any;
   errors?: Record<string, string[]>;
 }
 
@@ -120,6 +160,13 @@ class ApiService {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+    });
+  }
+
+  async registerDoctor(doctorData: DoctorRegistrationData): Promise<RegistrationResponse> {
+    return this.makeRequest<RegistrationResponse>('/doctors', {
+      method: 'POST',
+      body: JSON.stringify(doctorData),
     });
   }
 }

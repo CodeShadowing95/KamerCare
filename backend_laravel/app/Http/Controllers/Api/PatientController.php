@@ -15,7 +15,18 @@ class PatientController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Patient::query();
+        $user = auth()->user();
+        
+        // Vérifier si l'utilisateur est un docteur
+        if ($user->role !== 'doctor' || !$user->doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only doctors can access patients list.'
+            ], 403);
+        }
+
+        // Récupérer uniquement les patients de ce docteur
+        $query = $user->doctor->patients();
 
         // Search functionality
         if ($request->has('search')) {
@@ -52,6 +63,16 @@ class PatientController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        
+        // Vérifier si l'utilisateur est un docteur
+        if ($user->role !== 'doctor' || !$user->doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only doctors can create patients.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -66,15 +87,26 @@ class PatientController extends Controller
             'allergies' => 'nullable|string',
             'current_medications' => 'nullable|string',
             'blood_type' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
-            'insurance_number' => 'nullable|string|max:100'
+            'insurance_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string' // Notes du docteur sur ce patient
         ]);
 
         $patient = Patient::create($validated);
+        
+        // Associer le patient au docteur qui l'a créé
+        $user->doctor->patients()->attach($patient->id, [
+            'assigned_at' => now(),
+            'notes' => $validated['notes'] ?? null,
+            'is_active' => true
+        ]);
+
+        // Recharger le patient avec les relations
+        $patient->load('doctors');
 
         return response()->json([
             'success' => true,
             'data' => $patient,
-            'message' => 'Patient created successfully'
+            'message' => 'Patient created and assigned successfully'
         ], 201);
     }
 
@@ -83,7 +115,25 @@ class PatientController extends Controller
      */
     public function show(Patient $patient): JsonResponse
     {
-        $patient->load(['appointments.doctor', 'medicalRecords.doctor']);
+        $user = auth()->user();
+        
+        // Vérifier si l'utilisateur est un docteur
+        if ($user->role !== 'doctor' || !$user->doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only doctors can access patient details.'
+            ], 403);
+        }
+
+        // Vérifier si ce patient appartient au docteur
+        if (!$user->doctor->patients()->where('patients.id', $patient->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. You can only access your own patients.'
+            ], 403);
+        }
+
+        $patient->load(['appointments.doctor', 'medicalRecords.doctor', 'doctors']);
 
         return response()->json([
             'success' => true,
@@ -97,6 +147,24 @@ class PatientController extends Controller
      */
     public function update(Request $request, Patient $patient): JsonResponse
     {
+        $user = auth()->user();
+        
+        // Vérifier si l'utilisateur est un docteur
+        if ($user->role !== 'doctor' || !$user->doctor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only doctors can update patient details.'
+            ], 403);
+        }
+
+        // Vérifier si ce patient appartient au docteur
+        if (!$user->doctor->patients()->where('patients.id', $patient->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. You can only update your own patients.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
@@ -175,6 +243,47 @@ class PatientController extends Controller
             'success' => true,
             'data' => $records,
             'message' => 'Patient medical records retrieved successfully'
+        ]);
+    }
+
+    /**
+     * Search patients for autocomplete
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->get('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+                'message' => 'Query too short'
+            ]);
+        }
+
+        $patients = Patient::where(function ($q) use ($query) {
+            $q->where('first_name', 'like', "%{$query}%")
+              ->orWhere('last_name', 'like', "%{$query}%")
+              ->orWhere('email', 'like', "%{$query}%")
+              ->orWhere('phone', 'like', "%{$query}%");
+        })
+        ->select('id', 'first_name', 'last_name', 'email', 'phone')
+        ->limit(10)
+        ->get()
+        ->map(function ($patient) {
+            return [
+                'id' => $patient->id,
+                'full_name' => $patient->full_name,
+                'email' => $patient->email,
+                'phone' => $patient->phone,
+                'display' => $patient->full_name . ' - ' . $patient->email . ' - ' . $patient->phone
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $patients,
+            'message' => 'Patients found successfully'
         ]);
     }
 }
