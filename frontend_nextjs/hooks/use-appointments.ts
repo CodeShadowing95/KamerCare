@@ -6,6 +6,7 @@ interface Appointment {
   appointment_date: string
   reason_for_visit: string
   status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled'
+  appointment_type: 'presentiel' | 'visio' | 'domicile' | 'urgence' | 'suivi'
   duration_minutes: number
   notes?: string
   patient: {

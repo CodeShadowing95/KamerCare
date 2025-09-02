@@ -36,7 +36,7 @@ interface ServicesSpecialtiesProps {
 export default function ServicesSpecialties({ language }: ServicesSpecialtiesProps) {
   const content = {
     fr: {
-      title: "Services & spécialités",
+      title: "Services & Spécialités",
       subtitle: "Découvrez notre large gamme de services médicaux et spécialités disponibles dans tout le Cameroun",
       specialties: [
         // Médecine Générale
@@ -55,7 +55,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-red-500 to-pink-500", 
           available: true,
           title: "Anesthésie/Réanimation",
-          description: "Gestion de l'anesthésie et réanimation des patients en situation critique."
+          description: "Consultations pré-opératoires et gestion de la douleur. Anesthésie pour chirurgies et examens médicaux. Traitement des douleurs chroniques et aiguës. Techniques d'anesthésie locale, générale et péridurale. Sécurité optimale des patients garantie... Voir plus"
         },
         { 
           name: "Chirurgie générale", 
@@ -63,7 +63,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-gray-500 to-slate-500", 
           available: true,
           title: "Chirurgie Générale",
-          description: "Interventions chirurgicales sur l'abdomen, la peau et les tissus mous."
+          description: "Consultations chirurgicales et interventions programmées. Chirurgie abdominale, hernies et appendicite. Cœlioscopie et techniques mini-invasives. Traitement calculs biliaires et tumeurs bénignes. Récupération rapide et suivi post-opératoire... Voir plus"
         },
         { 
           name: "Chirurgie pédiatrique", 
@@ -79,7 +79,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-purple-400 to-pink-400", 
           available: true,
           title: "Gynécologie/Obstétrique",
-          description: "Santé féminine, grossesse et accouchement."
+          description: "Consultations santé féminine et suivi gynécologique. Contraception, suivi grossesse et accouchement. Traitement infections et troubles hormonaux. Dépistage cancers gynécologiques et ménopause. Consultations confidentielles et bienveillantes... Voir plus"
         },
         { 
           name: "Ophtalmologie", 
@@ -87,7 +87,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-cyan-500 to-blue-500", 
           available: true,
           title: "Ophtalmologie",
-          description: "Soins oculaires, chirurgie de la vision et traitements des pathologies oculaires."
+          description: "Consultations pour problèmes de vue et maladies oculaires. Examens de vue, lunettes et lentilles de contact. Traitement cataracte, glaucome, DMLA et infections. Chirurgie réfractive et fond d'œil. Urgences ophtalmologiques prises en charge... Voir plus"
         },
         { 
           name: "Oto-rhino-laryngologie (ORL)", 
@@ -104,7 +104,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-red-500 to-rose-500", 
           available: true,
           title: "Cardiologie",
-          description: "Maladies cardiovasculaires, prévention et traitements du cœur."
+          description: "Consultations spécialisées pour les maladies du cœur et vaisseaux. Prise en charge de l'hypertension, arythmies, insuffisance cardiaque. Examens cardiaques complets avec ECG et échographie. Suivi personnalisé des patients cardiaques. Prévention des risques cardiovasculaires... Voir plus"
         },
         { 
           name: "Dermatologie/Vénérologie", 
@@ -112,7 +112,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-orange-400 to-yellow-400", 
           available: true,
           title: "Dermatologie",
-          description: "Pathologies de la peau et maladies sexuellement transmissibles."
+          description: "Consultations pour problèmes de peau, cheveux et ongles. Traitement acné, eczéma, psoriasis, infections cutanées. Dépistage cancers de la peau et grains de beauté. Dermatologie esthétique et pédiatrique. Rendez-vous rapides disponibles... Voir plus"
         },
         { 
           name: "Endocrinologie/Diabétologie", 
@@ -120,7 +120,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-emerald-500 to-teal-500", 
           available: true,
           title: "Endocrinologie",
-          description: "Troubles hormonaux, diabète et maladies métaboliques."
+          description: "Consultations pour troubles hormonaux et métaboliques. Prise en charge diabète et dysfonctions thyroïdiennes. Traitement obésité, ostéoporose et troubles croissance. Éducation thérapeutique et suivi diabétique. Bilans hormonaux complets disponibles... Voir plus"
         },
         { 
           name: "Gastroentérologie/Hépatologie", 
@@ -128,7 +128,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-amber-500 to-orange-500", 
           available: true,
           title: "Gastroentérologie",
-          description: "Maladies digestives, du foie et du système gastro-intestinal."
+          description: "Consultations pour troubles digestifs et hépatiques. Traitement reflux, ulcères, maladies inflammatoires intestinales. Coloscopies de dépistage et endoscopies digestives. Prise en charge hépatites et pancréatites. Conseils nutritionnels personnalisés... Voir plus"
         },
         { 
           name: "Hématologie clinique", 
@@ -136,7 +136,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-red-600 to-pink-600", 
           available: true,
           title: "Hématologie",
-          description: "Maladies du sang, anémies et troubles de la coagulation."
+          description: "Consultations pour maladies du sang et coagulation. Traitement anémies, leucémies et lymphomes. Prise en charge troubles de la coagulation. Transfusions sanguines et bilans hématologiques. Suivi spécialisé des pathologies sanguines... Voir plus"
         },
         { 
           name: "Maladies infectieuses", 
@@ -152,7 +152,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-indigo-500 to-purple-500", 
           available: true,
           title: "Médecine Interne",
-          description: "Diagnostic et traitement des maladies complexes de l'adulte."
+          description: "Consultations pour pathologies complexes et multiples. Coordination des soins et diagnostic maladies rares. Prise en charge diabète, hypertension, maladies auto-immunes. Suivi global des patients adultes. Médecine préventive et dépistage... Voir plus"
         },
         { 
           name: "Néphrologie", 
@@ -160,7 +160,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-blue-600 to-cyan-600", 
           available: true,
           title: "Néphrologie",
-          description: "Maladies rénales, dialyse et transplantation rénale."
+          description: "Consultations pour maladies rénales et troubles urinaires. Traitement insuffisance rénale et calculs rénaux. Dialyse et préparation à la transplantation. Suivi hypertension artérielle d'origine rénale. Bilans rénaux complets disponibles... Voir plus"
         },
         { 
           name: "Neurologie", 
@@ -168,7 +168,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-purple-500 to-indigo-500", 
           available: true,
           title: "Neurologie",
-          description: "Troubles du système nerveux, cerveau et moelle épinière."
+          description: "Consultations pour troubles neurologiques et maux de tête. Prise en charge migraines, épilepsie, sclérose en plaques. Examens EEG, EMG et tests mémoire disponibles. Suivi des AVC et maladies neurodégénératives. Consultations urgentes possibles... Voir plus"
         },
         { 
           name: "Oncologie médicale", 
@@ -176,7 +176,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-slate-600 to-gray-600", 
           available: true,
           title: "Oncologie",
-          description: "Diagnostic et traitement des cancers par chimiothérapie."
+          description: "Consultations spécialisées en cancérologie. Chimiothérapie, immunothérapie et thérapies ciblées. Accompagnement psychologique et soins de support. Coordination avec équipe pluridisciplinaire. Consultations d'annonce et suivi personnalisé... Voir plus"
         },
         { 
           name: "Pédiatrie", 
@@ -184,7 +184,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-pink-500 to-rose-500", 
           available: true,
           title: "Pédiatrie",
-          description: "Médecine des enfants de la naissance à l'adolescence."
+          description: "Consultations enfants de 0 à 18 ans. Suivi croissance, vaccinations et bilans de santé. Traitement infections, fièvre et maladies infantiles. Conseils parentaux et accompagnement développement. Urgences pédiatriques 7j/7... Voir plus"
         },
         { 
           name: "Psychiatrie", 
@@ -192,7 +192,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-violet-500 to-purple-500", 
           available: true,
           title: "Psychiatrie",
-          description: "Troubles mentaux, dépression, anxiété et santé psychique."
+          description: "Consultations pour troubles mentaux et comportementaux. Traitement dépression, anxiété, troubles bipolaires. Prise en charge addictions et schizophrénie. Thérapies individuelles et familiales disponibles. Suivi médicamenteux personnalisé et confidentiel... Voir plus"
         },
         // Spécialités de biologie et diagnostic
         { 
@@ -201,7 +201,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-gray-500 to-slate-600", 
           available: true,
           title: "Anatomopathologie",
-          description: "Analyse microscopique des tissus pour le diagnostic."
+          description: "Analyses microscopiques de tissus et biopsies. Diagnostic histologique des tumeurs et lésions. Examens cytologiques et immunohistochimie. Expertise anatomopathologique pour diagnostic précis. Résultats rapides et interprétation spécialisée... Voir plus"
         },
         { 
           name: "Biochimie médicale", 
@@ -209,7 +209,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-green-500 to-teal-500", 
           available: true,
           title: "Biochimie Médicale",
-          description: "Analyses biologiques et interprétation des résultats de laboratoire."
+          description: "Analyses biologiques complètes et bilans sanguins. Dosages hormonaux, métaboliques et enzymatiques. Marqueurs tumoraux et tests spécialisés. Interprétation experte des résultats de laboratoire. Conseils personnalisés selon les analyses... Voir plus"
         },
         { 
           name: "Biologie clinique", 
@@ -217,7 +217,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-cyan-500 to-blue-600", 
           available: true,
           title: "Biologie Clinique",
-          description: "Examens biologiques pour le diagnostic et suivi médical."
+          description: "Examens biologiques de routine et spécialisés. Analyses sanguines, urinaires et microbiologiques. Tests génétiques et biologie moléculaire. Suivi thérapeutique et dépistage précoce. Laboratoire équipé des dernières technologies... Voir plus"
         },
         { 
           name: "Radiologie et imagerie médicale", 
@@ -225,7 +225,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-yellow-500 to-orange-500", 
           available: true,
           title: "Radiologie",
-          description: "Imagerie médicale : IRM, scanner, échographie, radiographie."
+          description: "Examens d'imagerie médicale de haute qualité. Échographies, scanners, IRM et radiographies. Mammographies et examens spécialisés disponibles. Équipements dernière génération pour diagnostic précis. Résultats rapides et interprétation experte... Voir plus"
         },
         // Spécialités transversales
         { 
@@ -234,7 +234,7 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           bgGradient: "from-emerald-600 to-green-600", 
           available: true,
           title: "Santé Publique",
-          description: "Prévention, épidémiologie et promotion de la santé collective."
+          description: "Prévention et promotion de la santé collective. Épidémiologie et surveillance des maladies. Programmes de vaccination et dépistage. Éducation sanitaire et sensibilisation communautaire. Actions de santé publique et recherche épidémiologique... Voir plus"
         }
       ],
       stats: {
@@ -251,14 +251,132 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
       title: "Services & Specialties",
       subtitle: "Discover our wide range of medical services and specialties available throughout Cameroon",
       specialties: [
-        { name: "Cardiology", icon: Heart, bgGradient: "from-red-500 to-pink-500", available: true },
-        { name: "Neurology", icon: Brain, bgGradient: "from-purple-500 to-indigo-500", available: true },
-        { name: "Ophthalmology", icon: Eye, bgGradient: "from-blue-500 to-cyan-500", available: true },
-        { name: "Orthopedics", icon: Bone, bgGradient: "from-orange-500 to-red-500", available: true },
-        { name: "Pediatrics", icon: Baby, bgGradient: "from-pink-500 to-rose-500", available: true },
-        { name: "General Medicine", icon: Stethoscope, bgGradient: "from-emerald-500 to-teal-500", available: true },
-        { name: "Emergency", icon: Activity, bgGradient: "from-red-500 to-orange-500", available: true },
-        { name: "Radiology", icon: Zap, bgGradient: "from-yellow-500 to-orange-500", available: true }
+        { 
+          name: "Cardiology", 
+          icon: Heart, 
+          bgGradient: "from-red-500 to-pink-500", 
+          available: true,
+          description: "Cardiovascular diseases, heart conditions, and blood vessel disorders. Prevention and treatment of heart attacks, arrhythmias, and hypertension."
+        },
+        { 
+          name: "Neurology", 
+          icon: Brain, 
+          bgGradient: "from-purple-500 to-indigo-500", 
+          available: true,
+          description: "Nervous system disorders, brain and spinal cord conditions. Treatment of migraines, epilepsy, strokes, and neurodegenerative diseases."
+        },
+        { 
+          name: "Ophthalmology", 
+          icon: Eye, 
+          bgGradient: "from-blue-500 to-cyan-500", 
+          available: true,
+          description: "Eye care, vision problems, and ocular diseases. Cataract surgery, glaucoma treatment, and comprehensive eye examinations."
+        },
+        { 
+          name: "Orthopedics", 
+          icon: Bone, 
+          bgGradient: "from-orange-500 to-red-500", 
+          available: true,
+          description: "Bone, joint, and musculoskeletal disorders. Fracture treatment, joint replacement, and sports injury rehabilitation."
+        },
+        { 
+          name: "Pediatrics", 
+          icon: Baby, 
+          bgGradient: "from-pink-500 to-rose-500", 
+          available: true,
+          description: "Children's health from birth to adolescence. Vaccinations, growth monitoring, and treatment of childhood diseases."
+        },
+        { 
+          name: "General Medicine", 
+          icon: Stethoscope, 
+          bgGradient: "from-emerald-500 to-teal-500", 
+          available: true,
+          description: "Primary healthcare, preventive medicine, and comprehensive health management for adults and families."
+        },
+        { 
+          name: "Emergency", 
+          icon: Activity, 
+          bgGradient: "from-red-600 to-orange-600", 
+          available: true,
+          description: "24/7 emergency care, trauma treatment, and critical care services for urgent medical situations."
+        },
+        { 
+          name: "Radiology", 
+          icon: Zap, 
+          bgGradient: "from-yellow-500 to-orange-500", 
+          available: true,
+          description: "Medical imaging services including X-rays, CT scans, MRI, and ultrasound for accurate diagnosis."
+        },
+        { 
+          name: "Dermatology", 
+          icon: Shield, 
+          bgGradient: "from-amber-400 to-yellow-500", 
+          available: true,
+          description: "Skin, hair, and nail conditions. Treatment of acne, eczema, skin cancer screening, and cosmetic procedures."
+        },
+        { 
+          name: "Gastroenterology", 
+          icon: Thermometer, 
+          bgGradient: "from-green-500 to-emerald-500", 
+          available: true,
+          description: "Digestive system disorders, liver diseases, and gastrointestinal conditions. Endoscopy and colonoscopy services."
+        },
+        { 
+          name: "Psychiatry", 
+          icon: Brain, 
+          bgGradient: "from-violet-500 to-purple-600", 
+          available: true,
+          description: "Mental health disorders, depression, anxiety, and behavioral conditions. Therapy and psychiatric medication management."
+        },
+        { 
+          name: "Gynecology", 
+          icon: Heart, 
+          bgGradient: "from-rose-400 to-pink-500", 
+          available: true,
+          description: "Women's reproductive health, pregnancy care, and gynecological conditions. Prenatal care and family planning."
+        },
+        { 
+          name: "Endocrinology", 
+          icon: Pill, 
+          bgGradient: "from-teal-500 to-cyan-500", 
+          available: true,
+          description: "Hormonal disorders, diabetes management, and metabolic conditions. Thyroid diseases and hormone replacement therapy."
+        },
+        { 
+          name: "Nephrology", 
+          icon: Activity, 
+          bgGradient: "from-blue-600 to-indigo-600", 
+          available: true,
+          description: "Kidney diseases, dialysis services, and renal disorders. Treatment of kidney stones and chronic kidney disease."
+        },
+        { 
+          name: "Oncology", 
+          icon: Scan, 
+          bgGradient: "from-slate-500 to-gray-600", 
+          available: true,
+          description: "Cancer diagnosis and treatment. Chemotherapy, radiation therapy, and comprehensive cancer care services."
+        },
+        { 
+          name: "Hematology", 
+          icon: Syringe, 
+          bgGradient: "from-red-400 to-rose-500", 
+          available: true,
+          description: "Blood disorders, anemia, and hematological conditions. Blood transfusions and coagulation disorder treatment."
+        },
+        { 
+          name: "Pulmonology", 
+          icon: Activity, 
+          bgGradient: "from-sky-500 to-blue-500", 
+          available: true,
+          description: "Respiratory diseases, lung conditions, and breathing disorders. Asthma, COPD treatment, and pulmonary function tests."
+        },
+        { 
+          name: "Rheumatology", 
+          icon: Bone, 
+          bgGradient: "from-orange-400 to-amber-500", 
+          available: true,
+          description: "Arthritis, joint pain, and autoimmune conditions. Treatment of rheumatoid arthritis, lupus, and fibromyalgia."
+        }
       ],
       stats: {
         doctors: "500+ Doctors",
@@ -286,53 +404,47 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {specialties.map((specialty, index) => {
             const IconComponent = specialty.icon
             return (
               <div key={index} className="group relative">
-                <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer border border-slate-200 dark:border-slate-700">
-                  {/* Image/Icon Section */}
-                  <div className={`relative h-48 bg-gradient-to-br ${specialty.bgGradient} flex items-center justify-center`}>
-                    <IconComponent className="w-16 h-16 text-white drop-shadow-lg" />
-                    
-                    {/* Availability badge */}
-                    {specialty.available && (
-                      <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                        <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                          <span className="text-white text-xs font-medium">
-                            {language === 'fr' ? 'Disponible' : 'Available'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                <div className={`relative overflow-hidden rounded-2xl h-80 bg-gradient-to-br ${specialty.bgGradient} shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2`}>
+                <IconComponent className="w-56 h-56 text-white/20 absolute -bottom-10 -left-10" />
+
+                  {/* Background overlay */}
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+                  
+                  {/* Icon positioned at top right */}
+                  <div className="absolute top-6 right-6 z-10">
+                    <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white border-opacity-30">
+                      <IconComponent className="w-7 h-7 text-white" />
+                    </div>
                   </div>
                   
-                  {/* Content Section */}
-                  <div className="p-6">
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white mb-2 line-clamp-2">
+                  {/* Content positioned at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                    <h3 className="font-bold text-2xl text-white mb-3 leading-tight">
                       {specialty.name}
                     </h3>
+                    <p className="text-white text-opacity-90 text-sm leading-relaxed mb-4 line-clamp-3">
+                      {specialty.description || (language === 'fr' 
+                        ? 'Spécialité médicale disponible avec des professionnels qualifiés pour vos soins de santé.' 
+                        : 'Medical specialty available with qualified professionals for your healthcare needs.')}
+                    </p>
+                    <div className="flex items-center text-white font-medium group-hover:text-yellow-300 transition-colors">
+                      <span className="text-sm">{language === 'fr' ? 'Découvrir' : 'Discover'}</span>
+                      <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
                   </div>
                   
-                  {/* Overlay with description on hover */}
-                  <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center p-6">
-                    <div className="text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                      <IconComponent className="w-12 h-12 text-white mx-auto mb-4 opacity-80" />
-                      <h4 className="text-white font-bold text-lg mb-3">
-                        {specialty.name}
-                      </h4>
-                      <p className="text-slate-200 text-sm leading-relaxed mb-4">
-                        {(language === 'fr' ? 'Spécialité médicale disponible dans nos centres.' : 'Medical specialty available in our centers.')}
-                      </p>
-                      <div className="inline-flex items-center text-emerald-400 text-sm font-medium">
-                        <span>{language === 'fr' ? 'En savoir plus' : 'Learn more'}</span>
-                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
+                  {/* Decorative elements */}
+                  <div className="absolute top-0 left-0 w-full h-full">
+                    <div className="absolute top-8 left-6 w-2 h-2 bg-white bg-opacity-60 rounded-full"></div>
+                    <div className="absolute top-12 left-8 w-1 h-1 bg-white bg-opacity-40 rounded-full"></div>
+                    <div className="absolute bottom-20 right-8 w-3 h-3 bg-white bg-opacity-30 rounded-full"></div>
                   </div>
                 </div>
               </div>

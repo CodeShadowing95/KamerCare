@@ -1,6 +1,7 @@
 # Guide Complet de Création du Backend Laravel - Plateforme Médicale Cameroun
 
 ## Table des Matières
+
 1. [Installation de Laravel](#1-installation-de-laravel)
 2. [Configuration de la Base de Données](#2-configuration-de-la-base-de-données)
 3. [Création des Modèles](#3-création-des-modèles)
@@ -14,13 +15,15 @@
 
 ## 1. Installation de Laravel
 
-### Étapes réalisées :
+### Étapes réalisées
+
 ```bash
 composer create-project laravel/laravel backend
 cd backend
 ```
 
-#### Explication des commandes :
+#### Explication des commandes
+
 - **`composer create-project laravel/laravel backend`** :
   - `composer` : Gestionnaire de dépendances PHP
   - `create-project` : Commande pour créer un nouveau projet à partir d'un template
@@ -33,6 +36,7 @@ cd backend
   - Nécessaire pour exécuter les commandes Artisan dans le bon contexte
 
 ### Pourquoi cette étape ?
+
 - **Framework robuste** : Laravel offre une structure MVC claire et des outils intégrés pour le développement d'API
 - **Écosystème riche** : Packages intégrés pour l'authentification, la validation, l'ORM Eloquent
 - **Sécurité** : Protection CSRF, hachage des mots de passe, prévention des injections SQL par défaut
@@ -43,9 +47,10 @@ cd backend
 
 ## 2. Configuration de la Base de Données
 
-### Étapes réalisées :
+### Étapes réalisées
 
 #### 2.1 Configuration de l'environnement (.env)
+
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -56,6 +61,7 @@ DB_PASSWORD=
 ```
 
 #### 2.2 Création des migrations
+
 ```bash
 php artisan make:migration create_patients_table
 php artisan make:migration create_doctors_table
@@ -64,7 +70,8 @@ php artisan make:migration create_medical_records_table
 php artisan migrate
 ```
 
-#### Explication des commandes :
+#### Explication des commandes
+
 - **`php artisan make:migration create_patients_table`** :
   - `php artisan` : Interface en ligne de commande de Laravel
   - `make:migration` : Générateur de fichier de migration
@@ -77,29 +84,35 @@ php artisan migrate
   - Crée les tables dans la base de données selon les schémas définis
   - Met à jour la table `migrations` pour tracer l'historique
 
-#### 2.3 Structure des tables créées :
+#### 2.3 Structure des tables créées
 
 **Table Users :**
+
 - id, name, email, password, role, phone, email_verified_at, is_active
 - Gestion centralisée des utilisateurs (patients et docteurs)
 
 **Table Patients :**
+
 - id, user_id, date_of_birth, gender, address, emergency_contact
 - Informations spécifiques aux patients
 
 **Table Doctors :**
+
 - id, user_id, specialization, license_number, years_of_experience, bio
 - Informations professionnelles des médecins
 
 **Table Appointments :**
+
 - id, patient_id, doctor_id, appointment_date, status, notes
 - Gestion des rendez-vous médicaux
 
 **Table Medical Records :**
+
 - id, patient_id, doctor_id, appointment_id, diagnosis, treatment, prescription, attachments
 - Dossiers médicaux complets
 
 ### Pourquoi cette étape ?
+
 - **Persistance des données** : Stockage sécurisé et structuré des informations médicales
 - **Intégrité référentielle** : Relations entre tables garantissent la cohérence des données
 - **Évolutivité** : Migrations permettent de faire évoluer la structure sans perte de données
@@ -110,9 +123,10 @@ php artisan migrate
 
 ## 3. Création des Modèles
 
-### Étapes réalisées :
+### Étapes réalisées
 
-#### 3.1 Modèles créés :
+#### 3.1 Modèles créés
+
 ```bash
 php artisan make:model Patient -m
 php artisan make:model Doctor -m
@@ -120,7 +134,8 @@ php artisan make:model Appointment -m
 php artisan make:model MedicalRecord -m
 ```
 
-#### Explication des commandes :
+#### Explication des commandes
+
 - **`php artisan make:model Patient -m`** :
   - `make:model` : Générateur de modèle Eloquent
   - `Patient` : Nom du modèle (convention PascalCase)

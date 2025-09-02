@@ -18,6 +18,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import NotificationsDropdown from './notifications-dropdown'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -104,8 +105,19 @@ export default function Navbar({
           className="flex items-center space-x-3 hover:bg-gradient-to-r hover:from-teal-50 hover:to-blue-50 dark:hover:from-teal-900/20 dark:hover:to-blue-900/20 transition-all duration-300 rounded-xl p-2"
         >
           <div className="relative">
-            <div className="w-9 h-9 bg-gradient-to-br from-teal-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-slate-800 transition-transform duration-300 hover:scale-105">
-              <User className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-full overflow-hidden shadow-lg ring-2 ring-white dark:ring-slate-800 transition-transform duration-300 hover:scale-105">
+              <img 
+                src="/user.jpg" 
+                alt="User avatar"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-full bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
+              </div>
             </div>
           </div>
           <div className="hidden md:flex flex-col items-start">
@@ -201,9 +213,9 @@ export default function Navbar({
                   (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
                 }}
               />
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg hidden">
+              {/* <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Heart className="w-7 h-7 text-white" />
-              </div>
+              </div> */}
             </div>
             <div className="hidden md:block">
               <div className="text-xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
@@ -242,6 +254,11 @@ export default function Navbar({
 
           {/* Controls */}
           <div className="flex items-center space-x-4">
+            {/* Notifications - Only show if user is authenticated */}
+            {!isLoading && isAuthenticated && user && (
+              <NotificationsDropdown />
+            )}
+
             {/* Language Toggle */}
             {onToggleLanguage && (
               <Button

@@ -5,6 +5,7 @@ interface City {
   city: string
   lat: number
   lng: number
+  region?: string
 }
 
 interface Region {
@@ -70,15 +71,19 @@ export const useCities = () => {
     setError(null)
     try {
       const allCities: City[] = []
-      // Parcourir toutes les régions pour collecter toutes les villes
-      Object.values(villesParRegion).forEach(regionCities => {
-        allCities.push(...regionCities)
+      // Parcourir toutes les régions pour collecter toutes les villes avec leur région
+      Object.entries(villesParRegion).forEach(([regionName, regionCities]) => {
+        const citiesWithRegion = regionCities.map(city => ({
+          ...city,
+          region: regionName
+        }))
+        allCities.push(...citiesWithRegion)
       })
       
       // Filtrer les villes selon le terme de recherche
-      const filteredCities = allCities.filter(city => 
-        city.city.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      const filteredCities = allCities
+        .filter(city => city.city.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => a.city.localeCompare(b.city))
       
       setSearchResults(filteredCities)
     } catch (err) {

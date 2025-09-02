@@ -31,6 +31,7 @@ interface AppointmentForm {
   reason: string;
   notes: string;
   priority: string;
+  appointment_type: string;
 }
 
 interface FormErrors {
@@ -39,6 +40,7 @@ interface FormErrors {
   appointmentDate?: string;
   appointmentTime?: string;
   reason?: string;
+  appointment_type?: string;
   general?: string;
 }
 
@@ -55,7 +57,8 @@ export default function NewAppointmentPage() {
     duration: '30',
     reason: '',
     notes: '',
-    priority: 'normal'
+    priority: 'normal',
+    appointment_type: 'presentiel'
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,6 +137,10 @@ export default function NewAppointmentPage() {
       newErrors.reason = 'Le motif de consultation est requis';
     }
 
+    if (!formData.appointment_type) {
+      newErrors.appointment_type = 'Le type de rendez-vous est requis';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -164,7 +171,8 @@ export default function NewAppointmentPage() {
         duration_minutes: parseInt(formData.duration),
         reason_for_visit: formData.reason,
         notes: formData.notes || null,
-        consultation_fee: 0.00 // Default fee, could be made configurable
+        consultation_fee: 0.00, // Default fee, could be made configurable
+        appointment_type: formData.appointment_type
       };
 
       const response = await fetch('http://localhost:8000/api/appointments', {
@@ -393,6 +401,30 @@ export default function NewAppointmentPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="appointment_type" className="text-sm font-medium text-gray-700">
+                  Type de rendez-vous <span className="text-red-500">*</span>
+                </Label>
+                <Select value={formData.appointment_type} onValueChange={(value) => handleInputChange('appointment_type', value)}>
+                  <SelectTrigger className={`mt-1 ${errors.appointment_type ? 'border-red-500 focus:border-red-500' : ''}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presentiel">Présentiel</SelectItem>
+                    <SelectItem value="visio">Visioconférence</SelectItem>
+                    <SelectItem value="domicile">À domicile</SelectItem>
+                    <SelectItem value="urgence">Urgence</SelectItem>
+                    <SelectItem value="suivi">Suivi</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.appointment_type && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.appointment_type}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

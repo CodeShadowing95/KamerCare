@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useAppointments } from "@/hooks/use-appointments"
+import { useAppointmentRequests } from "@/hooks/use-appointment-requests"
 
 import {
   Calendar,
@@ -30,6 +31,10 @@ import {
   List,
   AlertCircle,
   RefreshCw,
+  Video,
+  Check,
+  X,
+  Clock as ClockIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,16 +47,16 @@ import { Textarea } from "@/components/ui/textarea"
 // Composant pour le tableau des prochains rendez-vous
 function UpcomingAppointmentsTable({ router }: { router: any }) {
   const { user } = useAuth()
-  const { appointments, refetch, loading, error } = useAppointments({ 
+  const { appointments, refetch, loading, error } = useAppointments({
     upcoming: true,
     doctor_id: user?.doctor?.id || user?.id
   })
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', { 
-      weekday: 'short', 
-      day: 'numeric', 
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
       month: 'short',
       year: 'numeric'
     })
@@ -59,8 +64,8 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleTimeString('fr-FR', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
       minute: '2-digit'
     })
   }
@@ -159,7 +164,7 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
               Planning complet
             </Button>
           </div>
-          
+
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -247,21 +252,506 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
                           title="Voir les détails"
                         >
                           <Eye className="w-3 h-3 text-indigo-600" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
                           title="Modifier"
                         >
                           <Edit className="w-3 h-3 text-green-600" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Composant pour le tableau des rendez-vous du jour
+function TodayAppointmentsTable({ router }: { router: any }) {
+  const { user } = useAuth()
+  const { appointments, refetch, loading, error } = useAppointments({
+    today: true,
+    doctor_id: user?.doctor?.id || user?.id
+  })
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'Confirmé'
+      case 'scheduled': return 'Programmé'
+      case 'completed': return 'Terminé'
+      case 'cancelled': return 'Annulé'
+      default: return 'En attente'
+    }
+  }
+
+  // Fonction pour vérifier si un rendez-vous est à 30 minutes ou moins
+  const isWithin30Minutes = (appointmentDate: string) => {
+    const now = new Date()
+    const appointmentTime = new Date(appointmentDate)
+    const diffInMinutes = (appointmentTime.getTime() - now.getTime()) / (1000 * 60)
+    return diffInMinutes <= 30 && diffInMinutes >= 0
+  }
+
+  // Filtrer les rendez-vous du jour actuel
+  const todayAppointments = appointments.filter(appointment => {
+    const appointmentDate = new Date(appointment.appointment_date)
+    const today = new Date()
+    return appointmentDate.toDateString() === today.toDateString()
+  })
+
+  if (loading) {
+    return (
+      <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
+          <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span>Rendez-vous du jour</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <span className="ml-3 text-slate-600 dark:text-slate-400">Chargement des rendez-vous...</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
+          <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span>Rendez-vous du jour</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Erreur de chargement</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+      <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div>
+              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <span>Rendez-vous du jour</span>
+                <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 px-3 py-1 rounded-full">
+                  {todayAppointments.length}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400 mt-2 text-base">
+                Tous les rendez-vous programmés pour aujourd'hui
+              </CardDescription>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => refetch()}
+              variant="ghost"
+              size="sm"
+              className="hover:bg-green-50 dark:hover:bg-green-900/30 border border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl text-green-600 dark:text-green-400"
+              title="Actualiser les données"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => router.push('/doctor/appointments')}
+              variant="outline"
+              size="sm"
+              className="hover:bg-blue-50 dark:hover:bg-slate-600 border-blue-200 hover:border-blue-400 transition-all duration-300 hover:scale-105 rounded-xl"
+            >
+              <List className="w-4 h-4 mr-2" />
+              Voir tous
+            </Button>
+            <Button variant="outline" size="sm" className="hover:bg-green-50 dark:hover:bg-slate-600 border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl">
+              <Download className="w-4 h-4 mr-2" />
+              Exporter
+            </Button>
+            <Button variant="outline" size="sm" className="hover:bg-purple-50 dark:hover:bg-slate-600 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:scale-105 rounded-xl">
+              <Filter className="w-4 h-4 mr-2" />
+              Filtrer
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {todayAppointments.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-yellow-100 dark:from-orange-900/30 dark:to-yellow-900/30 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Clock className="w-10 h-10 text-orange-500 dark:text-orange-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Aucun rendez-vous aujourd'hui</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-4">Vous n'avez pas de rendez-vous programmés pour aujourd'hui</p>
+            <Button className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+              <Plus className="w-4 h-4 mr-2" />
+              Planifier un rendez-vous
+            </Button>
+          </div>
+        ) : (
+          <div className="overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-50 dark:bg-slate-700/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Patient
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Heure
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Motif
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Durée
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Statut
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-600">
+                {todayAppointments.map((appointment, index) => (
+                  <tr key={appointment.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Avatar className="w-8 h-8 mr-3">
+                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-yellow-600 text-white text-xs font-bold">
+                            {`${appointment.patient.first_name[0]}${appointment.patient.last_name[0]}`}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="text-sm font-medium text-slate-900 dark:text-white">
+                            {appointment.patient.first_name} {appointment.patient.last_name}
+                          </div>
+                          {appointment.patient.phone && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {appointment.patient.phone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-900 dark:text-white font-medium">
+                        {formatTime(appointment.appointment_date)}
+                      </div>
+                      {isWithin30Minutes(appointment.appointment_date) && (
+                        <div className="text-xs text-red-600 dark:text-red-400 font-medium">
+                          Dans moins de 30 min
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs text-slate-500 dark:text-white max-w-xs truncate" title={appointment.reason_for_visit}>
+                        {appointment.reason_for_visit}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-900 dark:text-white font-medium">
+                        {appointment.duration_minutes} min
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge className={`${getStatusColor(appointment.status)} px-2 py-1 text-xs font-medium rounded-full`}>
+                        {getStatusText(appointment.status)}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        {isWithin30Minutes(appointment.appointment_date) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 p-2 h-8 w-8 bg-red-50 dark:bg-red-900/20"
+                            title="Démarrer l'appel vidéo"
+                          >
+                            <Video className="w-3 h-3 text-red-600" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
+                          title="Voir les détails"
+                        >
+                          <Eye className="w-3 h-3 text-indigo-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
+                          title="Modifier"
+                        >
+                          <Edit className="w-3 h-3 text-green-600" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Composant pour le tableau des demandes de rendez-vous
+function AppointmentRequestsTable({ router }: { router: any }) {
+  const { requests, loading, error, refetch, confirmRequest, cancelRequest } = useAppointmentRequests()
+  const [confirmingId, setConfirmingId] = useState<number | null>(null)
+  const [cancellingId, setCancellingId] = useState<number | null>(null)
+
+  const handleConfirm = async (id: number) => {
+    setConfirmingId(id)
+    const success = await confirmRequest(id)
+    if (success) {
+      // Optionally show success message
+    }
+    setConfirmingId(null)
+  }
+
+  const handleCancel = async (id: number) => {
+    setCancellingId(id)
+    const success = await cancelRequest(id, "Refusé par le docteur")
+    if (success) {
+      // Optionally show success message
+    }
+    setCancellingId(null)
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  return (
+    <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+        <div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+            Nouvelles Demandes
+          </CardTitle>
+          <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
+            {requests.length} demande{requests.length !== 1 ? 's' : ''} en attente de votre validation
+          </CardDescription>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 px-3 py-1">
+            <ClockIcon className="w-4 h-4 mr-1" />
+            {requests.length} en attente
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refetch}
+            disabled={loading}
+            className="hover:bg-orange-50 dark:hover:bg-slate-700 border-slate-300 hover:border-orange-400 transition-all duration-300 hover:scale-105 rounded-xl"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-orange-500 mb-4"></div>
+            <p className="text-slate-600 dark:text-slate-400 font-medium">Chargement des demandes...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-8 max-w-md mx-auto">
+              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+              <h3 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-2">Erreur de chargement</h3>
+              <p className="text-red-600 dark:text-red-300">{error}</p>
+              <Button 
+                onClick={refetch} 
+                className="mt-4 bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Réessayer
+              </Button>
+            </div>
+          </div>
+        ) : requests.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-12 max-w-md mx-auto">
+              <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-full p-4 w-20 h-20 mx-auto mb-6">
+                <ClockIcon className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">Aucune demande</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-lg">Aucune demande de rendez-vous en attente pour le moment</p>
+              <Button 
+                onClick={refetch} 
+                variant="outline" 
+                className="mt-6 border-orange-300 text-orange-600 hover:bg-orange-50"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Actualiser
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2 border-slate-200 dark:border-slate-700">
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Patient</th>
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Date</th>
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Heure</th>
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Motif</th>
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Durée</th>
+                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Tarif</th>
+                  <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map((request) => (
+                  <tr key={request.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-slate-800 dark:hover:to-slate-700 transition-all duration-300 group">
+                    <td className="py-5 px-6">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12 ring-2 ring-orange-100 group-hover:ring-orange-200 transition-all duration-300">
+                          <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-semibold text-lg">
+                            {request.patient.first_name[0]}{request.patient.last_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                            {request.patient.first_name} {request.patient.last_name}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{request.patient.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 font-medium text-xs">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {formatDate(request.appointment_date)}
+                      </Badge>
+                    </td>
+                    <td className="py-5 px-6">
+                      <Badge variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 font-medium text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {formatTime(request.appointment_date)}
+                      </Badge>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="max-w-xs">
+                        <p className="text-slate-900 dark:text-slate-100 font-medium truncate text-sm" title={request.reason_for_visit}>
+                          {request.reason_for_visit}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="py-5 px-6">
+                      <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700 font-medium text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {request.duration_minutes} min
+                      </Badge>
+                    </td>
+                    <td className="py-5 px-6">
+                      <Badge variant="outline" className="bg-yellow-50 border-yellow-200 text-yellow-700 font-medium text-sm px-3 py-1">
+                        {request.consultation_fee}€
+                      </Badge>
+                    </td>
+                    <td className="py-5 px-6">
+                      <div className="flex items-center justify-center space-x-3">
+                        <Button
+                          size="sm"
+                          onClick={() => handleConfirm(request.id)}
+                          disabled={confirmingId === request.id || cancellingId === request.id}
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-xl px-3 py-1.5 text-xs"
+                        >
+                          {confirmingId === request.id ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                          ) : (
+                            <>
+                              <Check className="w-3 h-3 mr-1" />
+                              Accepter
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleCancel(request.id)}
+                          disabled={confirmingId === request.id || cancellingId === request.id}
+                          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-xl px-3 py-1.5 text-xs"
+                        >
+                          {cancellingId === request.id ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                          ) : (
+                            <>
+                              <X className="w-3 h-3 mr-1" />
+                              Refuser
+                            </>
+                          )}
                         </Button>
                       </div>
                     </td>
@@ -436,7 +926,7 @@ export default function DoctorDashboard() {
                 How nonnn, Dr. {user?.name ? user.name.split(' ').slice(0, 2).join(' ') : 'Docteur'} 👋
               </h1>
               <p className="text-slate-600 dark:text-slate-400 text-base">
-                Tu vas do quoi oday ?
+                Ça dit quoi, tu veux do quoi oday ?
               </p>
             </div>
           </div>
@@ -444,24 +934,24 @@ export default function DoctorDashboard() {
             <div className="text-right">
               {/* <p className="text-sm text-slate-500 dark:text-slate-400">Aujourd'hui</p> */}
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {new Date().toLocaleDateString('fr-FR', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {new Date().toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </p>
               <p className="text-lg font-semibold text-slate-900 dark:text-white">
-                {new Date().toLocaleTimeString('fr-FR', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
+                {new Date().toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
                 })}
               </p>
             </div>
             <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Settings className="w-4 h-4" />
@@ -545,7 +1035,7 @@ export default function DoctorDashboard() {
       {/* Navigation Tabs */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6 mb-8">
         <div className="flex flex-wrap gap-2">
-          <Button 
+          <Button
             variant={activeTab === 'overview' ? 'default' : 'outline'}
             onClick={() => setActiveTab('overview')}
             className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
@@ -553,17 +1043,26 @@ export default function DoctorDashboard() {
             <Activity className="w-4 h-4" />
             <span>Vue d'ensemble</span>
           </Button>
-          
-          <Button 
+
+          <Button
             variant={activeTab === 'appointments' ? 'default' : 'outline'}
             onClick={() => setActiveTab('appointments')}
             className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
           >
             <Clock className="w-4 h-4" />
-            <span>Rendez-vous programmés</span>
+            <span>Mes Rendez-Vous</span>
           </Button>
-          
-          <Button 
+
+          <Button
+            variant={activeTab === 'requests' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('requests')}
+            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+          >
+            <ClockIcon className="w-4 h-4" />
+            <span>Demandes de RDV</span>
+          </Button>
+
+          <Button
             variant={activeTab === 'calendar' ? 'default' : 'outline'}
             onClick={() => setActiveTab('calendar')}
             className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
@@ -613,8 +1112,8 @@ export default function DoctorDashboard() {
                             <div className="relative flex items-center space-x-4">
                               <div className="relative">
                                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg ring-4 transition-all duration-300 ${item.status === "current"
-                                    ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 text-white ring-emerald-200 shadow-emerald-200"
-                                    : "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-slate-700 ring-slate-200 shadow-slate-200"
+                                  ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 text-white ring-emerald-200 shadow-emerald-200"
+                                  : "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-slate-700 ring-slate-200 shadow-slate-200"
                                   }`}>
                                   {item.ticket}
                                 </div>
@@ -666,8 +1165,8 @@ export default function DoctorDashboard() {
                               </Button>
                             </div>
                             <Badge className={`px-4 py-2 font-semibold text-sm rounded-xl shadow-sm ${item.status === "current"
-                                ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
-                                : "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200"
+                              ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
+                              : "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200"
                               }`}>
                               {item.status === "current" ? "🩺 En consultation" : "⏳ En attente"}
                             </Badge>
@@ -730,7 +1229,7 @@ export default function DoctorDashboard() {
           </div>
 
           {/* Enhanced Filters */}
-          <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
+          {/* <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex flex-wrap items-center justify-between gap-6">
                 <div className="flex items-center space-x-4">
@@ -786,7 +1285,7 @@ export default function DoctorDashboard() {
                     </SelectContent>
                   </Select>
                   <div className="flex items-center space-x-2">
-                    <Input 
+                    <Input
                       placeholder="Rechercher un patient..."
                       className="w-64 border-slate-300 hover:border-blue-400 focus:border-blue-500 transition-colors duration-200 rounded-xl"
                     />
@@ -797,176 +1296,10 @@ export default function DoctorDashboard() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Section Rendez-vous du jour */}
-          <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="border-b border-slate-200/50 dark:border-slate-600/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                      <span>Rendez-vous du jour</span>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">
-                        {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription className="text-slate-600 dark:text-slate-400 mt-2 text-base">
-                      {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length} rendez-vous aujourd'hui • {appointments.length} total cette semaine
-                    </CardDescription>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Button
-                    onClick={() => router.push('/doctor/appointments')}
-                    variant="outline"
-                    size="sm"
-                    className="hover:bg-blue-50 dark:hover:bg-slate-600 border-blue-200 hover:border-blue-400 transition-all duration-300 hover:scale-105 rounded-xl"
-                  >
-                    <List className="w-4 h-4 mr-2" />
-                    Voir tous
-                  </Button>
-                  <Button variant="outline" size="sm" className="hover:bg-green-50 dark:hover:bg-slate-600 border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl">
-                    <Download className="w-4 h-4 mr-2" />
-                    Exporter
-                  </Button>
-                  <Button variant="outline" size="sm" className="hover:bg-purple-50 dark:hover:bg-slate-600 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:scale-105 rounded-xl">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtrer
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {/* Modern Card Layout */}
-              <div className="space-y-4">
-                {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).slice(0, 5).map((appointment, index) => (
-                  <div key={appointment.id} className="group bg-gradient-to-r from-white to-slate-50/50 dark:from-slate-800 dark:to-slate-700/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-600/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500">
-                    <div className="flex items-center justify-between">
-                      {/* Patient Info */}
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className="relative">
-                          <Avatar className="w-16 h-16 ring-3 ring-white shadow-xl group-hover:ring-blue-200 transition-all duration-300">
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
-                              {appointment.patient
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-white shadow-lg animate-pulse"></div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-bold text-xl text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-200">
-                              {appointment.patient}
-                            </h3>
-                            <Badge className={`${getStatusColor(appointment.status)} px-3 py-1 text-sm font-semibold rounded-full shadow-sm`}>
-                              <div className="flex items-center space-x-2">
-                                <div className={`w-2 h-2 rounded-full animate-pulse ${
-                                  appointment.status === 'confirmed' ? 'bg-green-400' :
-                                  appointment.status === 'waiting' ? 'bg-yellow-400' :
-                                  appointment.status === 'completed' ? 'bg-blue-400' :
-                                  'bg-red-400'
-                                }`}></div>
-                                <span>{getStatusText(appointment.status)}</span>
-                              </div>
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="flex items-center space-x-2">
-                              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
-                                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                              </div>
-                              <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Heure</p>
-                                <p className="font-semibold text-slate-900 dark:text-white">{appointment.time}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg">
-                                <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                              </div>
-                              <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Motif</p>
-                                <p className="font-semibold text-slate-900 dark:text-white truncate max-w-[200px]">{appointment.reason}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
-                                <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
-                              </div>
-                              <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Contact</p>
-                                <p className="font-semibold text-slate-900 dark:text-white">{appointment.phone}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Actions */}
-                      <div className="flex items-center space-x-2 ml-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 group/btn rounded-xl p-3"
-                          title="Voir les détails"
-                        >
-                          <Eye className="w-5 h-5 text-blue-600 group-hover/btn:scale-110 transition-transform duration-200" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 group/btn rounded-xl p-3"
-                          title="Modifier"
-                        >
-                          <Edit className="w-5 h-5 text-green-600 group-hover/btn:scale-110 transition-transform duration-200" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="hover:bg-slate-100 dark:hover:bg-slate-600 transition-all duration-200 group/btn rounded-xl p-3"
-                          title="Plus d'options"
-                        >
-                          <MoreHorizontal className="w-5 h-5 text-slate-600 group-hover/btn:scale-110 transition-transform duration-200" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {/* Progress indicator for current appointment */}
-                    {appointment.status === 'confirmed' && index === 0 && (
-                      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Prochain rendez-vous</span>
-                          <span className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Dans 15 min</span>
-                        </div>
-                        <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-2">
-                          <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-1000 animate-pulse" style={{ width: '85%' }}></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {appointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length === 0 && (
-                <div className="text-center py-16">
-                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Calendar className="w-10 h-10 text-slate-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Aucun rendez-vous aujourd'hui</h3>
-                  <p className="text-slate-500 dark:text-slate-400 mb-6">Vous n'avez pas de rendez-vous programmés pour aujourd'hui</p>
-                  <Button
-                    onClick={() => router.push('/doctor/appointments/new')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Planifier un rendez-vous
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <TodayAppointmentsTable router={router} />
 
           {/* Section Prochains Rendez-vous */}
           <UpcomingAppointmentsTable router={router} />
@@ -1043,10 +1376,10 @@ export default function DoctorDashboard() {
                     <div
                       key={i}
                       className={`group relative p-4 text-center cursor-pointer rounded-xl transition-all duration-300 hover:scale-105 min-h-[100px] ${isToday
-                          ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-xl ring-4 ring-blue-200'
-                          : isCurrentMonth
-                            ? 'hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-600'
-                            : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-900'
+                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-xl ring-4 ring-blue-200'
+                        : isCurrentMonth
+                          ? 'hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-600'
+                          : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-900'
                         }`}
                     >
                       <div className={`font-bold text-lg mb-2 ${isToday ? 'text-white' : 'text-slate-700 dark:text-slate-300'
@@ -1124,7 +1457,37 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      {/* Other tabs content would go here */}
+      {activeTab === "requests" && (
+        <div className="space-y-8">
+          {/* Enhanced Header with Stats */}
+          <div className="bg-gradient-to-br from-orange-600 via-red-600 to-pink-700 rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">Demandes de Rendez-vous</h2>
+                  <p className="text-orange-100 text-lg">Gérez les nouvelles demandes de vos patients</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-2">
+                    <div className="flex items-center space-x-2">
+                      <ClockIcon className="w-5 h-5 text-white" />
+                      <span className="text-white font-semibold">En attente</span>
+                    </div>
+                  </div>
+                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105">
+                    <RefreshCw className="w-5 h-5 mr-2" />
+                    Actualiser
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section Demandes de Rendez-vous */}
+          <AppointmentRequestsTable router={router} />
+        </div>
+      )}
     </div>
   )
 }

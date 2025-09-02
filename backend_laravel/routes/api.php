@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/appointments/{appointment}/complete', [AppointmentController::class, 'complete']);
     Route::get('/appointments/today', [AppointmentController::class, 'today']);
     Route::get('/appointments/upcoming', [AppointmentController::class, 'upcoming']);
+    Route::get('/appointments/types', [AppointmentController::class, 'getAppointmentTypes']);
     Route::get('/doctors/{doctor}/available-slots', [AppointmentController::class, 'getAvailableSlots']);
 
     // Medical record management routes

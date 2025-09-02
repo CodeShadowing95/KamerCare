@@ -20,6 +20,7 @@ export default function DoctorLogin() {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   
   const router = useRouter();
   const { login, isLoading, isAuthenticated } = useAuth();
@@ -56,6 +57,7 @@ export default function DoctorLogin() {
       const result = await login({ email, password });
       
       if (result.success) {
+        setSuccess("Nice! Connexion effectuée 😀");
         toast({
           title: "Connexion réussie",
           description: "Bienvenue dans votre espace professionnel",
@@ -206,6 +208,8 @@ export default function DoctorLogin() {
                       <span>{error}</span>
                     </div>
                   )}
+
+
                   
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="email" className="text-gray-700 font-medium text-xs sm:text-sm flex items-center space-x-2">

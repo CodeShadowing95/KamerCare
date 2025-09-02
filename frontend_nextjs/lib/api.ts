@@ -31,6 +31,16 @@ export interface LoginResponse {
   errors?: Record<string, string[]>;
 }
 
+export interface ConsultationHours {
+  monday: { start: string; end: string; available: boolean };
+  tuesday: { start: string; end: string; available: boolean };
+  wednesday: { start: string; end: string; available: boolean };
+  thursday: { start: string; end: string; available: boolean };
+  friday: { start: string; end: string; available: boolean };
+  saturday: { start: string; end: string; available: boolean };
+  sunday: { start: string; end: string; available: boolean };
+}
+
 export interface DoctorRegistrationData {
   email: string;
   password: string;
@@ -52,6 +62,7 @@ export interface DoctorRegistrationData {
   office_address?: string;
   consultation_fee: number;
   is_available?: boolean;
+  consultation_hours?: ConsultationHours;
 }
 
 export interface RegistrationResponse {

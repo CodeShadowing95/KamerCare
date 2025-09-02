@@ -71,9 +71,11 @@ export default function ReadyToBookCTA({ language }: ReadyToBookCTAProps) {
   const t = texts[language]
 
   return (
-    <section className="py-20 bg-gradient-to-br from-emerald-600 via-emerald-700 to-blue-800 dark:from-emerald-800 dark:via-emerald-900 dark:to-blue-950 relative overflow-hidden">
+    <section className="py-20 relative overflow-hidden" style={{backgroundImage: 'url(/caring-doctor.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/80 via-emerald-700/80 to-blue-800/80 dark:from-emerald-800/80 dark:via-emerald-900/80 dark:to-blue-950/80 z-0"></div>
       {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden z-10">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-300/10 rounded-full blur-2xl animate-pulse delay-500"></div>
@@ -85,7 +87,7 @@ export default function ReadyToBookCTA({ language }: ReadyToBookCTAProps) {
         <div className="absolute bottom-20 right-20 w-5 h-5 bg-white/20 rounded-full animate-bounce delay-500"></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-20">
         <div className="max-w-6xl mx-auto">
           {/* Main content */}
           <div className="text-center mb-16">

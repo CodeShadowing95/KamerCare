@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import Navbar from "@/components/navbar"
+import Navbar from "@/components/user-patient/navbar"
 import { Footer, HeroBanner, CommentCaMarche, ServiceSpecialites, HopitauxParRegion, Engagements, PrendreRDV } from "@/components/landing-page-sections"
+import FAQ from "@/components/landing-page-sections/faq"
 
 export default function LandingPage() {
   const [isDark, setIsDark] = useState(false)
@@ -258,6 +259,9 @@ export default function LandingPage() {
 
       {/* Our Commitments */}
       <Engagements language={language as 'fr' | 'en'} />
+
+      {/* FAQ */}
+      <FAQ language={language as 'fr' | 'en'} />
 
       {/* Ready to Book CTA */}
       <PrendreRDV language={language as 'fr' | 'en'} />

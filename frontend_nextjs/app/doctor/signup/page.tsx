@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Mail, Phone, Calendar, MapPin, Building, GraduationCap, Award, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, UserPlus, Shield, AlertTriangle, FileText, Stethoscope, Heart, Users, Home, ChevronLeft, ChevronRight, Briefcase, DollarSign, Building2 } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Building, GraduationCap, Award, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, UserPlus, Shield, AlertTriangle, FileText, Stethoscope, Heart, Users, Home, ChevronLeft, ChevronRight, Briefcase, DollarSign, Building2, Clock, MapPinned } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { apiService, DoctorRegistrationData } from "../../../lib/api"
+import { apiService, DoctorRegistrationData, ConsultationHours } from "../../../lib/api"
 import { useRouter } from "next/navigation"
+import { useCities } from "../../../hooks/use-cities"
 
 export default function DoctorSignup() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -23,6 +24,13 @@ export default function DoctorSignup() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const router = useRouter()
+  
+  // États pour la gestion des villes avec auto-complétion
+  const [citySearchTerm, setCitySearchTerm] = useState('')
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false)
+  
+  // Hook pour la gestion des villes
+  const { searchCities, searchResults, loading: citiesLoading, error: citiesError } = useCities()
   const [formData, setFormData] = useState({
     // Étape 1: Informations personnelles
     first_name: "",
@@ -46,6 +54,17 @@ export default function DoctorSignup() {
     office_address: "",
     qualifications: "",
     is_available: true,
+    
+    // Horaires de consultation
+    consultation_hours: {
+      monday: { start: "", end: "", available: false },
+      tuesday: { start: "", end: "", available: false },
+      wednesday: { start: "", end: "", available: false },
+      thursday: { start: "", end: "", available: false },
+      friday: { start: "", end: "", available: false },
+      saturday: { start: "", end: "", available: false },
+      sunday: { start: "", end: "", available: false }
+    } as ConsultationHours,
     
     // Étape 3: Sécurité
     password: '',
@@ -77,6 +96,21 @@ export default function DoctorSignup() {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
   
+  // Effet pour synchroniser citySearchTerm avec formData.city
+  useEffect(() => {
+    setCitySearchTerm(formData.city)
+  }, [formData.city])
+  
+  // Effet pour rechercher les villes lors de la saisie
+  useEffect(() => {
+    if (citySearchTerm.length >= 2) {
+      searchCities(citySearchTerm)
+      setShowCitySuggestions(true)
+    } else {
+      setShowCitySuggestions(false)
+    }
+  }, [citySearchTerm, searchCities])
+  
   const specialties = [
     "Medecine generale",
     "Cardiologie",
@@ -105,6 +139,33 @@ export default function DoctorSignup() {
       ...prev,
       [field]: value
     }))
+  }
+  
+  const handleScheduleChange = (day: string, field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      consultation_hours: {
+        ...prev.consultation_hours,
+        [day]: {
+          ...prev.consultation_hours[day as keyof ConsultationHours],
+          [field]: value
+        }
+      }
+    }))
+  }
+  
+  // Fonction pour gérer la saisie dans le champ ville
+  const handleCityInputChange = (value: string) => {
+    setCitySearchTerm(value)
+    handleInputChange('city', value)
+  }
+  
+  // Fonction pour sélectionner une ville depuis les suggestions
+  const handleCitySelect = (cityName: string, regionName: string) => {
+    const fullCityName = regionName ? `${cityName}, ${regionName.toUpperCase()}` : cityName
+    setCitySearchTerm(fullCityName)
+    handleInputChange('city', fullCityName)
+    setShowCitySuggestions(false)
   }
   
   const validateStep = (step: number) => {
@@ -143,10 +204,14 @@ export default function DoctorSignup() {
         )
       case 4:
         // Validation de la pratique médicale - plus flexible pour les heures
+        const hasAtLeastOneSchedule = Object.values(formData.consultation_hours).some(
+          (schedule: any) => schedule.available && schedule.start && schedule.end
+        )
         return (
           formData.bio.trim() !== '' &&
           Number(formData.consultation_fee) > 0 &&
-          formData.office_address.trim() !== ''
+          formData.office_address.trim() !== '' &&
+          hasAtLeastOneSchedule
         )
       case 5:
         // Validation de la sécurité
@@ -229,7 +294,8 @@ export default function DoctorSignup() {
         years_of_experience: formData.years_of_experience,
         office_address: formData.office_address,
         consultation_fee: Number(formData.consultation_fee),
-        is_available: formData.is_available
+        is_available: formData.is_available,
+        consultation_hours: formData.consultation_hours
       }
       
       const response = await apiService.registerDoctor(doctorData)
@@ -491,8 +557,81 @@ export default function DoctorSignup() {
                           required
                         />
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Champ ville avec auto-complétion */}
+                        <div className="space-y-3 relative">
+                          <Label htmlFor="city" className="text-sm font-semibold text-gray-700 flex items-center">
+                            <div className="p-1.5 bg-teal-100 rounded-lg mr-2">
+                              <Building className="w-4 h-4 text-teal-600" />
+                            </div>
+                            Ville *
+                            {citiesLoading && (
+                              <div className="ml-2">
+                                <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                              </div>
+                            )}
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="city"
+                              name="city"
+                              value={citySearchTerm}
+                              onChange={(e) => handleCityInputChange(e.target.value)}
+                              onFocus={() => citySearchTerm.length >= 2 && setShowCitySuggestions(true)}
+                              onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
+                              className="h-12 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                              placeholder="Tapez le nom de votre ville..."
+                              required
+                              autoComplete="off"
+                            />
+
+                            
+                            {/* Suggestions d'auto-complétion */}
+                            {showCitySuggestions && (
+                              <div className="absolute bottom-12 left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                {citiesLoading ? (
+                                  <div className="p-3 text-center text-gray-500">
+                                    <div className="flex items-center justify-center space-x-2">
+                                      <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                                      <span>Recherche en cours...</span>
+                                    </div>
+                                  </div>
+                                ) : searchResults.length > 0 ? (
+                                  searchResults.map((city, index) => (
+                                    <div
+                                      key={`${city.city}-${city.region || 'unknown'}-${index}`}
+                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-200 z-50"
+                                      onClick={() => handleCitySelect(city.city, city.region || '')}
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        <MapPinned className="w-4 h-4 text-teal-500" />
+                                        <span className="text-gray-900">
+                                          {city.city}{city.region && <>, <span className="text-xs font-semibold text-teal-600">{city.region.toUpperCase()}</span></>}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : citySearchTerm.length >= 2 ? (
+                                  <div className="p-3 text-xs text-center text-gray-500">
+                                    Aucune ville trouvée pour "{citySearchTerm}"
+                                  </div>
+                                ) : (
+                                  <div className="p-3 text-xs text-center text-gray-500">
+                                    Tapez au moins 2 caractères pour rechercher
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {citiesError && (
+                            <p className="text-xs text-red-500 mt-1">
+                              Erreur: {citiesError}
+                            </p>
+                          )}
+                        </div>
+                        
                         <div className="space-y-3">
                           <Label htmlFor="address" className="text-sm font-semibold text-gray-700 flex items-center">
                             <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
@@ -510,25 +649,8 @@ export default function DoctorSignup() {
                             required
                           />
                         </div>
-                        
-                        <div className="space-y-3">
-                          <Label htmlFor="city" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-teal-100 rounded-lg mr-2">
-                              <Building className="w-4 h-4 text-teal-600" />
-                            </div>
-                            Ville *
-                          </Label>
-                          <Input
-                            id="city"
-                            name="city"
-                            value={formData.city}
-                            onChange={(e) => handleInputChange('city', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Votre ville"
-                            required
-                          />
-                        </div>
                       </div>
+                      
                     </div>
                   )}
                   
@@ -759,6 +881,67 @@ export default function DoctorSignup() {
                         />
                       </div>
 
+                      {/* Consultation Hours */}
+                      <div className="space-y-4">
+                        <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                          <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
+                            <Clock className="w-4 h-4 text-indigo-600" />
+                          </div>
+                          Horaires de consultation *
+                        </Label>
+                        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100 shadow-sm">
+                          <p className="text-xs text-indigo-700 mb-4">Définissez vos horaires de consultation pour chaque jour de la semaine. Au moins un jour doit être configuré.</p>
+                          
+                          <div className="space-y-3">
+                            {[
+                              { key: 'monday', label: 'Lundi' },
+                              { key: 'tuesday', label: 'Mardi' },
+                              { key: 'wednesday', label: 'Mercredi' },
+                              { key: 'thursday', label: 'Jeudi' },
+                              { key: 'friday', label: 'Vendredi' },
+                              { key: 'saturday', label: 'Samedi' },
+                              { key: 'sunday', label: 'Dimanche' }
+                            ].map(({ key, label }) => (
+                              <div key={key} className="flex items-center space-x-4 p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-all duration-200">
+                                <div className="flex items-center space-x-2 min-w-[100px]">
+                                  <Checkbox
+                                    id={`${key}_available`}
+                                    checked={formData.consultation_hours[key as keyof ConsultationHours].available}
+                                    onCheckedChange={(checked) => handleScheduleChange(key, 'available', !!checked)}
+                                    className="border-2 border-indigo-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                                  />
+                                  <Label htmlFor={`${key}_available`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                                    {label}
+                                  </Label>
+                                </div>
+                                
+                                {formData.consultation_hours[key as keyof ConsultationHours].available && (
+                                  <div className="flex items-center space-x-2 flex-1">
+                                    <div className="flex items-center space-x-2">
+                                      <Label className="text-xs text-gray-600 min-w-[30px]">De:</Label>
+                                      <Input
+                                        type="time"
+                                        value={formData.consultation_hours[key as keyof ConsultationHours].start}
+                                        onChange={(e) => handleScheduleChange(key, 'start', e.target.value)}
+                                        className="h-8 text-xs border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 rounded-md"
+                                      />
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Label className="text-xs text-gray-600 min-w-[20px]">À:</Label>
+                                      <Input
+                                        type="time"
+                                        value={formData.consultation_hours[key as keyof ConsultationHours].end}
+                                        onChange={(e) => handleScheduleChange(key, 'end', e.target.value)}
+                                        className="h-8 text-xs border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 rounded-md"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
 
                     </div>
                   )}

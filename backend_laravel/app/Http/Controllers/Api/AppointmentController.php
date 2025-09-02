@@ -35,6 +35,21 @@ class AppointmentController extends Controller
             $query->byStatus($request->get('status'));
         }
 
+        // Filter by appointment type
+        if ($request->has('appointment_type')) {
+            $query->byType($request->get('appointment_type'));
+        }
+
+        // Filter for visio appointments
+        if ($request->has('visio') && filter_var($request->get('visio'), FILTER_VALIDATE_BOOLEAN)) {
+            $query->visio();
+        }
+
+        // Filter for presentiel appointments
+        if ($request->has('presentiel') && filter_var($request->get('presentiel'), FILTER_VALIDATE_BOOLEAN)) {
+            $query->presentiel();
+        }
+
         // Filter by date range
         if ($request->has('start_date')) {
             $query->where('appointment_date', '>=', $request->get('start_date'));
@@ -74,6 +89,7 @@ class AppointmentController extends Controller
             'doctor_id' => 'required|exists:users,id', // ID de l'utilisateur docteur
             'appointment_date' => 'required|date|after:now',
             'duration_minutes' => 'required|integer|min:15|max:240',
+            'appointment_type' => 'required|in:presentiel,visio,domicile,urgence,suivi',
             'reason_for_visit' => 'required|string|max:500',
             'notes' => 'nullable|string',
             'consultation_fee' => 'required|numeric|min:0'
@@ -192,6 +208,7 @@ class AppointmentController extends Controller
         $validated = $request->validate([
             'appointment_date' => 'sometimes|required|date|after:now',
             'duration_minutes' => 'sometimes|required|integer|min:15|max:240',
+            'appointment_type' => 'sometimes|required|in:presentiel,visio,domicile,urgence,suivi',
             'reason_for_visit' => 'sometimes|required|string|max:500',
             'notes' => 'nullable|string',
             'consultation_fee' => 'sometimes|required|numeric|min:0',
@@ -373,6 +390,27 @@ class AppointmentController extends Controller
             'success' => true,
             'data' => $availableSlots,
             'message' => 'Available slots retrieved successfully'
+        ]);
+    }
+
+    /**
+     * Get available appointment types
+     */
+    public function getAppointmentTypes(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'types' => Appointment::APPOINTMENT_TYPES,
+                'constants' => [
+                    'TYPE_PRESENTIEL' => Appointment::TYPE_PRESENTIEL,
+                    'TYPE_VISIO' => Appointment::TYPE_VISIO,
+                    'TYPE_DOMICILE' => Appointment::TYPE_DOMICILE,
+                    'TYPE_URGENCE' => Appointment::TYPE_URGENCE,
+                    'TYPE_SUIVI' => Appointment::TYPE_SUIVI,
+                ]
+            ],
+            'message' => 'Appointment types retrieved successfully'
         ]);
     }
 }
