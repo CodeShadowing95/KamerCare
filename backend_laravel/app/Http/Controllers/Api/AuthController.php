@@ -121,6 +121,7 @@ class AuthController extends Controller
                 'consultation_hours' => $request->consultation_hours,
                 'consultation_fee' => $request->consultation_fee ?? 0,
                 'is_available' => true,
+                'is_certified' => 'No', // Valeur par défaut
             ]);
         }
         // Note: Les patients ne sont plus créés automatiquement lors de l'enregistrement

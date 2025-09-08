@@ -28,6 +28,7 @@ class Appointment extends Model
     protected $fillable = [
         'patient_id',
         'doctor_id',
+        'created_by_user_id',
         'appointment_date',
         'duration_minutes',
         'status',
@@ -63,6 +64,11 @@ class Appointment extends Model
     public function medicalRecord()
     {
         return $this->hasOne(MedicalRecord::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     // Scopes

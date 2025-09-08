@@ -17,7 +17,7 @@ const manrope = Manrope({
 })
 
 export const metadata: Metadata = {
-  title: "Plateforme Médicale Cameroun - Prise de RDV",
+  title: "KamerCare - Accueil",
   description: "Plateforme officielle de prise de rendez-vous dans les hôpitaux publics du Cameroun",
   icons: {
     icon: "/favicon.ico",

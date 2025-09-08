@@ -85,14 +85,15 @@ class AppointmentController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'patient_id' => 'required|exists:users,id', // Maintenant on utilise l'ID de l'utilisateur
-            'doctor_id' => 'required|exists:users,id', // ID de l'utilisateur docteur
+            'patient_id' => 'required|exists:users,id', // ID de l'utilisateur patient
+            'doctor_id' => 'required|exists:doctors,id', // ID du profil docteur
             'appointment_date' => 'required|date|after:now',
             'duration_minutes' => 'required|integer|min:15|max:240',
             'appointment_type' => 'required|in:presentiel,visio,domicile,urgence,suivi',
             'reason_for_visit' => 'required|string|max:500',
             'notes' => 'nullable|string',
-            'consultation_fee' => 'required|numeric|min:0'
+            'consultation_fee' => 'required|numeric|min:0',
+            'created_by_user_id' => 'required|exists:users,id' // ID de l'utilisateur qui crée le RDV
         ]);
 
         // Récupérer l'utilisateur patient
@@ -118,23 +119,14 @@ class AppointmentController extends Controller
             ]
         );
 
-        // Récupérer l'utilisateur docteur
-        $doctorUser = \App\Models\User::findOrFail($validated['doctor_id']);
+        // Récupérer le profil docteur directement
+        $doctor = Doctor::findOrFail($validated['doctor_id']);
         
-        // Vérifier que l'utilisateur a le rôle docteur
-        if ($doctorUser->role !== 'doctor') {
+        // Vérifier que le docteur a un utilisateur associé avec le rôle docteur
+        if (!$doctor->user || $doctor->user->role !== 'doctor') {
             return response()->json([
                 'success' => false,
                 'message' => 'L\'utilisateur sélectionné n\'est pas un docteur'
-            ], 422);
-        }
-        
-        // Récupérer l'enregistrement docteur
-        $doctor = $doctorUser->doctor;
-        if (!$doctor) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Aucun profil docteur trouvé pour cet utilisateur'
             ], 422);
         }
 
@@ -173,11 +165,13 @@ class AppointmentController extends Controller
         $appointmentData = $validated;
         $appointmentData['patient_id'] = $patient->id; // Utiliser l'ID du patient créé
         $appointmentData['doctor_id'] = $doctor->id; // Utiliser l'ID du docteur récupéré
+        // Utiliser le created_by_user_id envoyé dans la requête (obligatoire)
+        $appointmentData['created_by_user_id'] = $validated['created_by_user_id'];
         $appointmentData['status'] = 'scheduled';
         $appointmentData['payment_status'] = 'pending';
         
         $appointment = Appointment::create($appointmentData);
-        $appointment->load(['patient', 'doctor']);
+        $appointment->load(['patient', 'doctor', 'createdBy']);
 
         return response()->json([
             'success' => true,
@@ -191,7 +185,7 @@ class AppointmentController extends Controller
      */
     public function show(Appointment $appointment): JsonResponse
     {
-        $appointment->load(['patient', 'doctor', 'medicalRecord']);
+        $appointment->load(['patient', 'doctor', 'medicalRecord', 'createdBy']);
 
         return response()->json([
             'success' => true,

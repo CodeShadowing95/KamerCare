@@ -31,14 +31,21 @@ export interface LoginResponse {
   errors?: Record<string, string[]>;
 }
 
+export interface TimeSlot {
+  date: string; // Date au format YYYY-MM-DD
+  time: string; // Heure précise au format HH:MM
+  id: string;
+  status: string; // Statut du créneau (pending, confirmed, cancelled)
+}
+
 export interface ConsultationHours {
-  monday: { start: string; end: string; available: boolean };
-  tuesday: { start: string; end: string; available: boolean };
-  wednesday: { start: string; end: string; available: boolean };
-  thursday: { start: string; end: string; available: boolean };
-  friday: { start: string; end: string; available: boolean };
-  saturday: { start: string; end: string; available: boolean };
-  sunday: { start: string; end: string; available: boolean };
+  monday: { slots: TimeSlot[]; available: boolean };
+  tuesday: { slots: TimeSlot[]; available: boolean };
+  wednesday: { slots: TimeSlot[]; available: boolean };
+  thursday: { slots: TimeSlot[]; available: boolean };
+  friday: { slots: TimeSlot[]; available: boolean };
+  saturday: { slots: TimeSlot[]; available: boolean };
+  sunday: { slots: TimeSlot[]; available: boolean };
 }
 
 export interface DoctorRegistrationData {
@@ -49,7 +56,7 @@ export interface DoctorRegistrationData {
   date_of_birth?: string;
   address?: string;
   city?: string;
-  specialization: string;
+  specialization: string[];
   hospital?: string;
   license_number: string;
   phone: string;
@@ -178,6 +185,76 @@ class ApiService {
     return this.makeRequest<RegistrationResponse>('/doctors', {
       method: 'POST',
       body: JSON.stringify(doctorData),
+    });
+  }
+
+  // Doctor-related API methods
+  async getDoctors(params?: {
+    search?: string;
+    specialization?: string;
+    city?: string;
+    available?: boolean;
+    per_page?: number;
+    page?: number;
+  }): Promise<{
+    success: boolean;
+    data: {
+      data: any[];
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+    message: string;
+  }> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.specialization) queryParams.append('specialization', params.specialization);
+    if (params?.city) queryParams.append('city', params.city);
+    if (params?.available !== undefined) queryParams.append('available', params.available.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    
+    const endpoint = `/public/doctors${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.makeRequest(endpoint);
+  }
+
+  async getSpecializations(): Promise<{
+    success: boolean;
+    data: string[];
+    message: string;
+  }> {
+    return this.makeRequest('/specializations');
+  }
+
+  async createAppointment(
+    appointmentData: {
+      patient_id: number;
+      doctor_id: number;
+      appointment_date: string;
+      appointment_type: 'presentiel' | 'visio' | 'domicile' | 'urgence' | 'suivi';
+      reason_for_visit: string;
+      duration_minutes?: number;
+      notes?: string;
+      consultation_fee: number;
+      status?: string;
+      created_by_user_id: number;
+    },
+    token: string
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    message: string;
+    errors?: Record<string, string[]>;
+  }> {
+    return this.makeRequest('/appointments', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(appointmentData),
     });
   }
 }

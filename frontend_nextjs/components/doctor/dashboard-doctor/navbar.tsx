@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -304,9 +305,45 @@ export function DoctorNavbar({ onMenuClick, className }: NavbarProps) {
                   <p className="text-sm font-semibold text-gray-900">
                     Dr. {user?.name || 'Docteur'}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {user?.speciality || 'Médecin généraliste'}
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-500 truncate">
+                      {(() => {
+                        const specialities = user?.doctor?.specialization || user?.speciality;
+                        if (Array.isArray(specialities) && specialities.length > 0) {
+                          return specialities[0];
+                        }
+                        return specialities || 'Médecin généraliste';
+                      })()}
+                    </span>
+                    {(() => {
+                       const specialities = user?.doctor?.specialization || user?.speciality;
+                       if (Array.isArray(specialities) && specialities.length > 1) {
+                         const additionalSpecialities = specialities.slice(1);
+                         return (
+                           <TooltipProvider>
+                             <Tooltip>
+                               <TooltipTrigger asChild>
+                                 <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-0 cursor-help">
+                                   +{specialities.length - 1}
+                                 </Badge>
+                               </TooltipTrigger>
+                               <TooltipContent>
+                                 <div className="text-xs">
+                                   <p className="font-medium mb-1 text-xs">Autres spécialités :</p>
+                                   <ul className="space-y-0.5">
+                                     {Array.isArray(additionalSpecialities) && additionalSpecialities.map((speciality, index) => (
+                                       <li key={index}>• {speciality}</li>
+                                     ))}
+                                   </ul>
+                                 </div>
+                               </TooltipContent>
+                             </Tooltip>
+                           </TooltipProvider>
+                         );
+                       }
+                       return null;
+                     })()}
+                  </div>
                   <p className="text-xs text-gray-400">
                     {user?.email || 'docteur@kamercare.com'}
                   </p>

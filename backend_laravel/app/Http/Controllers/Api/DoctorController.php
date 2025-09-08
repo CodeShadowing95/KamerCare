@@ -65,7 +65,8 @@ class DoctorController extends Controller
             'date_of_birth' => 'nullable|date|before:today',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
-            'specialization' => 'required|string|max:255',
+            'specialization' => 'required|array|min:1',
+            'specialization.*' => 'required|string|max:255',
             'hospital' => 'nullable|string|max:255',
             'license_number' => 'required|string|unique:doctors,license_number',
             'phone' => 'required|string|max:20',
@@ -94,6 +95,7 @@ class DoctorController extends Controller
         // Create doctor profile
         $doctorData = collect($validated)->except(['email', 'password'])->toArray();
         $doctorData['user_id'] = $user->id;
+        $doctorData['is_certified'] = 'No'; // Valeur par défaut
         
         $doctor = Doctor::create($doctorData);
         $doctor->load('user');
@@ -131,7 +133,8 @@ class DoctorController extends Controller
             'email' => ['nullable', 'email', Rule::unique('doctors')->ignore($doctor->id)],
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
-            'specialization' => 'sometimes|required|string|max:255',
+            'specialization' => 'sometimes|required|array|min:1',
+            'specialization.*' => 'required|string|max:255',
             'hospital' => 'nullable|string|max:255',
             'license_number' => ['sometimes', 'required', 'string', Rule::unique('doctors')->ignore($doctor->id)],
             'phone' => 'sometimes|required|string|max:20',

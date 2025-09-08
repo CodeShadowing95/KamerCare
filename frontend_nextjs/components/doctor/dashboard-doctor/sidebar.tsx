@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 interface SidebarProps {
@@ -132,10 +133,7 @@ export function DoctorSidebar({
 
   const handleLogout = async () => {
     await logout()
-    if(typeof window !== 'undefined') {
-      window.location.href="/doctor/login"
-    }
-    // La redirection sera gérée automatiquement par le layout
+    router.push("/doctor/login")
   }
 
   const handleToggle = () => {
@@ -172,23 +170,62 @@ export function DoctorSidebar({
       {/* Doctor Profile */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="doctor.png" />
-            <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              {(user?.name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2) || 'DR').toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-10 w-10 relative">
+              <AvatarImage src="doctor.png" />
+              <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                {(user?.name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2) || 'DR').toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute top-0 right-0 bg-green-500 rounded-full w-3 h-3"></div>
+          </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
                 Dr. {user?.name?.split(' ').slice(0,2).join(' ') || 'Docteur'}
               </p>
-              <p className="text-xs text-gray-500 truncate">
-                {user?.speciality || 'Médecin généraliste'}
-              </p>
-              <Badge variant="secondary" className="mt-1 text-xs">
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-500 truncate">
+                  {(() => {
+                    const specialities = user?.doctor?.specialization || user?.speciality;
+                    if (Array.isArray(specialities) && specialities.length > 0) {
+                      return specialities[0];
+                    }
+                    return specialities || 'Médecin généraliste';
+                  })()}
+                </span>
+                {(() => {
+                  const specialities = user?.doctor?.specialization || user?.speciality;
+                  if (Array.isArray(specialities) && specialities.length > 1) {
+                    const additionalSpecialities = specialities.slice(1);
+                    return (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-0 cursor-help">
+                              +{specialities.length - 1}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="text-xs">
+                              <p className="font-medium mb-1 text-xs">Autres spécialités :</p>
+                              <ul className="space-y-0.5">
+                                {(Array.isArray(additionalSpecialities) ? additionalSpecialities : [additionalSpecialities]).map((speciality, index) => (
+                                  <li key={index}>• {speciality}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              {/* <Badge variant="secondary" className="mt-1 text-xs">
                 En ligne
-              </Badge>
+              </Badge> */}
             </div>
           )}
         </div>

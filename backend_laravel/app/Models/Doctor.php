@@ -31,10 +31,12 @@ class Doctor extends Model
         'consultation_hours',
         'consultation_fee',
         'is_available',
+        'is_certified',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
+        'specialization' => 'array',
         'qualifications' => 'array',
         'education' => 'array',
         'certifications' => 'array',
@@ -90,6 +92,11 @@ class Doctor extends Model
 
     public function scopeBySpecialization($query, $specialization)
     {
-        return $query->where('specialization', $specialization);
+        // Si la spécialisation est stockée comme JSON array, utiliser JSON_CONTAINS
+        // Sinon, utiliser LIKE pour la compatibilité avec les anciennes données
+        return $query->where(function($q) use ($specialization) {
+            $q->whereJsonContains('specialization', $specialization)
+              ->orWhere('specialization', 'like', "%{$specialization}%");
+        });
     }
 }

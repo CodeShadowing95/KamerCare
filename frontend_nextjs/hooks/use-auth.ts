@@ -52,6 +52,17 @@ export function useAuth(): AuthState & AuthActions {
 
   const checkAuth = () => {
     try {
+      // Ensure we're on the client side before accessing localStorage
+      if (typeof window === 'undefined') {
+        setState({
+          user: null,
+          token: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+        return;
+      }
+      
       const token = localStorage.getItem(TOKEN_KEY);
       const userStr = localStorage.getItem(USER_KEY);
       
@@ -155,8 +166,25 @@ export function useAuth(): AuthState & AuthActions {
         error: error,
         stack: error instanceof Error ? error.stack : undefined,
         type: typeof error,
-        stringified: JSON.stringify(error, null, 2)
+        constructor: error?.constructor?.name,
+        keys: error && typeof error === 'object' ? Object.keys(error) : [],
+        stringified: (() => {
+          try {
+            return JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+          } catch (e) {
+            return 'Cannot stringify error';
+          }
+        })()
       });
+      
+      // Log specific error details if it's an API error
+      if (error && typeof error === 'object' && 'message' in error) {
+        console.error('API Error details:', {
+          message: (error as any).message,
+          errors: (error as any).errors,
+          status: (error as any).status
+        });
+      }
       
       // Don't throw the error, just log it since we want to clear local state anyway
     } finally {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { DoctorSidebar } from '@/components/doctor/dashboard-doctor/sidebar';
 import { DoctorNavbar } from '@/components/doctor/dashboard-doctor/navbar';
+import { Metadata } from 'next';
 
 interface DoctorLayoutProps {
   children: React.ReactNode;

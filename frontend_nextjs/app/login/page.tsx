@@ -37,6 +37,8 @@ export default function LoginPage() {
         const userRole = user.role
         
         if (userRole === 'doctor') {
+          // Clear localStorage and redirect to doctor page
+          localStorage.clear()
           router.push('/doctor-portal')
         } else if (userRole === 'admin') {
           router.push('/admin')
@@ -78,9 +80,11 @@ export default function LoginPage() {
           
           // Redirect based on user role
           if (user.role === 'doctor') {
+            // Clear localStorage and redirect to doctor page
+            localStorage.clear()
             toast({
-              title: "Connexion réussie",
-              description: "Redirection vers le portail docteur...",
+              title: "Redirection",
+              description: "Redirection vers la page docteur...",
               variant: "default",
             })
             setTimeout(() => {

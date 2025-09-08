@@ -162,14 +162,30 @@ export default function LandingPage() {
   ]
 
   const specialties = [
-    "Médecine générale",
-    "Pédiatrie",
-    "Gynécologie-Obstétrique",
-    "Chirurgie",
+    "Médecine Générale",
+    "Anesthésie/Réanimation",
+    "Chirurgie générale",
+    "Chirurgie pédiatrique",
+    "Gynécologie/Obstétrique",
     "Ophtalmologie",
-    "ORL",
+    "Oto-rhino-laryngologie (ORL)",
     "Cardiologie",
-    "Dermatologie",
+    "Dermatologie/Vénérologie",
+    "Endocrinologie/Diabétologie",
+    "Gastroentérologie/Hépatologie",
+    "Hématologie clinique",
+    "Maladies infectieuses",
+    "Médecine interne",
+    "Néphrologie",
+    "Neurologie",
+    "Oncologie médicale",
+    "Pédiatrie",
+    "Psychiatrie",
+    "Anatomopathologie",
+    "Biochimie médicale",
+    "Biologie clinique",
+    "Radiologie et imagerie médicale",
+    "Santé publique"
   ]
 
   const texts = {

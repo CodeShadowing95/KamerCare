@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import {
   Search,
   MapPin,
@@ -153,8 +154,8 @@ export default function HeroSection({
 }: HeroSectionProps) {
   const texts = {
     fr: {
-      title: "Votre santé, notre priorité",
-      subtitle: "Prenez rendez-vous facilement dans les hôpitaux publics du Cameroun",
+      title: "Votre médecin à portée de clic",
+      subtitle: "Connectez-vous instantanément aux meilleurs médecins du Cameroun",
       searchTitle: "Trouvez votre rendez-vous médical",
       searchSubtitle: "Sélectionnez vos critères de recherche",
       region: "Région",
@@ -181,8 +182,8 @@ export default function HeroSection({
       trustBadge: "Plateforme officielle du Ministère de la Santé"
     },
     en: {
-      title: "Your health, our priority",
-      subtitle: "Easily book appointments in Cameroon's public hospitals",
+      title: "Your doctor at your fingertips",
+      subtitle: "Connect instantly with Cameroon's best medical professionals",
       searchTitle: "Find your medical appointment",
       searchSubtitle: "Select your search criteria",
       region: "Region",
@@ -211,6 +212,7 @@ export default function HeroSection({
   }
 
   const t = texts[language]
+  const router = useRouter()
 
   const { regionsList: apiRegions, cities: apiCities, fetchCitiesByRegion, loading, error } = useCities()
 
@@ -219,6 +221,21 @@ export default function HeroSection({
 
   // État pour la recherche de spécialité
   const [specialtySearchTerm, setSpecialtySearchTerm] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+
+  // Fonction pour gérer la recherche
+  const handleSearch = async () => {
+    if (selectedCity && selectedSpecialty && !isSearching) {
+      setIsSearching(true)
+      const searchParams = new URLSearchParams({
+        city: selectedCity,
+        specialty: selectedSpecialty
+      })
+      // Petit délai pour montrer le loader
+      await new Promise(resolve => setTimeout(resolve, 500))
+      router.push(`/search-doctors?${searchParams.toString()}`)
+    }
+  }
 
   // Filtrer les spécialités selon le terme de recherche
   const filteredSpecialties = specialties.filter(specialty =>
@@ -261,7 +278,7 @@ export default function HeroSection({
         </div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-6 lg:px-12 pb-8">
+      <div className="relative z-10 container mx-auto px-6 lg:px-32 pb-8">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center h-full">
           <div className="space-y-6 lg:space-y-8 animate-fadeInUp">
             <div className="space-y-6">
@@ -279,7 +296,7 @@ export default function HeroSection({
 
               <div className="space-y-4">
                 <h1 className="text-4xl lg:text-6xl xl:text-7xl font-bold leading-[0.9] tracking-tight">
-                  <span className="block bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-200 bg-clip-text text-transparent">
+                  <span className="block bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-200 bg-clip-text text-transparent">
                     {t.title.split(' ')[0]}
                   </span>
                   <span className="block bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
@@ -376,12 +393,23 @@ export default function HeroSection({
                     </div>
 
                     <Button
-                      className="w-full h-12 mt-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-cyan-500 hover:from-emerald-700 hover:via-emerald-600 hover:to-cyan-600 text-white font-bold rounded-xl shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group"
+                      onClick={handleSearch}
+                      disabled={!selectedCity || !selectedSpecialty || isSearching}
+                      className="w-full h-12 mt-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-cyan-500 hover:from-emerald-700 hover:via-emerald-600 hover:to-cyan-600 text-white font-bold rounded-xl shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                       size="lg"
                     >
-                      <Search className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
-                      {t.searchButton}
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                      {isSearching ? (
+                        <>
+                          <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Recherche en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                          {t.searchButton}
+                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                        </>
+                      )}
                     </Button>
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-4">
@@ -402,7 +430,7 @@ export default function HeroSection({
                             </div>
                             
                             {/* Valeur */}
-                            <div className={`text-3xl lg:text-4xl font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent group-hover:scale-110 transition-all duration-300 leading-none mb-2`}>
+                            <div className={`text-2xl lg:text-3xl font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent group-hover:scale-110 transition-all duration-300 leading-none mb-2`}>
                               {stat.value}
                             </div>
                             
