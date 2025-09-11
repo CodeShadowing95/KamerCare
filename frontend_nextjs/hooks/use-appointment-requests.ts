@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from './use-auth'
 
-interface AppointmentRequest {
+export interface AppointmentRequest {
   id: number
   appointment_date: string
   reason_for_visit: string
@@ -158,5 +158,3 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
     cancelRequest,
   }
 }
-
-export type { AppointmentRequest }

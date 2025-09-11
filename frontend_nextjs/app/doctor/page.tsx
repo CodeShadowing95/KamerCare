@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { Appointment, useAppointments } from "@/hooks/use-appointments"
-import { useAppointmentRequests } from "@/hooks/use-appointment-requests"
+import { useAppointmentRequests, AppointmentRequest } from "@/hooks/use-appointment-requests"
 
 import {
   Calendar,
@@ -38,6 +38,7 @@ import {
   Stethoscope,
   Phone,
   CalendarX,
+  Mail,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -374,32 +375,34 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
           <DialogHeader className="pb-2 bg-blue-50 -m-6 mb-4 p-4 border-b border-blue-200">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-base font-semibold text-blue-900">Détails RDV</DialogTitle>
-              <Badge className={`${
-                selectedAppointment?.status === 'confirmed' ? 'bg-green-100 text-green-800 border-green-300' :
-                selectedAppointment?.status === 'scheduled' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
-                'bg-gray-100 text-gray-800 border-gray-300'
-              }`} variant="outline">
-                {selectedAppointment?.status ? getStatusLabel(selectedAppointment.status) : ''}
-              </Badge>
             </div>
           </DialogHeader>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-md border border-blue-200">
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-medium text-xs">
-                {selectedAppointment?.patient?.first_name?.[0] || ''}
-                {selectedAppointment?.patient?.last_name?.[0] || ''}
+            <div className="flex justify-between items-center gap-2 p-2 bg-teal-50 rounded-md border border-teal-200">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-medium text-xs">
+                  {selectedAppointment?.patient?.first_name?.[0] || ''}
+                  {selectedAppointment?.patient?.last_name?.[0] || ''}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm text-blue-900 truncate">
+                    {selectedAppointment?.patient?.first_name} {selectedAppointment?.patient?.last_name}
+                  </h3>
+                  <p className="text-xs text-gray-600 flex items-center gap-1">
+                    <Phone className="h-3 w-3 text-blue-500" />
+                    {selectedAppointment?.patient?.phone}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm text-blue-900 truncate">
-                  {selectedAppointment?.patient?.first_name} {selectedAppointment?.patient?.last_name}
-                </h3>
-                <p className="text-xs text-gray-600 flex items-center gap-1">
-                  <Phone className="h-3 w-3 text-blue-500" />
-                  {selectedAppointment?.patient?.phone}
-                </p>
-              </div>
+
+              <Badge className={`${selectedAppointment?.status === 'confirmed' ? 'bg-green-100 text-green-800 border-green-300' :
+                  selectedAppointment?.status === 'scheduled' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                    selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                      'bg-gray-100 text-gray-800 border-gray-300'
+                }`} variant="outline">
+                {selectedAppointment?.status ? getStatusLabel(selectedAppointment.status) : ''}
+              </Badge>
             </div>
 
             <div className="space-y-2">
@@ -766,6 +769,8 @@ function TodayAppointmentsTable({ router }: { router: any }) {
           </div>
         )}
       </CardContent>
+
+
     </Card>
   )
 }
@@ -775,6 +780,7 @@ function AppointmentRequestsTable({ router }: { router: any }) {
   const { requests, loading, error, refetch, confirmRequest, cancelRequest } = useAppointmentRequests()
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
   const [cancellingId, setCancellingId] = useState<number | null>(null)
+  const [selectedRequest, setSelectedRequest] = useState<AppointmentRequest | null>(null)
 
   const handleConfirm = async (id: number) => {
     setConfirmingId(id)
@@ -942,11 +948,18 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                     </td>
                     <td className="py-2 px-3">
                       <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
-                        {request.consultation_fee}€
+                        {request.consultation_fee} FCFA
                       </div>
                     </td>
                     <td className="py-2 px-3">
                       <div className="flex items-center justify-center space-x-1">
+                        <Button
+                          size="sm"
+                          onClick={() => setSelectedRequest(request)}
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </Button>
                         <Button
                           size="sm"
                           onClick={() => handleConfirm(request.id)}
@@ -984,6 +997,118 @@ function AppointmentRequestsTable({ router }: { router: any }) {
           </div>
         )}
       </CardContent>
+
+      {/* Modal pour afficher les détails de la demande de RDV */}
+      {selectedRequest && (
+        <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+          <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto bg-white border-blue-200">
+            <DialogHeader className="pb-2 bg-blue-50 -m-6 mb-4 p-4 border-b border-blue-200">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-base font-semibold text-blue-900">Détails Demande</DialogTitle>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center gap-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-medium text-xs">
+                    {selectedRequest?.patient?.first_name?.[0] || ''}{selectedRequest?.patient?.last_name?.[0] || ''}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm text-blue-900 truncate">
+                      {selectedRequest.patient?.first_name} {selectedRequest.patient?.last_name}
+                    </h3>
+                    <p className="text-xs text-gray-600 flex items-center gap-1">
+                      <Phone className="h-3 w-3 text-blue-500" />
+                      {selectedRequest.patient?.phone}
+                    </p>
+                  </div>
+                </div>
+
+                <Badge className="bg-orange-100 text-orange-800 border-orange-300" variant="outline">
+                  En attente
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <Calendar className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                  <span className="font-medium text-blue-900">Date:</span>
+                  <span className="text-gray-600">{new Date(selectedRequest.appointment_date).toLocaleDateString('fr-FR')}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs">
+                  <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                  <span className="font-medium text-blue-900">Heure:</span>
+                  <span className="text-gray-600">
+                    {new Date(selectedRequest.appointment_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} ({selectedRequest.duration_minutes}min)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs">
+                  <Mail className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                  <span className="font-medium text-blue-900">Email:</span>
+                  <span className="text-gray-600">{selectedRequest.patient?.email}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs">
+                  <CreditCard className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                  <span className="font-medium text-blue-900">Tarif:</span>
+                  <span className="text-gray-600">{selectedRequest.consultation_fee} FCFA</span>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs">
+                  <FileText className="h-3 w-3 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <span className="font-medium text-blue-900">Motif:</span>
+                  <span className="text-gray-600">{selectedRequest.reason_for_visit}</span>
+                </div>
+              </div>
+
+              <Separator className="my-2 border-blue-200" />
+
+              {/* Action Buttons - Avec textes */}
+              <div className="flex flex-col gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    handleConfirm(selectedRequest.id)
+                    setSelectedRequest(null)
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 flex items-center gap-2 justify-center"
+                >
+                  <Check className="h-3 w-3" />
+                  <span>Confirmer</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    handleCancel(selectedRequest.id)
+                    setSelectedRequest(null)
+                  }}
+                  className="border-red-500 text-red-600 hover:bg-red-50 bg-transparent text-xs px-3 py-2 flex items-center gap-2 justify-center"
+                >
+                  <X className="h-3 w-3" />
+                  <span>Refuser</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedRequest(null)}
+                  className="border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent text-xs px-3 py-2 flex items-center gap-2 justify-center"
+                >
+                  <span>Fermer</span>
+                </Button>
+              </div>
+
+              {/* Footer Note - Ultra Compact */}
+              <div className="text-xs text-gray-500 text-center p-1 bg-gray-100 rounded text-[10px] border border-gray-200">
+                Demande reçue • Réponse requise
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   )
 }

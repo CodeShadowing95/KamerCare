@@ -63,7 +63,7 @@ export default function DoctorLogin() {
           description: "Bienvenue dans votre espace professionnel",
         });
 
-        if (typeof window !== undefined) {
+        if (typeof window !== 'undefined') {
           window.location.href = "/doctor"
         }
         
