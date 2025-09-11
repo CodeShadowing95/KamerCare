@@ -16,6 +16,7 @@ import {
   Eye,
   Edit,
   Plus,
+  Trash2,
   Star,
   Activity,
   TrendingUp,
@@ -32,13 +33,18 @@ import {
   Check,
   X,
   Clock as ClockIcon,
-  Trash2,
   CalendarPlus,
   MapPin,
   Stethoscope,
   Phone,
   CalendarX,
   Mail,
+  Search,
+  ChevronDown,
+  ChartLine,
+  Hospital,
+  HeartHandshake,
+  ClockArrowUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -53,6 +59,26 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
+
+// Fonction pour vérifier si une date est passée
+const isDatePassed = (dateString: string) => {
+  const appointmentDate = new Date(dateString);
+  const now = new Date();
+
+  console.log("Date actuelle: ", now)
+  console.log("Date rendez-vous: ", appointmentDate)
+  return appointmentDate < now;
+};
 
 // Composant pour le tableau des prochains rendez-vous
 function UpcomingAppointmentsTable({ router }: { router: any }) {
@@ -81,6 +107,8 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
       minute: '2-digit'
     })
   }
+
+
 
   const getStatusColor = (status: Appointment["status"]) => {
     switch (status) {
@@ -293,76 +321,95 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-600">
-                {appointments.slice(0, 10).map((appointment, index) => (
-                  <tr key={appointment.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-200">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Avatar className="w-8 h-8 mr-3">
-                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold">
-                            {`${appointment.patient.first_name[0]}${appointment.patient.last_name[0]}`}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="text-sm font-medium text-slate-900 dark:text-white">
-                            {appointment.patient.first_name} {appointment.patient.last_name}
-                          </div>
-                          {appointment.patient.phone && (
-                            <div className="text-xs text-slate-500 dark:text-slate-400">
-                              {appointment.patient.phone}
+                {appointments.slice(0, 10).map((appointment, index) => {
+                  const isPassed = isDatePassed(appointment.appointment_date);
+                  return (
+                    <tr key={appointment.id} className={`transition-colors duration-200 ${isPassed
+                      ? 'bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                      }`}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Avatar className="w-8 h-8 mr-3">
+                            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold">
+                              {`${appointment.patient.first_name[0]}${appointment.patient.last_name[0]}`}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-sm font-medium text-slate-900 dark:text-white">
+                              {appointment.patient.first_name} {appointment.patient.last_name}
                             </div>
+                            {appointment.patient.phone && (
+                              <div className="text-xs text-slate-500 dark:text-slate-400">
+                                {appointment.patient.phone}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-900 dark:text-white font-medium">
+                          {formatDate(appointment.appointment_date)}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          {formatTime(appointment.appointment_date)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-xs text-slate-500 dark:text-white max-w-xs truncate" title={appointment.reason_for_visit}>
+                          {appointment.reason_for_visit}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-900 dark:text-white font-medium">
+                          {appointment.duration_minutes} min
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge className={`${getStatusColor(appointment.status)} px-2 py-1 text-xs font-medium rounded-full`}>
+                          {getStatusText(appointment.status)}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getPaymentStatusBadge(appointment.payment_status || 'pending')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          {isPassed ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 p-2 h-8 w-8"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3 h-3 text-red-600" />
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
+                                title="Voir les détails"
+                                onClick={() => openAppointmentDetails(appointment)}
+                              >
+                                <Eye className="w-3 h-3 text-indigo-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
+                                title="Modifier"
+                              >
+                                <Edit className="w-3 h-3 text-green-600" />
+                              </Button>
+                            </>
                           )}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-900 dark:text-white font-medium">
-                        {formatDate(appointment.appointment_date)}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {formatTime(appointment.appointment_date)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-xs text-slate-500 dark:text-white max-w-xs truncate" title={appointment.reason_for_visit}>
-                        {appointment.reason_for_visit}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-900 dark:text-white font-medium">
-                        {appointment.duration_minutes} min
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge className={`${getStatusColor(appointment.status)} px-2 py-1 text-xs font-medium rounded-full`}>
-                        {getStatusText(appointment.status)}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getPaymentStatusBadge(appointment.payment_status || 'pending')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
-                          title="Voir les détails"
-                          onClick={() => openAppointmentDetails(appointment)}
-                        >
-                          <Eye className="w-3 h-3 text-indigo-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
-                          title="Modifier"
-                        >
-                          <Edit className="w-3 h-3 text-green-600" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -397,9 +444,9 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
               </div>
 
               <Badge className={`${selectedAppointment?.status === 'confirmed' ? 'bg-green-100 text-green-800 border-green-300' :
-                  selectedAppointment?.status === 'scheduled' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                    selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
-                      'bg-gray-100 text-gray-800 border-gray-300'
+                selectedAppointment?.status === 'scheduled' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                  selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                    'bg-gray-100 text-gray-800 border-gray-300'
                 }`} variant="outline">
                 {selectedAppointment?.status ? getStatusLabel(selectedAppointment.status) : ''}
               </Badge>
@@ -781,6 +828,10 @@ function AppointmentRequestsTable({ router }: { router: any }) {
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
   const [cancellingId, setCancellingId] = useState<number | null>(null)
   const [selectedRequest, setSelectedRequest] = useState<AppointmentRequest | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   const handleConfirm = async (id: number) => {
     setConfirmingId(id)
@@ -817,31 +868,154 @@ function AppointmentRequestsTable({ router }: { router: any }) {
     })
   }
 
+
+
+  // Fonction pour filtrer les demandes
+  const filteredRequests = requests.filter(request => {
+    const matchesSearch = request.patient.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.patient.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.reason_for_visit.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = selectedStatus === '' || request.status === selectedStatus
+    const matchesPaymentStatus = selectedPaymentStatus === '' || (request?.payment_status || 'pending') === selectedPaymentStatus
+
+    return matchesSearch && matchesStatus && matchesPaymentStatus
+  })
+
+  const handleFilterApply = () => {
+    setIsFilterOpen(false)
+  }
+
+  const handleFilterReset = () => {
+    setSelectedStatus('')
+    setSelectedPaymentStatus('')
+  }
+
   return (
     <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <div>
-          <CardTitle className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Nouvelles Demandes
-          </CardTitle>
-          <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
-            {requests.length} demande{requests.length !== 1 ? 's' : ''} en attente de votre validation
-          </CardDescription>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 px-2 py-0.5 text-xs">
-            <ClockIcon className="w-3 h-3 mr-1" />
-            {requests.length} en attente
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refetch}
-            disabled={loading}
-            className="hover:bg-orange-50 dark:hover:bg-slate-700 border-slate-300 hover:border-orange-400 transition-all duration-300 hover:scale-105 rounded-xl h-8 w-8 p-0"
-          >
-            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
+      <CardHeader className="space-y-4 pb-3">
+        <div className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+              Nouvelles Demandes
+            </CardTitle>
+            <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
+              {filteredRequests.length} demande{filteredRequests.length !== 1 ? 's' : ''} affichée{filteredRequests.length !== 1 ? 's' : ''} sur {requests.length}
+            </CardDescription>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 px-2 py-0.5 text-xs">
+              <ClockIcon className="w-3 h-3 mr-1" />
+              {requests.length} en attente
+            </Badge>
+            <div className="w-0.5 h-6 bg-gray-200" />
+            <div className="relative flex-1 max-w-lg">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Input
+                placeholder="Recherche par nom..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="text-xs h-7 pl-8 border-slate-200 focus:border-orange-400 focus:ring-orange-400 rounded-md"
+              />
+            </div>
+            <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-3 text-sm text-gray-500 border-slate-300 hover:text-gray-600 hover:border-orange-400 hover:bg-orange-50"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtrer
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Statut du RDV</DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={selectedStatus === ''}
+                  onCheckedChange={() => setSelectedStatus('')}
+                >
+                  Tous les statuts
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={selectedStatus === 'pending'}
+                  onCheckedChange={() => setSelectedStatus(selectedStatus === 'pending' ? '' : 'pending')}
+                >
+                  En attente
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={selectedStatus === 'confirmed'}
+                  onCheckedChange={() => setSelectedStatus(selectedStatus === 'confirmed' ? '' : 'confirmed')}
+                >
+                  Confirmé
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={selectedStatus === 'cancelled'}
+                  onCheckedChange={() => setSelectedStatus(selectedStatus === 'cancelled' ? '' : 'cancelled')}
+                >
+                  Annulé
+                </DropdownMenuCheckboxItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuLabel>Statut de paiement</DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={selectedPaymentStatus === ''}
+                  onCheckedChange={() => setSelectedPaymentStatus('')}
+                >
+                  Tous les paiements
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={selectedPaymentStatus === 'pending'}
+                  onCheckedChange={() => setSelectedPaymentStatus(selectedPaymentStatus === 'pending' ? '' : 'pending')}
+                >
+                  En attente
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={selectedPaymentStatus === 'paid'}
+                  onCheckedChange={() => setSelectedPaymentStatus(selectedPaymentStatus === 'paid' ? '' : 'paid')}
+                >
+                  Payé
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={selectedPaymentStatus === 'failed'}
+                  onCheckedChange={() => setSelectedPaymentStatus(selectedPaymentStatus === 'failed' ? '' : 'failed')}
+                >
+                  Échoué
+                </DropdownMenuCheckboxItem>
+
+                <DropdownMenuSeparator />
+
+                <div className="flex items-center space-x-2 p-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleFilterReset}
+                    className="flex-1 h-8 text-xs"
+                  >
+                    Réinitialiser
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleFilterApply}
+                    className="flex-1 h-8 text-xs bg-orange-600 hover:bg-orange-700"
+                  >
+                    Valider
+                  </Button>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              disabled={loading}
+              className="hover:bg-orange-50 dark:hover:bg-slate-700 border-slate-300 hover:border-orange-400 transition-all duration-300 hover:scale-105 rounded-xl h-8 w-8 p-0"
+            >
+              <RefreshCw className={`w-3 h-3 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -899,99 +1073,117 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                 </tr>
               </thead>
               <tbody>
-                {requests.map((request) => (
-                  <tr key={request.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-slate-800 dark:hover:to-slate-700 transition-all duration-300 group">
-                    <td className="py-2 px-3">
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="h-8 w-8 ring-1 ring-orange-100 group-hover:ring-orange-200 transition-all duration-300">
-                          <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-semibold text-xs">
-                            {request.patient.first_name[0]}{request.patient.last_name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs">
-                            {request.patient.first_name} {request.patient.last_name}
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{request.patient.email}</p>
+                {filteredRequests.map((request) => {
+                  const isPassed = isDatePassed(request.appointment_date);
+                  return (
+                    <tr key={request.id} className={`border-b border-slate-100 dark:border-slate-700 transition-all duration-300 group ${isPassed
+                      ? 'bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30'
+                      : 'hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-slate-800 dark:hover:to-slate-700'
+                      }`}>
+                      <td className="py-2 px-3">
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="h-8 w-8 ring-1 ring-orange-100 group-hover:ring-orange-200 transition-all duration-300">
+                            <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-semibold text-xs">
+                              {request.patient.first_name[0]}{request.patient.last_name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs">
+                              {request.patient.first_name} {request.patient.last_name}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{request.patient.email}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="text-xs text-slate-900 dark:text-slate-100">
-                        <div className="font-medium">{formatDate(request.appointment_date)}</div>
-                        <div className="text-slate-600 dark:text-slate-400">à {formatTime(request.appointment_date)}</div>
-                      </div>
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="max-w-xs">
-                        <p className="text-slate-900 dark:text-slate-100 font-medium truncate text-xs" title={request.reason_for_visit}>
-                          {request.reason_for_visit}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
-                        {request.duration_minutes} min
-                      </div>
-                    </td>
-                    <td className="py-2 px-3">
-                      <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 font-medium text-xs px-1.5 py-0.5">
-                        <ClockIcon className="w-2.5 h-2.5 mr-0.5" />
-                        En attente
-                      </Badge>
-                    </td>
-                    <td className="py-2 px-3">
-                      <Badge variant="outline" className="bg-gray-50 border-gray-200 text-gray-700 font-medium text-xs px-1.5 py-0.5">
-                        <CreditCard className="w-2.5 h-2.5 mr-0.5" />
-                        Non payé
-                      </Badge>
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
-                        {request.consultation_fee} FCFA
-                      </div>
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="flex items-center justify-center space-x-1">
-                        <Button
-                          size="sm"
-                          onClick={() => setSelectedRequest(request)}
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
-                        >
-                          <Eye className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleConfirm(request.id)}
-                          disabled={confirmingId === request.id || cancellingId === request.id}
-                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
-                        >
-                          {confirmingId === request.id ? (
-                            <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="text-xs text-slate-900 dark:text-slate-100">
+                          <div className="font-medium">{formatDate(request.appointment_date)}</div>
+                          <div className="text-slate-600 dark:text-slate-400">à {formatTime(request.appointment_date)}</div>
+                        </div>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="max-w-xs">
+                          <p className="text-slate-900 dark:text-slate-100 font-medium truncate text-xs" title={request.reason_for_visit}>
+                            {request.reason_for_visit}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
+                          {request.duration_minutes} min
+                        </div>
+                      </td>
+                      <td className="py-2 px-3">
+                        <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 font-medium text-xs px-1.5 py-0.5">
+                          <ClockIcon className="w-2.5 h-2.5 mr-0.5" />
+                          En attente
+                        </Badge>
+                      </td>
+                      <td className="py-2 px-3">
+                        <Badge variant="outline" className="bg-gray-50 border-gray-200 text-gray-700 font-medium text-xs px-1.5 py-0.5">
+                          <CreditCard className="w-2.5 h-2.5 mr-0.5" />
+                          Non payé
+                        </Badge>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
+                          {request.consultation_fee} FCFA
+                        </div>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="flex items-center justify-center space-x-1">
+                          {isPassed ? (
+                            <Button
+                              size="sm"
+                              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
                           ) : (
                             <>
-                              <Check className="w-3 h-3" />
+                              <Button
+                                size="sm"
+                                onClick={() => setSelectedRequest(request)}
+                                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleConfirm(request.id)}
+                                disabled={confirmingId === request.id || cancellingId === request.id}
+                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                              >
+                                {confirmingId === request.id ? (
+                                  <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
+                                ) : (
+                                  <>
+                                    <Check className="w-3 h-3" />
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleCancel(request.id)}
+                                disabled={confirmingId === request.id || cancellingId === request.id}
+                                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                              >
+                                {cancellingId === request.id ? (
+                                  <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
+                                ) : (
+                                  <>
+                                    <X className="w-3 h-3" />
+                                  </>
+                                )}
+                              </Button>
                             </>
                           )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleCancel(request.id)}
-                          disabled={confirmingId === request.id || cancellingId === request.id}
-                          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
-                        >
-                          {cancellingId === request.id ? (
-                            <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
-                          ) : (
-                            <>
-                              <X className="w-3 h-3" />
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1119,6 +1311,8 @@ export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [unreadMessages] = useState(12)
+  const { requests, loading, error, refetch, confirmRequest, cancelRequest } = useAppointmentRequests()
+
 
   const [currentDate, setCurrentDate] = useState(new Date())
 
@@ -1402,7 +1596,7 @@ export default function DoctorDashboard() {
           <Button
             variant={activeTab === 'overview' ? 'default' : 'outline'}
             onClick={() => setActiveTab('overview')}
-            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs"
           >
             <Activity className="w-3 h-3" />
             <span>Vue d'ensemble</span>
@@ -1411,29 +1605,78 @@ export default function DoctorDashboard() {
           <Button
             variant={activeTab === 'appointments' ? 'default' : 'outline'}
             onClick={() => setActiveTab('appointments')}
-            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs"
           >
             <Clock className="w-3 h-3" />
             <span>Mes Rendez-Vous</span>
           </Button>
 
-          <Button
-            variant={activeTab === 'requests' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('requests')}
-            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
-          >
-            <ClockIcon className="w-3 h-3" />
-            <span>Demandes de RDV</span>
-          </Button>
+          <div className="relative">
+            <Button
+              variant={activeTab === 'requests' ? 'default' : 'outline'}
+              onClick={() => setActiveTab('requests')}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs"
+            >
+              <ClockArrowUp className="w-3 h-3" />
+              <span>Demandes de RDV</span>
+              {requests.length > 0 && (
+                <div className="bg-red-500 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-md border-2 border-white shadow-sm">
+                  {requests.length}
+                </div>
+              )}
+            </Button>
+          </div>
 
           <Button
             variant={activeTab === 'calendar' ? 'default' : 'outline'}
             onClick={() => setActiveTab('calendar')}
-            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs"
           >
             <Calendar className="w-3 h-3" />
             <span>Calendrier</span>
           </Button>
+
+          <div className="relative">
+            <Button
+              variant="outline"
+              disabled
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500"
+            >
+              <FileText className="w-3 h-3" />
+              <span>Résultats d'analyse</span>
+            </Button>
+            <Badge className="absolute -top-2 -right-1 bg-orange-500 text-white text-[8px] px-1 py-0.5 rounded-full border-2 border-white shadow-sm">
+              Bientôt
+            </Badge>
+          </div>
+
+          <div className="relative">
+            <Button
+              variant="outline"
+              disabled
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-600"
+            >
+              <HeartHandshake className="w-3 h-3" />
+              <span>Visites médicales</span>
+            </Button>
+            <Badge className="absolute -top-2 -right-1 bg-orange-500 text-white text-[8px] px-1 py-0.5 rounded-full border-2 border-white shadow-sm">
+              Bientôt
+            </Badge>
+          </div>
+
+          <div className="relative">
+            <Button
+              variant="outline"
+              disabled
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500"
+            >
+              <Hospital className="w-3 h-3" />
+              <span>Interventions spécialisées</span>
+            </Button>
+            <Badge className="absolute -top-2 -right-1 bg-orange-500 text-white text-[8px] px-1 py-0.5 rounded-full border-2 border-white shadow-sm">
+              Bientôt
+            </Badge>
+          </div>
         </div>
       </div>
 
@@ -1682,13 +1925,7 @@ export default function DoctorDashboard() {
                   <p className="text-orange-100 text-xs">Gérez les nouvelles demandes de vos patients</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-0.5">
-                    <div className="flex items-center space-x-1">
-                      <ClockIcon className="w-3 h-3 text-white" />
-                      <span className="text-white font-semibold text-xs">En attente</span>
-                    </div>
-                  </div>
-                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-105 text-xs">
+                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-105 text-xs" onClick={refetch}>
                     <RefreshCw className="w-3 h-3 mr-1" />
                     Actualiser
                   </Button>

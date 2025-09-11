@@ -38,6 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import FanGauge from "./FanGauge"
 
 interface NavbarProps {
   onMenuClick?: () => void
@@ -199,6 +200,11 @@ export function DoctorNavbar({ onMenuClick, className }: NavbarProps) {
           </span>
         </div> */}
 
+        {/* Section centrale - FanGauge */}
+        <div className="flex-1 flex justify-center max-w-xs">
+          <FanGauge currentFans={0} targetFans={18000} />
+        </div>
+
         {/* Notifications */}
         <Popover>
           <PopoverTrigger asChild>
@@ -275,9 +281,9 @@ export function DoctorNavbar({ onMenuClick, className }: NavbarProps) {
         </Popover>
 
         {/* Settings */}
-        <Button variant="ghost" size="sm" className="p-2">
+        {/* <Button variant="ghost" size="sm" className="p-2">
           <Settings className="h-5 w-5 text-gray-600" />
-        </Button>
+        </Button> */}
 
         {/* User Menu */}
         <DropdownMenu>

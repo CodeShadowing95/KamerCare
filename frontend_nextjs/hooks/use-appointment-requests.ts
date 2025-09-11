@@ -9,6 +9,7 @@ export interface AppointmentRequest {
   appointment_type: 'presentiel' | 'visio' | 'domicile' | 'urgence' | 'suivi'
   duration_minutes: number
   consultation_fee: number
+  payment_status?: 'pending' | 'paid' | 'refunded'
   notes?: string
   patient: {
     id: number
