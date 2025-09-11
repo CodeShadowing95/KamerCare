@@ -19,11 +19,18 @@ interface Appointment {
   appointment_date: string
   reason_for_visit: string
   appointment_type: string
-  doctor: {
+  doctor?: {
     name: string
     specialization?: string
+  } | null
+  status: 'requested' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
+  created_by?: {
+    id: number
+    first_name: string
+    last_name: string
+    role: 'patient' | 'doctor' | 'admin'
   }
-  status: string
+  created_at: string
 }
 
 export default function NotificationsDropdown() {
@@ -115,6 +122,53 @@ export default function NotificationsDropdown() {
     }
   }
 
+  // Fonction pour calculer le temps écoulé depuis la création
+  const getTimeAgo = (createdAt: string): string => {
+    const now = new Date()
+    const created = new Date(createdAt)
+    const diffInSeconds = Math.floor((now.getTime() - created.getTime()) / 1000)
+
+    if (diffInSeconds < 60) {
+      return `il y a ${diffInSeconds}s`
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `il y a ${minutes}min`
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `il y a ${hours}h`
+    } else {
+      const days = Math.floor(diffInSeconds / 86400)
+      return `il y a ${days}jour${days > 1 ? 's' : ''}`
+    }
+  }
+
+  const getNotificationMessage = (appointment: Appointment) => {
+    const isCreatedByCurrentUser = appointment.created_by?.id === user?.id
+    const isCreatedByDoctor = appointment.created_by?.role === 'doctor'
+    const doctorName = appointment.doctor?.name || 'Docteur non spécifié'
+    
+    if (isCreatedByCurrentUser) {
+      return {
+        title: `Votre demande de RDV`,
+        subtitle: `avec Dr. ${doctorName} en attente de confirmation`,
+        icon: '📋'
+      }
+    } else if (isCreatedByDoctor) {
+      return {
+        title: `RDV programmé`,
+        subtitle: `par Dr. ${doctorName}`,
+        icon: '👨‍⚕️'
+      }
+    } else {
+      // Cas par défaut (si pas d'info sur le créateur)
+      return {
+        title: `RDV avec Dr. ${doctorName}`,
+        subtitle: appointment.status === 'requested' ? 'En attente de confirmation' : 'Confirmé',
+        icon: '🏥'
+      }
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -136,7 +190,7 @@ export default function NotificationsDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-80 p-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl rounded-xl"
+        className="w-96 p-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl rounded-xl"
       >
         <DropdownMenuLabel className="font-semibold text-slate-900 dark:text-slate-100 px-3 py-2">
           <div className="flex items-center justify-between">
@@ -157,38 +211,41 @@ export default function NotificationsDropdown() {
           </div>
         ) : appointments.length > 0 ? (
           <>
-            {appointments.map((appointment) => (
-              <DropdownMenuItem 
-                key={appointment.id}
-                className="cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-200 rounded-lg p-3 group"
-              >
-                <div className="flex items-start space-x-3 w-full">
-                  <div className="text-lg">
-                    {getAppointmentTypeIcon(appointment.appointment_type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                        Dr. {appointment.doctor.name}
+            {appointments.map((appointment) => {
+              const notificationMsg = getNotificationMessage(appointment)
+              return (
+                <DropdownMenuItem 
+                  key={appointment.id}
+                  className="cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-200 rounded-lg p-3 group"
+                >
+                  <div className="flex items-start space-x-3 w-full">
+                    <div className="text-lg flex-shrink-0">
+                      {notificationMsg.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                          {notificationMsg.title}
+                        </p>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                          {getTimeAgo(appointment.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mb-1 truncate">
+                        {notificationMsg.subtitle}
                       </p>
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs bg-teal-50 text-teal-700 border-teal-200"
-                      >
-                        {getAppointmentTypeLabel(appointment.appointment_type)}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-1 truncate">
-                      {appointment.reason_for_visit}
-                    </p>
-                    <div className="flex items-center text-xs text-slate-500 dark:text-slate-400">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {formatDate(appointment.appointment_date)}
+                      {/* <p className="text-xs text-slate-500 dark:text-slate-500 mb-1 truncate">
+                        {appointment.reason_for_visit}
+                      </p> */}
+                      <div className="flex items-center text-xs text-slate-500 dark:text-slate-400">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {formatDate(appointment.appointment_date)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </DropdownMenuItem>
-            ))}
+                </DropdownMenuItem>
+              )
+            })}
             <DropdownMenuSeparator className="bg-slate-200/50 dark:bg-slate-700/50" />
             <DropdownMenuItem 
               className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 rounded-lg p-3 text-center"

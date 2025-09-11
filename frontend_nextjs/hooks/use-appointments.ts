@@ -5,10 +5,11 @@ interface Appointment {
   id: number
   appointment_date: string
   reason_for_visit: string
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled'
+  status: 'requested' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
   appointment_type: 'presentiel' | 'visio' | 'domicile' | 'urgence' | 'suivi'
   duration_minutes: number
   notes?: string
+  payment_status?: 'paid' | 'refunded' | 'pending'
   patient: {
     id: number
     first_name: string
@@ -21,6 +22,12 @@ interface Appointment {
     first_name: string
     last_name: string
     specialization: string
+  }
+  created_by?: {
+    id: number
+    first_name: string
+    last_name: string
+    role: 'patient' | 'doctor' | 'admin'
   }
 }
 

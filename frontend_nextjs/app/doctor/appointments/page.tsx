@@ -38,6 +38,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   Table,
   TableBody,
   TableCell,
@@ -58,7 +65,7 @@ interface Appointment {
   duration_minutes: number
   reason: string
   notes?: string
-  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
+  status: 'requested' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
   priority: 'low' | 'medium' | 'high' | 'urgent'
   payment_status: 'pending' | 'paid' | 'cancelled'
 }
@@ -158,6 +165,14 @@ export default function AppointmentsList() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [dateFilter, setDateFilter] = useState<string>("all")
   const [activeTab, setActiveTab] = useState("all")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+
+  // Fonction pour ouvrir le modal avec les détails du rendez-vous
+  const openAppointmentDetails = (appointment: Appointment) => {
+    setSelectedAppointment(appointment)
+    setIsModalOpen(true)
+  }
 
   // Protection de route
   useEffect(() => {
@@ -218,6 +233,7 @@ export default function AppointmentsList() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
+      requested: { label: "Demandé", variant: "outline" as const, icon: Clock },
       scheduled: { label: "Programmé", variant: "secondary" as const, icon: Clock },
       confirmed: { label: "Confirmé", variant: "default" as const, icon: CheckCircle },
       in_progress: { label: "En cours", variant: "default" as const, icon: AlertCircle },
@@ -246,6 +262,22 @@ export default function AppointmentsList() {
     }
 
     const config = priorityConfig[priority as keyof typeof priorityConfig]
+
+    return (
+      <Badge className={config.className}>
+        {config.label}
+      </Badge>
+    )
+  }
+
+  const getPaymentStatusBadge = (paymentStatus: string) => {
+    const statusConfig = {
+      pending: { label: "Pas encore", className: "bg-yellow-100 text-yellow-800" },
+      paid: { label: "Payé💸", className: "bg-green-100 text-green-800" },
+      refunded: { label: "Remboursée", className: "bg-blue-100 text-blue-800" }
+    }
+
+    const config = statusConfig[paymentStatus as keyof typeof statusConfig] || statusConfig.pending
 
     return (
       <Badge className={config.className}>
@@ -397,6 +429,7 @@ export default function AppointmentsList() {
                           <TableHead>Statut</TableHead>
                           <TableHead>Priorité</TableHead>
                           <TableHead>Durée</TableHead>
+                          <TableHead>Paiement</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -449,6 +482,9 @@ export default function AppointmentsList() {
                               <span className="text-sm text-gray-600">{appointment.duration_minutes} min</span>
                             </TableCell>
                             <TableCell>
+                              {getPaymentStatusBadge(appointment.payment_status || 'pending')}
+                            </TableCell>
+                            <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" className="h-8 w-8 p-0">
@@ -456,7 +492,7 @@ export default function AppointmentsList() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => openAppointmentDetails(appointment)}>
                                     <Eye className="mr-2 h-4 w-4" />
                                     Voir détails
                                   </DropdownMenuItem>
@@ -498,6 +534,134 @@ export default function AppointmentsList() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal des détails du rendez-vous */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Calendar className="w-6 h-6 text-indigo-600" />
+              Détails du Rendez-vous
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Informations complètes sur le rendez-vous sélectionné
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedAppointment && (
+            <div className="space-y-6 mt-6">
+              {/* Informations du patient */}
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-indigo-100 dark:border-indigo-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-indigo-600" />
+                  Informations Patient
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Nom complet</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-lg">{selectedAppointment.patient_name}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Téléphone</p>
+                    <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-green-600" />
+                      {selectedAppointment.patient_phone}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations du rendez-vous */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-100 dark:border-green-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-green-600" />
+                  Détails du Rendez-vous
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {new Date(selectedAppointment.appointment_date).toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Heure</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{selectedAppointment.appointment_time}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Durée</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{selectedAppointment.duration_minutes} minutes</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Motif et notes */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-100 dark:border-amber-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  Motif et Notes
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Motif de la visite</p>
+                    <p className="font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-800 p-3 rounded-lg border">
+                      {selectedAppointment.reason}
+                    </p>
+                  </div>
+                  {selectedAppointment.notes && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Notes additionnelles</p>
+                      <p className="font-medium text-gray-900 dark:text-white bg-white dark:bg-gray-800 p-3 rounded-lg border">
+                        {selectedAppointment.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Statuts */}
+              <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/20 dark:to-gray-900/20 rounded-xl p-6 border border-slate-100 dark:border-slate-800">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Statuts</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Statut du rendez-vous</p>
+                    <div>{getStatusBadge(selectedAppointment.status)}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Priorité</p>
+                    <div>{getPriorityBadge(selectedAppointment.priority)}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Statut de paiement</p>
+                    <div>{getPaymentStatusBadge(selectedAppointment.payment_status)}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Modifier le rendez-vous
+                </Button>
+                <Button variant="outline" className="border-green-200 text-green-700 hover:bg-green-50">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Marquer comme terminé
+                </Button>
+                <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-50">
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Annuler le rendez-vous
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

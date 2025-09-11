@@ -5,7 +5,7 @@ interface AppointmentRequest {
   id: number
   appointment_date: string
   reason_for_visit: string
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled'
+  status: 'requested' | 'scheduled' | 'confirmed' | 'completed' | 'cancelled'
   appointment_type: 'presentiel' | 'visio' | 'domicile' | 'urgence' | 'suivi'
   duration_minutes: number
   consultation_fee: number
@@ -51,8 +51,8 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
       setError(null)
 
       const params = new URLSearchParams()
-      params.append('status', 'scheduled')
-      params.append('doctor_id', user.doctor.id.toString())
+      params.append('status', 'requested')
+      params.append('docto_id', user.doctor.id.toString())
 
       const response = await fetch(`http://localhost:8000/api/appointments?${params.toString()}`, {
         headers: {

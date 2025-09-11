@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  LayoutDashboard,
 } from 'lucide-react'
 import NotificationsDropdown from './notifications-dropdown'
 import { Button } from '@/components/ui/button'
@@ -148,6 +149,13 @@ export default function Navbar({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-200/50 dark:bg-slate-700/50" />
+        <DropdownMenuItem className="cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-200 rounded-lg p-3 group">
+          <LayoutDashboard className="mr-3 h-5 w-5 text-red-600 group-hover:scale-110 transition-transform duration-200" />
+          <div className="flex flex-col">
+            <span className="font-medium">Dashboard</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Mon tableau de bord</span>
+          </div>
+        </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-200 rounded-lg p-3 group">
           <Calendar className="mr-3 h-5 w-5 text-teal-600 group-hover:scale-110 transition-transform duration-200" />
           <div className="flex flex-col">

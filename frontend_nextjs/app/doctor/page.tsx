@@ -3,18 +3,14 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { useAppointments } from "@/hooks/use-appointments"
+import { Appointment, useAppointments } from "@/hooks/use-appointments"
 import { useAppointmentRequests } from "@/hooks/use-appointment-requests"
 
 import {
   Calendar,
   Users,
   Clock,
-  MessageSquare,
   Settings,
-  Bell,
-  Search,
-  MoreHorizontal,
   CheckCircle,
   FileText,
   Eye,
@@ -32,17 +28,30 @@ import {
   AlertCircle,
   RefreshCw,
   Video,
+  CreditCard,
   Check,
   X,
   Clock as ClockIcon,
+  Trash2,
+  CalendarPlus,
+  MapPin,
+  Stethoscope,
+  Phone,
+  CalendarX,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 
 // Composant pour le tableau des prochains rendez-vous
 function UpcomingAppointmentsTable({ router }: { router: any }) {
@@ -51,6 +60,8 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
     upcoming: true,
     doctor_id: user?.doctor?.id || user?.id
   })
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -70,24 +81,96 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
     })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: Appointment["status"]) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-      default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+      case "scheduled":
+        return "bg-accent/10 text-accent border-accent/20"
+      case "confirmed":
+        return "bg-primary/10 text-primary border-primary/20"
+      case "cancelled":
+        return "bg-destructive/10 text-destructive border-destructive/20"
+      case "completed":
+        return "bg-muted text-muted-foreground border-border"
+      case "in_progress":
+        return "bg-orange-100 text-orange-700 border-orange-200"
+      default:
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: Appointment["status"]) => {
     switch (status) {
-      case 'confirmed': return 'Confirmé'
-      case 'scheduled': return 'Programmé'
-      case 'completed': return 'Terminé'
-      case 'cancelled': return 'Annulé'
-      default: return 'En attente'
+      case "requested":
+        return "Demandé"
+      case "scheduled":
+        return "Programmé"
+      case "confirmed":
+        return "Confirmé"
+      case "in_progress":
+        return "En cours"
+      case "completed":
+        return "Terminé"
+      case "cancelled":
+        return "Annulé"
+      case "no_show":
+        return "Absent"
+      default:
+        return "En attente"
     }
+  }
+
+  const getPaymentStatusBadge = (paymentStatus: Appointment["payment_status"]) => {
+    switch (paymentStatus) {
+      case "paid":
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-1 text-xs font-medium rounded-full">
+            Payé💸
+          </Badge>
+        )
+      case "refunded":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 text-xs font-medium rounded-full">
+            Remboursée
+          </Badge>
+        )
+      case "pending":
+      default:
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-1 text-xs font-medium rounded-full">
+            Pas encore
+          </Badge>
+        )
+    }
+  }
+
+  const getStatusLabel = (status: Appointment["status"]) => {
+    const labels = {
+      requested: "Demandé",
+      scheduled: "Programmé",
+      confirmed: "Confirmé",
+      in_progress: "En cours",
+      completed: "Terminé",
+      cancelled: "Annulé",
+      no_show: "Absent",
+    }
+    return labels[status] || status
+  }
+
+  const getTypeLabel = (type: Appointment["appointment_type"]) => {
+    const labels = {
+      presentiel: "Présentiel",
+      visio: "Visioconférence",
+      domicile: "À domicile",
+      urgence: "Urgence",
+      suivi: "Suivi",
+    }
+    return labels[type] || type
+  }
+
+  // Fonction pour ouvrir le modal avec les détails du rendez-vous
+  const openAppointmentDetails = (appointment: any) => {
+    setSelectedAppointment(appointment)
+    setIsModalOpen(true)
   }
 
   if (loading) {
@@ -201,6 +284,9 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                     Statut
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Paiement
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -250,6 +336,9 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                         {getStatusText(appointment.status)}
                       </Badge>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getPaymentStatusBadge(appointment.payment_status || 'pending')}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <Button
@@ -257,6 +346,7 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                           size="sm"
                           className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
                           title="Voir les détails"
+                          onClick={() => openAppointmentDetails(appointment)}
                         >
                           <Eye className="w-3 h-3 text-indigo-600" />
                         </Button>
@@ -277,6 +367,131 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
           </div>
         )}
       </CardContent>
+
+      {/* Modal des détails du rendez-vous */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto bg-white border-blue-200">
+          <DialogHeader className="pb-2 bg-blue-50 -m-6 mb-4 p-4 border-b border-blue-200">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-base font-semibold text-blue-900">Détails RDV</DialogTitle>
+              <Badge className={`${
+                selectedAppointment?.status === 'confirmed' ? 'bg-green-100 text-green-800 border-green-300' :
+                selectedAppointment?.status === 'scheduled' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                'bg-gray-100 text-gray-800 border-gray-300'
+              }`} variant="outline">
+                {selectedAppointment?.status ? getStatusLabel(selectedAppointment.status) : ''}
+              </Badge>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-md border border-blue-200">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-medium text-xs">
+                {selectedAppointment?.patient?.first_name?.[0] || ''}
+                {selectedAppointment?.patient?.last_name?.[0] || ''}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm text-blue-900 truncate">
+                  {selectedAppointment?.patient?.first_name} {selectedAppointment?.patient?.last_name}
+                </h3>
+                <p className="text-xs text-gray-600 flex items-center gap-1">
+                  <Phone className="h-3 w-3 text-blue-500" />
+                  {selectedAppointment?.patient?.phone}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <Calendar className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Date:</span>
+                <span className="text-gray-600">{selectedAppointment?.appointment_date ? formatDate(selectedAppointment.appointment_date) : 'Non disponible'}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Heure:</span>
+                <span className="text-gray-600">
+                  {selectedAppointment?.appointment_date ? formatTime(selectedAppointment.appointment_date) : 'Non disponible'} ({selectedAppointment?.duration_minutes || 0}min)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <Stethoscope className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Médecin:</span>
+                <span className="text-gray-600">
+                  Dr. {selectedAppointment?.doctor?.first_name} {selectedAppointment?.doctor?.last_name}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <MapPin className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Type:</span>
+                <span className="text-gray-600">{selectedAppointment?.appointment_type ? getTypeLabel(selectedAppointment.appointment_type) : 'Non spécifié'}</span>
+              </div>
+
+              <div className="flex items-start gap-2 text-xs">
+                <FileText className="h-3 w-3 text-blue-500 flex-shrink-0 mt-0.5" />
+                <span className="font-medium text-blue-900">Motif:</span>
+                <span className="text-gray-600">{selectedAppointment?.reason_for_visit || 'Non spécifié'}</span>
+              </div>
+
+              {selectedAppointment?.payment_status && (
+                <div className="flex items-center gap-2 text-xs">
+                  <CreditCard className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                  <span className="font-medium text-blue-900">Paiement:</span>
+                  <span className="text-gray-600 capitalize">{getPaymentStatusBadge(selectedAppointment?.payment_status || 'pending')}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Notes - Ultra Compact */}
+            {selectedAppointment?.notes && (
+              <>
+                <Separator className="my-2 border-blue-200" />
+                <div className="p-2 bg-blue-50 rounded-md border border-blue-200">
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <FileText className="h-3 w-3 inline mr-1 text-blue-500" />
+                    {selectedAppointment?.notes}
+                  </p>
+                </div>
+              </>
+            )}
+
+            <Separator className="my-2 border-blue-200" />
+
+            {/* Action Buttons - Avec textes */}
+            <div className="flex flex-col gap-2">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 flex items-center gap-2 justify-center">
+                <Edit className="h-3 w-3" />
+                <span>Modifier</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-green-500 text-green-600 hover:bg-green-50 bg-transparent text-xs px-3 py-2 flex items-center gap-2 justify-center"
+              >
+                <CalendarPlus className="h-3 w-3" />
+                <span>Calendrier</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-red-500 text-red-600 hover:bg-red-50 bg-transparent text-xs px-3 py-2 flex items-center gap-2 justify-center"
+              >
+                <CalendarX className="h-3 w-3" />
+                <span>Annuler</span>
+              </Button>
+            </div>
+
+            {/* Footer Note - Ultra Compact */}
+            <div className="text-xs text-gray-500 text-center p-1 bg-gray-100 rounded text-[10px] border border-gray-200">
+              SMS 24h avant • Annulation 24h min
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
@@ -309,10 +524,13 @@ function TodayAppointmentsTable({ router }: { router: any }) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'requested': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
       case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'in_progress': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
       case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
       case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      case 'no_show': return 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300'
       default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
     }
   }
@@ -595,18 +813,18 @@ function AppointmentRequestsTable({ router }: { router: any }) {
 
   return (
     <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+          <CardTitle className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
             Nouvelles Demandes
           </CardTitle>
-          <CardDescription className="text-lg text-slate-600 dark:text-slate-400">
+          <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
             {requests.length} demande{requests.length !== 1 ? 's' : ''} en attente de votre validation
           </CardDescription>
         </div>
-        <div className="flex items-center space-x-3">
-          <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 px-3 py-1">
-            <ClockIcon className="w-4 h-4 mr-1" />
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 px-2 py-0.5 text-xs">
+            <ClockIcon className="w-3 h-3 mr-1" />
             {requests.length} en attente
           </Badge>
           <Button
@@ -614,45 +832,45 @@ function AppointmentRequestsTable({ router }: { router: any }) {
             size="sm"
             onClick={refetch}
             disabled={loading}
-            className="hover:bg-orange-50 dark:hover:bg-slate-700 border-slate-300 hover:border-orange-400 transition-all duration-300 hover:scale-105 rounded-xl"
+            className="hover:bg-orange-50 dark:hover:bg-slate-700 border-slate-300 hover:border-orange-400 transition-all duration-300 hover:scale-105 rounded-xl h-8 w-8 p-0"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-orange-500 mb-4"></div>
-            <p className="text-slate-600 dark:text-slate-400 font-medium">Chargement des demandes...</p>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-3"></div>
+            <p className="text-slate-600 dark:text-slate-400 font-medium text-sm">Chargement des demandes...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-16">
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-8 max-w-md mx-auto">
-              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-              <h3 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-2">Erreur de chargement</h3>
-              <p className="text-red-600 dark:text-red-300">{error}</p>
-              <Button 
-                onClick={refetch} 
-                className="mt-4 bg-red-600 hover:bg-red-700 text-white"
+          <div className="text-center py-8">
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 max-w-md mx-auto">
+              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-red-500" />
+              <h3 className="text-lg font-semibold text-red-700 dark:text-red-400 mb-2">Erreur de chargement</h3>
+              <p className="text-red-600 dark:text-red-300 text-sm">{error}</p>
+              <Button
+                onClick={refetch}
+                className="mt-3 bg-red-600 hover:bg-red-700 text-white h-8 text-xs"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-3 h-3 mr-1" />
                 Réessayer
               </Button>
             </div>
           </div>
         ) : requests.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-12 max-w-md mx-auto">
-              <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-full p-4 w-20 h-20 mx-auto mb-6">
-                <ClockIcon className="w-12 h-12 text-white" />
+          <div className="text-center py-8">
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-8 max-w-md mx-auto">
+              <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-full p-3 w-16 h-16 mx-auto mb-4">
+                <ClockIcon className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">Aucune demande</h3>
-              <p className="text-slate-600 dark:text-slate-400 text-lg">Aucune demande de rendez-vous en attente pour le moment</p>
-              <Button 
-                onClick={refetch} 
-                variant="outline" 
-                className="mt-6 border-orange-300 text-orange-600 hover:bg-orange-50"
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">Aucune demande</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Aucune demande de rendez-vous en attente pour le moment</p>
+              <Button
+                onClick={refetch}
+                variant="outline"
+                className="mt-4 border-orange-300 text-orange-600 hover:bg-orange-50 h-8 text-xs"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Actualiser
@@ -663,78 +881,83 @@ function AppointmentRequestsTable({ router }: { router: any }) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b-2 border-slate-200 dark:border-slate-700">
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Patient</th>
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Date</th>
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Heure</th>
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Motif</th>
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Durée</th>
-                  <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Tarif</th>
-                  <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-sm">Actions</th>
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Patient</th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Date & Heure</th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Motif</th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Durée</th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Statut</th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Paiement</th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Tarif</th>
+                  <th className="text-center py-2 px-3 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-xs">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {requests.map((request) => (
                   <tr key={request.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-slate-800 dark:hover:to-slate-700 transition-all duration-300 group">
-                    <td className="py-5 px-6">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-12 w-12 ring-2 ring-orange-100 group-hover:ring-orange-200 transition-all duration-300">
-                          <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-semibold text-lg">
+                    <td className="py-2 px-3">
+                      <div className="flex items-center space-x-2">
+                        <Avatar className="h-8 w-8 ring-1 ring-orange-100 group-hover:ring-orange-200 transition-all duration-300">
+                          <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-semibold text-xs">
                             {request.patient.first_name[0]}{request.patient.last_name[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-xs">
                             {request.patient.first_name} {request.patient.last_name}
                           </p>
                           <p className="text-xs text-slate-500 dark:text-slate-400">{request.patient.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-5 px-6">
-                      <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 font-medium text-xs">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {formatDate(request.appointment_date)}
-                      </Badge>
+                    <td className="py-2 px-3">
+                      <div className="text-xs text-slate-900 dark:text-slate-100">
+                        <div className="font-medium">{formatDate(request.appointment_date)}</div>
+                        <div className="text-slate-600 dark:text-slate-400">à {formatTime(request.appointment_date)}</div>
+                      </div>
                     </td>
-                    <td className="py-5 px-6">
-                      <Badge variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 font-medium text-xs">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {formatTime(request.appointment_date)}
-                      </Badge>
-                    </td>
-                    <td className="py-5 px-6">
+                    <td className="py-2 px-3">
                       <div className="max-w-xs">
-                        <p className="text-slate-900 dark:text-slate-100 font-medium truncate text-sm" title={request.reason_for_visit}>
+                        <p className="text-slate-900 dark:text-slate-100 font-medium truncate text-xs" title={request.reason_for_visit}>
                           {request.reason_for_visit}
                         </p>
                       </div>
                     </td>
-                    <td className="py-5 px-6">
-                      <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700 font-medium text-xs">
-                        <Clock className="w-3 h-3 mr-1" />
+                    <td className="py-2 px-3">
+                      <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
                         {request.duration_minutes} min
+                      </div>
+                    </td>
+                    <td className="py-2 px-3">
+                      <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 font-medium text-xs px-1.5 py-0.5">
+                        <ClockIcon className="w-2.5 h-2.5 mr-0.5" />
+                        En attente
                       </Badge>
                     </td>
-                    <td className="py-5 px-6">
-                      <Badge variant="outline" className="bg-yellow-50 border-yellow-200 text-yellow-700 font-medium text-sm px-3 py-1">
+                    <td className="py-2 px-3">
+                      <Badge variant="outline" className="bg-gray-50 border-gray-200 text-gray-700 font-medium text-xs px-1.5 py-0.5">
+                        <CreditCard className="w-2.5 h-2.5 mr-0.5" />
+                        Non payé
+                      </Badge>
+                    </td>
+                    <td className="py-2 px-3">
+                      <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
                         {request.consultation_fee}€
-                      </Badge>
+                      </div>
                     </td>
-                    <td className="py-5 px-6">
-                      <div className="flex items-center justify-center space-x-3">
+                    <td className="py-2 px-3">
+                      <div className="flex items-center justify-center space-x-1">
                         <Button
                           size="sm"
                           onClick={() => handleConfirm(request.id)}
                           disabled={confirmingId === request.id || cancellingId === request.id}
-                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-xl px-3 py-1.5 text-xs"
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
                         >
                           {confirmingId === request.id ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
                           ) : (
                             <>
-                              <Check className="w-3 h-3 mr-1" />
-                              Accepter
+                              <Check className="w-3 h-3" />
                             </>
                           )}
                         </Button>
@@ -742,14 +965,13 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                           size="sm"
                           onClick={() => handleCancel(request.id)}
                           disabled={confirmingId === request.id || cancellingId === request.id}
-                          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-xl px-3 py-1.5 text-xs"
+                          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
                         >
                           {cancellingId === request.id ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
                           ) : (
                             <>
-                              <X className="w-3 h-3 mr-1" />
-                              Refuser
+                              <X className="w-3 h-3" />
                             </>
                           )}
                         </Button>
@@ -887,14 +1109,23 @@ export default function DoctorDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case "requested":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+      case "scheduled":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
       case "confirmed":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      case "waiting":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+      case "in_progress":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
       case "completed":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
       case "cancelled":
         return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+      case "no_show":
+        return "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300"
+      // Anciens statuts pour compatibilité
+      case "waiting":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
     }
@@ -902,38 +1133,46 @@ export default function DoctorDashboard() {
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case "requested":
+        return "Demandé"
+      case "scheduled":
+        return "Programmé"
       case "confirmed":
         return "Confirmé"
-      case "waiting":
-        return "En attente"
+      case "in_progress":
+        return "En cours"
       case "completed":
         return "Terminé"
       case "cancelled":
         return "Annulé"
+      case "no_show":
+        return "Absent"
+      // Anciens statuts pour compatibilité
+      case "waiting":
+        return "En attente"
       default:
         return status
     }
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Welcome Section */}
-      <div className="py-8">
+      <div className="py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-700 dark:text-white mb-1">
+              <h1 className="text-2xl font-semibold text-slate-700 dark:text-white mb-1">
                 How nonnn, Dr. {user?.name ? user.name.split(' ').slice(0, 2).join(' ') : 'Docteur'} 👋
               </h1>
-              <p className="text-slate-600 dark:text-slate-400 text-base">
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
                 Ça dit quoi, tu veux do quoi oday ?
               </p>
             </div>
           </div>
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-2">
             <div className="text-right">
-              {/* <p className="text-sm text-slate-500 dark:text-slate-400">Aujourd'hui</p> */}
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {new Date().toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',
@@ -941,91 +1180,91 @@ export default function DoctorDashboard() {
                   day: 'numeric'
                 })}
               </p>
-              <p className="text-lg font-semibold text-slate-900 dark:text-white">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
                 {new Date().toLocaleTimeString('fr-FR', {
                   hour: '2-digit',
                   minute: '2-digit'
                 })}
               </p>
             </div>
-            <div className="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
             <Button
               variant="ghost"
               size="sm"
-              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 p-2"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-3 h-3" />
             </Button>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20">
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border-0 shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20">
+          <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Aujourd'hui</p>
-                <p className="text-3xl font-bold text-emerald-800 dark:text-emerald-200 mt-2">{stats.todayAppointments}</p>
-                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Rendez-vous</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Aujourd'hui</p>
+                <p className="text-2xl font-bold text-emerald-800 dark:text-emerald-200 mt-1">{stats.todayAppointments}</p>
+                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Rendez-vous</p>
               </div>
-              <div className="bg-emerald-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="w-6 h-6 text-white" />
+              <div className="bg-emerald-500 p-2 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <Calendar className="w-4 h-4 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-          <CardContent className="p-6">
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border-0 shadow-md bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+          <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">Confirmés</p>
-                <p className="text-3xl font-bold text-green-800 dark:text-green-200 mt-2">
+                <p className="text-xs text-green-600 dark:text-green-400 font-medium">Confirmés</p>
+                <p className="text-2xl font-bold text-green-800 dark:text-green-200 mt-1">
                   {stats.confirmedAppointments}
                 </p>
-                <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Patients</p>
+                <p className="text-xs text-green-600/70 dark:text-green-400/70">Patients</p>
               </div>
-              <div className="bg-green-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Taux présence</p>
-                <p className="text-3xl font-bold text-blue-800 dark:text-blue-200 mt-2">{stats.weeklyPresenceRate}%</p>
-                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Cette semaine</p>
-              </div>
-              <div className="bg-blue-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="bg-green-500 p-2 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <CheckCircle className="w-4 h-4 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20">
-          <CardContent className="p-6">
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+          <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Satisfaction</p>
-                <div className="flex items-center space-x-2 mt-2">
-                  <p className="text-3xl font-bold text-yellow-800 dark:text-yellow-200">{stats.averageRating}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Taux présence</p>
+                <p className="text-2xl font-bold text-blue-800 dark:text-blue-200 mt-1">{stats.weeklyPresenceRate}%</p>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70">Cette semaine</p>
+              </div>
+              <div className="bg-blue-500 p-2 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <TrendingUp className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border-0 shadow-md bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20">
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">Satisfaction</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-200">{stats.averageRating}</p>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-4 h-4 ${i < Math.floor(stats.averageRating) ? 'text-yellow-400 fill-current' : 'text-yellow-200'}`} />
+                      <Star key={i} className={`w-3 h-3 ${i < Math.floor(stats.averageRating) ? 'text-yellow-400 fill-current' : 'text-yellow-200'}`} />
                     ))}
                   </div>
                 </div>
                 <p className="text-xs text-yellow-600/70 dark:text-yellow-400/70 mt-1">Note moyenne</p>
               </div>
-              <div className="bg-yellow-500 p-3 rounded-full group-hover:scale-110 transition-transform duration-300">
-                <Star className="w-6 h-6 text-white" />
+              <div className="bg-yellow-500 p-2 rounded-full group-hover:scale-110 transition-transform duration-300">
+                <Star className="w-4 h-4 text-white" />
               </div>
             </div>
           </CardContent>
@@ -1033,138 +1272,138 @@ export default function DoctorDashboard() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6 mb-8">
-        <div className="flex flex-wrap gap-2">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200/50 dark:border-slate-700/50 p-3 mb-4">
+        <div className="flex flex-wrap gap-1">
           <Button
             variant={activeTab === 'overview' ? 'default' : 'outline'}
             onClick={() => setActiveTab('overview')}
-            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
           >
-            <Activity className="w-4 h-4" />
+            <Activity className="w-3 h-3" />
             <span>Vue d'ensemble</span>
           </Button>
 
           <Button
             variant={activeTab === 'appointments' ? 'default' : 'outline'}
             onClick={() => setActiveTab('appointments')}
-            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
           >
-            <Clock className="w-4 h-4" />
+            <Clock className="w-3 h-3" />
             <span>Mes Rendez-Vous</span>
           </Button>
 
           <Button
             variant={activeTab === 'requests' ? 'default' : 'outline'}
             onClick={() => setActiveTab('requests')}
-            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
           >
-            <ClockIcon className="w-4 h-4" />
+            <ClockIcon className="w-3 h-3" />
             <span>Demandes de RDV</span>
           </Button>
 
           <Button
             variant={activeTab === 'calendar' ? 'default' : 'outline'}
             onClick={() => setActiveTab('calendar')}
-            className="flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300"
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm"
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-3 h-3" />
             <span>Calendrier</span>
           </Button>
         </div>
       </div>
 
       {activeTab === "overview" && (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* Today's Queue */}
-          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm">
-            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm">
+            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl shadow-lg">
-                    <Users className="w-6 h-6 text-white" />
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl shadow-lg">
+                    <Users className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white">File d'attente du jour</h3>
-                    <p className="text-emerald-100 text-sm mt-1">Gestion des patients en temps réel</p>
+                    <h3 className="text-lg font-bold text-white">File d'attente du jour</h3>
+                    <p className="text-emerald-100 text-xs mt-1">Gestion des patients en temps réel</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-4 py-2 text-sm font-semibold">
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-3 py-1 text-xs font-semibold">
                     {queue.length} patients
                   </Badge>
-                  <Button size="sm" className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button size="sm" className="bg-white text-emerald-600 hover:bg-emerald-50 font-semibold px-3 py-1 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm">
+                    <Plus className="w-3 h-3 mr-1" />
                     Ajouter
                   </Button>
                 </div>
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4">
               {queue.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {queue.map((item, index) => (
                     <div key={item.id} className="group relative">
-                      <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded-2xl border border-slate-200/60 dark:border-slate-600/60 p-6 hover:shadow-xl hover:border-emerald-200 dark:hover:border-emerald-600 transition-all duration-500 hover:scale-[1.02] group-hover:bg-gradient-to-r group-hover:from-emerald-50 group-hover:via-white group-hover:to-teal-50 dark:group-hover:from-emerald-900/20 dark:group-hover:via-slate-800 dark:group-hover:to-teal-900/20">
+                      <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded-xl border border-slate-200/60 dark:border-slate-600/60 p-4 hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-600 transition-all duration-300 hover:scale-[1.01] group-hover:bg-gradient-to-r group-hover:from-emerald-50 group-hover:via-white group-hover:to-teal-50 dark:group-hover:from-emerald-900/20 dark:group-hover:via-slate-800 dark:group-hover:to-teal-900/20">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-6">
+                          <div className="flex items-center space-x-4">
                             {/* Position & Avatar */}
-                            <div className="relative flex items-center space-x-4">
+                            <div className="relative flex items-center space-x-3">
                               <div className="relative">
-                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg ring-4 transition-all duration-300 ${item.status === "current"
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-md ring-2 transition-all duration-300 ${item.status === "current"
                                   ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 text-white ring-emerald-200 shadow-emerald-200"
                                   : "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-slate-700 ring-slate-200 shadow-slate-200"
                                   }`}>
                                   {item.ticket}
                                 </div>
                                 {item.status === "current" && (
-                                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-3 border-white shadow-lg animate-pulse flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-md animate-pulse flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                                   </div>
                                 )}
                               </div>
-                              <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full text-sm font-semibold">
+                              <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full text-xs font-semibold">
                                 #{index + 1}
                               </div>
                             </div>
 
                             {/* Patient Info */}
                             <div className="flex-1">
-                              <div className="flex items-center space-x-3 mb-2">
-                                <h4 className="text-xl font-bold text-slate-900 dark:text-white">{item.patient}</h4>
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h4 className="text-lg font-bold text-slate-900 dark:text-white">{item.patient}</h4>
                                 {item.status === "current" && (
-                                  <div className="flex items-center space-x-2 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                    <span className="text-green-700 dark:text-green-300 text-sm font-medium">En consultation</span>
+                                  <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
+                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span className="text-green-700 dark:text-green-300 text-xs font-medium">En consultation</span>
                                   </div>
                                 )}
                               </div>
-                              <div className="flex items-center space-x-6 text-sm text-slate-600 dark:text-slate-400">
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="w-4 h-4 text-emerald-500" />
+                              <div className="flex items-center space-x-4 text-xs text-slate-600 dark:text-slate-400">
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="w-3 h-3 text-emerald-500" />
                                   <span className="font-medium">
                                     {item.status === "current" ? "Consultation en cours" : `Temps d'attente: ${item.estimatedTime}`}
                                   </span>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <Calendar className="w-4 h-4 text-blue-500" />
-                                  <span>Arrivé à {item.arrivalTime || '09:00'}</span>
+                                <div className="flex items-center space-x-1">
+                                  <Calendar className="w-3 h-3 text-blue-500" />
+                                  <span>Arrivé à 09:00</span>
                                 </div>
                               </div>
                             </div>
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                              <Button variant="ghost" size="sm" className="hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
-                                <Eye className="w-4 h-4" />
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                              <Button variant="ghost" size="sm" className="hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg p-1">
+                                <Eye className="w-3 h-3" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
-                                <Edit className="w-4 h-4" />
+                              <Button variant="ghost" size="sm" className="hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg p-1">
+                                <Edit className="w-3 h-3" />
                               </Button>
                             </div>
-                            <Badge className={`px-4 py-2 font-semibold text-sm rounded-xl shadow-sm ${item.status === "current"
+                            <Badge className={`px-3 py-1 font-semibold text-xs rounded-lg shadow-sm ${item.status === "current"
                               ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
                               : "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200"
                               }`}>
@@ -1175,13 +1414,13 @@ export default function DoctorDashboard() {
 
                         {/* Progress Bar for Current Patient */}
                         {item.status === "current" && (
-                          <div className="mt-4 pt-4 border-t border-emerald-100 dark:border-emerald-800">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Progression de la consultation</span>
-                              <span className="text-sm text-emerald-600 dark:text-emerald-400">65%</span>
+                          <div className="mt-3 pt-3 border-t border-emerald-100 dark:border-emerald-800">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Progression de la consultation</span>
+                              <span className="text-xs text-emerald-600 dark:text-emerald-400">65%</span>
                             </div>
-                            <div className="w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full h-2">
-                              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-1000 animate-pulse" style={{ width: '65%' }}></div>
+                            <div className="w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full h-1.5">
+                              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-1.5 rounded-full transition-all duration-1000 animate-pulse" style={{ width: '65%' }}></div>
                             </div>
                           </div>
                         )}
@@ -1190,14 +1429,14 @@ export default function DoctorDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <Users className="w-12 h-12 text-slate-400" />
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+                    <Users className="w-8 h-8 text-slate-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-2">File d'attente vide</h3>
-                  <p className="text-slate-500 dark:text-slate-400 mb-6">Aucun patient n'est actuellement en attente</p>
-                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                    <Plus className="w-5 h-5 mr-2" />
+                  <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-300 mb-1">File d'attente vide</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mb-4 text-sm">Aucun patient n'est actuellement en attente</p>
+                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                    <Plus className="w-4 h-4 mr-2" />
                     Ajouter un patient
                   </Button>
                 </div>
@@ -1208,19 +1447,19 @@ export default function DoctorDashboard() {
       )}
 
       {activeTab === "appointments" && (
-        <div className="space-y-8">
+        <div className="space-y-3">
           {/* Enhanced Header with Stats */}
-          <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-lg p-3 text-white shadow-lg relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Gestion des Rendez-vous</h2>
-                  <p className="text-blue-100 text-lg">Suivez et gérez vos rendez-vous avec vos patients</p>
+                  <h2 className="text-lg font-bold mb-0.5">Gestion des Rendez-vous</h2>
+                  <p className="text-blue-100 text-xs">Suivez et gérez vos rendez-vous avec vos patients</p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105">
-                    <Plus className="w-5 h-5 mr-2" />
+                <div className="flex items-center space-x-2">
+                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-105 text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
                     Nouveau RDV
                   </Button>
                 </div>
@@ -1306,59 +1545,91 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      {activeTab === "calendar" && (
-        <div className="space-y-8">
-          {/* Calendar Header */}
-          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-2xl p-6 text-white shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-3">
-                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <h2 className="text-3xl font-bold">
-                    {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-                  </h2>
-                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                    <ChevronRight className="w-5 h-5" />
+      {activeTab === "requests" && (
+        <div className="space-y-3">
+          {/* Enhanced Header with Stats */}
+          <div className="bg-gradient-to-br from-orange-600 via-red-600 to-pink-700 rounded-lg p-3 text-white shadow-lg relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold mb-0.5">Demandes de Rendez-vous</h2>
+                  <p className="text-orange-100 text-xs">Gérez les nouvelles demandes de vos patients</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-0.5">
+                    <div className="flex items-center space-x-1">
+                      <ClockIcon className="w-3 h-3 text-white" />
+                      <span className="text-white font-semibold text-xs">En attente</span>
+                    </div>
+                  </div>
+                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-105 text-xs">
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Actualiser
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+            </div>
+          </div>
+
+          {/* Section Demandes de Rendez-vous */}
+          <AppointmentRequestsTable router={router} />
+        </div>
+      )}
+
+      {activeTab === "calendar" && (
+        <div className="space-y-4">
+          {/* Calendar Header */}
+          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-xl p-4 text-white shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <h2 className="text-2xl font-bold">
+                    {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                  </h2>
+                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
                 <Button variant="ghost" className="bg-white/20 hover:bg-white/30 text-white border-white/30 font-semibold">
-                  <Calendar className="w-4 h-4 mr-2" />
+                  <Calendar className="w-3 h-3 mr-2" />
                   Aujourd'hui
                 </Button>
-                <Button className="bg-white text-purple-600 hover:bg-purple-50 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                  <Plus className="w-5 h-5 mr-2" />
+                <Button className="bg-white text-purple-600 hover:bg-purple-50 font-semibold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                  <Plus className="w-4 h-4 mr-2" />
                   Nouveau créneau
                 </Button>
               </div>
             </div>
-            <div className="mt-4 flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                <span className="text-purple-100 text-sm">Consultations</span>
+            <div className="mt-3 flex items-center space-x-4">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span className="text-purple-100 text-xs">Consultations</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-purple-100 text-sm">Urgences</span>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-purple-100 text-xs">Urgences</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <span className="text-purple-100 text-sm">Suivis</span>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                <span className="text-purple-100 text-xs">Suivis</span>
               </div>
             </div>
           </div>
 
           {/* Calendar Grid */}
-          <Card className="border-0 shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-8">
-              <div className="grid grid-cols-7 gap-2">
+          <Card className="border-0 shadow-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-7 gap-1">
                 {/* Days of week */}
                 {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map((day) => (
-                  <div key={day} className="text-center font-bold text-slate-700 dark:text-slate-300 p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-xl mb-2">
-                    <div className="text-sm">{day}</div>
+                  <div key={day} className="text-center font-bold text-slate-700 dark:text-slate-300 p-2 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-lg mb-1">
+                    <div className="text-xs">{day}</div>
                   </div>
                 ))}
 
@@ -1375,37 +1646,37 @@ export default function DoctorDashboard() {
                   return (
                     <div
                       key={i}
-                      className={`group relative p-4 text-center cursor-pointer rounded-xl transition-all duration-300 hover:scale-105 min-h-[100px] ${isToday
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-xl ring-4 ring-blue-200'
+                      className={`group relative p-2 text-center cursor-pointer rounded-lg transition-all duration-300 hover:scale-105 min-h-[70px] ${isToday
+                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg ring-2 ring-blue-200'
                         : isCurrentMonth
-                          ? 'hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-600'
+                          ? 'hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-600'
                           : 'text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-900'
                         }`}
                     >
-                      <div className={`font-bold text-lg mb-2 ${isToday ? 'text-white' : 'text-slate-700 dark:text-slate-300'
+                      <div className={`font-bold text-sm mb-1 ${isToday ? 'text-white' : 'text-slate-700 dark:text-slate-300'
                         }`}>
                         {date.getDate()}
                       </div>
 
                       {/* Appointments indicators */}
                       {isCurrentMonth && (
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           {hasAppointments && (
                             <div className="group-hover:scale-110 transition-transform duration-200">
-                              <div className="w-full h-2 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full shadow-sm"></div>
-                              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">3 RDV</div>
+                              <div className="w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full shadow-sm"></div>
+                              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">3 RDV</div>
                             </div>
                           )}
                           {hasUrgency && (
                             <div className="group-hover:scale-110 transition-transform duration-200">
-                              <div className="w-full h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full shadow-sm"></div>
-                              <div className="text-xs text-green-600 dark:text-green-400 font-medium mt-1">Urgence</div>
+                              <div className="w-full h-1 bg-gradient-to-r from-green-400 to-green-600 rounded-full shadow-sm"></div>
+                              <div className="text-xs text-green-600 dark:text-green-400 font-medium">Urgence</div>
                             </div>
                           )}
                           {hasFollowUp && (
                             <div className="group-hover:scale-110 transition-transform duration-200">
-                              <div className="w-full h-2 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full shadow-sm"></div>
-                              <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mt-1">Suivi</div>
+                              <div className="w-full h-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full shadow-sm"></div>
+                              <div className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">Suivi</div>
                             </div>
                           )}
                         </div>
@@ -1423,69 +1694,37 @@ export default function DoctorDashboard() {
           </Card>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-              <CardContent className="p-6 text-center">
-                <div className="bg-blue-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-6 h-6 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+              <CardContent className="p-3 text-center">
+                <div className="bg-blue-500 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Calendar className="w-4 h-4 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-blue-800 dark:text-blue-200">24</h3>
-                <p className="text-blue-600 dark:text-blue-400 font-medium">RDV ce mois</p>
+                <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200">24</h3>
+                <p className="text-blue-600 dark:text-blue-400 font-medium text-xs">RDV ce mois</p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-              <CardContent className="p-6 text-center">
-                <div className="bg-green-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-white" />
+            <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+              <CardContent className="p-3 text-center">
+                <div className="bg-green-500 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Clock className="w-4 h-4 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">3h 45m</h3>
-                <p className="text-green-600 dark:text-green-400 font-medium">Temps libre aujourd'hui</p>
+                <h3 className="text-lg font-bold text-green-800 dark:text-green-200">3h 45m</h3>
+                <p className="text-green-600 dark:text-green-400 font-medium text-xs">Temps libre aujourd'hui</p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-              <CardContent className="p-6 text-center">
-                <div className="bg-purple-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-6 h-6 text-white" />
+            <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+              <CardContent className="p-3 text-center">
+                <div className="bg-purple-500 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <TrendingUp className="w-4 h-4 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-purple-800 dark:text-purple-200">92%</h3>
-                <p className="text-purple-600 dark:text-purple-400 font-medium">Taux d'occupation</p>
+                <h3 className="text-lg font-bold text-purple-800 dark:text-purple-200">92%</h3>
+                <p className="text-purple-600 dark:text-purple-400 font-medium text-xs">Taux d'occupation</p>
               </CardContent>
             </Card>
           </div>
-        </div>
-      )}
-
-      {activeTab === "requests" && (
-        <div className="space-y-8">
-          {/* Enhanced Header with Stats */}
-          <div className="bg-gradient-to-br from-orange-600 via-red-600 to-pink-700 rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-3xl font-bold mb-2">Demandes de Rendez-vous</h2>
-                  <p className="text-orange-100 text-lg">Gérez les nouvelles demandes de vos patients</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-2">
-                    <div className="flex items-center space-x-2">
-                      <ClockIcon className="w-5 h-5 text-white" />
-                      <span className="text-white font-semibold">En attente</span>
-                    </div>
-                  </div>
-                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105">
-                    <RefreshCw className="w-5 h-5 mr-2" />
-                    Actualiser
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section Demandes de Rendez-vous */}
-          <AppointmentRequestsTable router={router} />
         </div>
       )}
     </div>

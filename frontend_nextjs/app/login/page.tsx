@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,8 @@ import { Toaster } from "@/components/ui/toaster"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
   const { login, isAuthenticated, isLoading: authLoading } = useAuth()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
@@ -101,26 +103,27 @@ export default function LoginPage() {
             }, 1000)
           } else {
             // Success for patients
+            const finalRedirectUrl = redirectUrl || '/'
             toast({
               title: "Connexion réussie",
-              description: "Redirection vers la page d'accueil...",
+              description: redirectUrl ? "Redirection vers la page précédente..." : "Redirection vers la page d'accueil...",
               variant: "default",
             })
-            // setTimeout(() => {
-            //   router.push('/')
-            // }, 1000)
-            window.location.href = '/'
+            setTimeout(() => {
+              window.location.href = finalRedirectUrl
+            }, 1000)
           }
         } else {
           // Fallback redirect for patients
+          const finalRedirectUrl = redirectUrl || '/'
           setSuccess("Connexion réussie ! Redirection en cours...")
           toast({
             title: "Connexion réussie",
-            description: "Redirection vers la page d'accueil...",
+            description: redirectUrl ? "Redirection vers la page précédente..." : "Redirection vers la page d'accueil...",
             variant: "default",
           })
           setTimeout(() => {
-            router.push('/')
+            window.location.href = finalRedirectUrl
           }, 1000)
         }
       } else {

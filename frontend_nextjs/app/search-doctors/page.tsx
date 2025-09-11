@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, MapPin, Star, Calendar, Clock, Heart, User, Phone, Mail, ChevronDown, Settings, LogOut, FileText } from "lucide-react"
+import { ArrowLeft, MapPin, Star, Calendar, Clock, Heart, User, Phone, Mail, ChevronDown, Settings, LogOut, FileText, Search } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -16,6 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useDoctors, useAppointments, type Doctor } from "@/hooks/use-doctors"
 import { useCreateAppointment } from "@/hooks/use-create-appointment"
@@ -184,12 +192,26 @@ function AppointmentModal({ doctor, isOpen, onClose }: AppointmentModalProps) {
                       {currentDay.slots.map((slot: any) => {
                         const slotValue = `${currentDay.dateKey} ${slot.time}`;
                         const isPending = slot.status === 'pending';
+                        
+                        // Vérifier si le créneau est dans le passé
+                        const isToday = currentDay.dateKey === new Date().toISOString().split('T')[0];
+                        const currentTime = new Date();
+                        const [hours, minutes] = slot.time.split(':').map(Number);
+                        const slotTime = new Date();
+                        slotTime.setHours(hours, minutes, 0, 0);
+                        const isPastSlot = isToday && currentTime > slotTime;
+                        
+                        const isDisabled = !isPending || isPastSlot;
+                        
                         return (
                           <button
                             key={slot.id}
-                            onClick={() => isPending && setSelectedSlot(slotValue)}
-                            disabled={!isPending}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${!isPending
+                            onClick={() => !isDisabled && setSelectedSlot(slotValue)}
+                            disabled={isDisabled}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              isPastSlot
+                                ? 'bg-gray-100/80 text-gray-400 border border-gray-200/60 cursor-not-allowed opacity-60'
+                                : !isPending
                                 ? 'bg-gray-200/60 text-gray-400 border border-gray-300/40 cursor-not-allowed'
                                 : selectedSlot === slotValue
                                   ? 'bg-emerald-500 text-white shadow-md scale-105'
@@ -197,7 +219,7 @@ function AppointmentModal({ doctor, isOpen, onClose }: AppointmentModalProps) {
                               }`}
                           >
                             <div className="flex items-center justify-center space-x-1">
-                              <Clock className="w-3 h-3" />
+                              <Clock className={`w-3 h-3 ${isPastSlot ? 'text-gray-300' : ''}`} />
                               <span>{slot.time}</span>
                             </div>
                           </button>
@@ -319,15 +341,17 @@ function UserProfile() {
 
   if (!isAuthenticated || !user) {
     return (
-      <Link href="/login">
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden md:flex bg-transparent border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-all duration-300 font-medium"
-        >
-          Se connecter
-        </Button>
-      </Link>
+      <Button
+        variant="outline"
+        size="sm"
+        className="hidden md:flex bg-transparent border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-all duration-300 font-medium"
+        onClick={() => {
+          const currentUrl = window.location.href;
+          window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+        }}
+      >
+        Se connecter
+      </Button>
     )
   }
 
@@ -429,6 +453,8 @@ export default function SearchDoctorsPage() {
   const city = searchParams.get('city') || ''
   const specialty = searchParams.get('specialty') || ''
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { doctors, loading, error, searchDoctors } = useDoctors()
 
@@ -439,6 +465,26 @@ export default function SearchDoctorsPage() {
       specialty: specialty || undefined
     })
   }, [city, specialty, searchDoctors])
+
+  // Fonction de recherche
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredDoctors(doctors)
+    } else {
+      const filtered = doctors.filter(doctor => 
+        doctor.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doctor.specialty?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doctor.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        `${doctor.first_name} ${doctor.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredDoctors(filtered)
+    }
+  }, [searchQuery, doctors])
+
+  // Mettre à jour filteredDoctors quand doctors change
+  useEffect(() => {
+    setFilteredDoctors(doctors)
+  }, [doctors])
 
   const handleDoctorSelect = (doctor: Doctor) => {
     setSelectedDoctor(doctor)
@@ -476,27 +522,27 @@ export default function SearchDoctorsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950">
       {/* Header */}
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-700/30 sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <Link href="/">
-                <Button variant="ghost" size="sm" className="hover:bg-emerald-100 dark:hover:bg-emerald-900/50">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                <Button variant="ghost" size="sm" className="hover:bg-emerald-50 dark:hover:bg-emerald-900/30 h-8 px-3 text-xs">
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
                   Retour
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Médecins disponibles</h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {city && `Ville: ${city}`} {city && specialty && ' • '} {specialty && `Spécialité: ${specialty}`}
+              <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
+                <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Médecins disponibles</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
+                  {city && `${city}`} {city && specialty && ' • '} {specialty && `${specialty}`}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              {/* <Badge className="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
-                {doctors.length} médecin{doctors.length > 1 ? 's' : ''} trouvé{doctors.length > 1 ? 's' : ''}
+            <div className="flex items-center space-x-3">
+              {/* <Badge className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-xs px-2 py-1">
+                {filteredDoctors.length} médecin{filteredDoctors.length > 1 ? 's' : ''}
               </Badge> */}
               <UserProfile />
             </div>
@@ -506,23 +552,41 @@ export default function SearchDoctorsPage() {
 
       {/* Contenu principal */}
       <div className="container mx-auto px-6 py-8">
-        {doctors.length > 0 ? (
-          <div className="flex gap-4 h-[calc(100vh-180px)]">
+        {filteredDoctors.length > 0 ? (
+          <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-180px)]">
             {/* Colonne gauche - Liste des cartes docteur */}
-            <div className="w-1/2 overflow-y-auto pr-3 pl-2">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {doctors.length} médecin(s) trouvés
-                </span>
-                <select className="text-sm border border-slate-300 dark:border-slate-600 rounded-md px-3 py-1 bg-white dark:bg-slate-800">
-                  <option>Trier par prix</option>
-                  <option>Trier par note</option>
-                  <option>Trier par distance</option>
-                </select>
+            <div className="w-full md:w-1/2 overflow-y-auto pr-3 pl-2">
+              <div className="flex flex-col gap-4">
+                {/* Barre de recherche */}
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="Rechercher par nom, spécialité, ville..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pr-10 pl-4 py-2 w-full h-10 text-xs border-slate-200 dark:border-slate-700 focus:border-emerald-300 dark:focus:border-emerald-600 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-800 w-4 h-4" />
+                </div>
+                <div className="flex max-[420px]:flex-col flex-row items-center justify-between gap-2 mb-4">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <span className="font-bold text-slate-800">{filteredDoctors.length}</span> médecin{filteredDoctors.length > 1 ? 's' : ''} trouvés
+                  </span>
+                  <Select defaultValue="price">
+                    <SelectTrigger className="w-[180px] h-8 text-xs border border-slate-300">
+                      <SelectValue placeholder="Trier par..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="price">Trier par prix</SelectItem>
+                      <SelectItem value="rating">Trier par note</SelectItem>
+                      <SelectItem value="distance">Trier par distance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               {/* Liste des docteurs - 2 par ligne */}
-              <div className="grid grid-cols-2 gap-3">
-                {doctors.map((doctor) => (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {filteredDoctors.map((doctor) => (
                   <DoctorCardWithModal 
                     key={doctor.id}
                     doctor={doctor} 
@@ -534,7 +598,7 @@ export default function SearchDoctorsPage() {
             </div>
 
             {/* Colonne droite - Carte interactive */}
-            <div className="w-1/2 bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-200 dark:border-slate-700">
               <div className="relative h-full">
                 <MapWrapper
                   doctors={doctors}

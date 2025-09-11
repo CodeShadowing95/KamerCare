@@ -37,7 +37,7 @@ interface Appointment {
   doctor: string
   specialty: string
   hospital: string
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled'
+  status: 'requested' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
   type: 'consultation' | 'follow-up' | 'emergency'
 }
 
@@ -59,7 +59,7 @@ const mockAppointments: Appointment[] = [
     doctor: 'Dr. Jean Kamga',
     specialty: 'Dermatologie',
     hospital: 'Clinique des Spécialités',
-    status: 'pending',
+    status: 'scheduled',
     type: 'follow-up'
   },
   {
@@ -104,17 +104,27 @@ export default function DashboardPage() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
+      requested: 'bg-orange-100 text-orange-700 border-orange-200',
+      scheduled: 'bg-blue-100 text-blue-700 border-blue-200',
       confirmed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      pending: 'bg-amber-100 text-amber-700 border-amber-200',
-      completed: 'bg-blue-100 text-blue-700 border-blue-200',
-      cancelled: 'bg-red-100 text-red-700 border-red-200'
+      in_progress: 'bg-purple-100 text-purple-700 border-purple-200',
+      completed: 'bg-green-100 text-green-700 border-green-200',
+      cancelled: 'bg-red-100 text-red-700 border-red-200',
+      no_show: 'bg-gray-100 text-gray-700 border-gray-200',
+      // Anciens statuts pour compatibilité
+      pending: 'bg-amber-100 text-amber-700 border-amber-200'
     }
     
     const labels = {
+      requested: 'Demandé',
+      scheduled: 'Programmé',
       confirmed: 'Confirmé',
-      pending: 'En attente',
+      in_progress: 'En cours',
       completed: 'Terminé',
-      cancelled: 'Annulé'
+      cancelled: 'Annulé',
+      no_show: 'Absent',
+      // Anciens labels pour compatibilité
+      pending: 'En attente'
     }
     
     return (

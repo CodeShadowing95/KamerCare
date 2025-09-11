@@ -47,6 +47,8 @@ class Doctor extends Model
 
     ];
 
+    protected $appends = ['name', 'full_name'];
+
     // Relations
     public function user()
     {
@@ -80,6 +82,11 @@ class Doctor extends Model
 
     // Accessors
     public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function getNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
     }

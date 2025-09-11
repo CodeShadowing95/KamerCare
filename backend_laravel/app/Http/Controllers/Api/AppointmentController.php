@@ -18,7 +18,7 @@ class AppointmentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Appointment::with(['patient', 'doctor']);
+        $query = Appointment::with(['patient', 'doctor', 'createdBy']);
 
         // Filter by patient
         if ($request->has('patient_id')) {
@@ -167,7 +167,10 @@ class AppointmentController extends Controller
         $appointmentData['doctor_id'] = $doctor->id; // Utiliser l'ID du docteur récupéré
         // Utiliser le created_by_user_id envoyé dans la requête (obligatoire)
         $appointmentData['created_by_user_id'] = $validated['created_by_user_id'];
-        $appointmentData['status'] = 'scheduled';
+        
+        // Déterminer le statut selon qui crée le rendez-vous
+        $createdByUser = \App\Models\User::findOrFail($validated['created_by_user_id']);
+        $appointmentData['status'] = $createdByUser->role === 'doctor' ? 'scheduled' : 'requested';
         $appointmentData['payment_status'] = 'pending';
         
         $appointment = Appointment::create($appointmentData);
