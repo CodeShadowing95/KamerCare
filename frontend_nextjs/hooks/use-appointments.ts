@@ -5,11 +5,13 @@ interface Appointment {
   id: number
   appointment_date: string
   reason_for_visit: string
-  status: 'requested' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
+  status: 'requested' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'expired'
   appointment_type: 'presentiel' | 'visio' | 'domicile' | 'urgence' | 'suivi'
+  location?: string
   duration_minutes: number
   notes?: string
-  payment_status?: 'paid' | 'refunded' | 'pending'
+  payment_status?: 'paid' | 'refunded' | 'pending' | 'unpaid'
+  consultation_fee?: number
   patient: {
     id: number
     first_name: string
@@ -36,6 +38,7 @@ interface UseAppointmentsReturn {
   loading: boolean
   error: string | null
   refetch: () => void
+  deleteAppointment: (id: number) => Promise<boolean>
 }
 
 export function useAppointments(filters?: {
@@ -95,11 +98,47 @@ export function useAppointments(filters?: {
     fetchAppointments()
   }, [token, filters?.status, filters?.upcoming, filters?.today, filters?.doctor_id])
 
+  const deleteAppointment = async (id: number): Promise<boolean> => {
+    if (!token) {
+      setError('Token d\'authentification manquant')
+      return false
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/appointments/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Mettre à jour la liste locale en supprimant le rendez-vous
+        setAppointments(prev => prev.filter(appointment => appointment.id !== id))
+        return true
+      } else {
+        throw new Error(data.message || 'Erreur lors de la suppression du rendez-vous')
+      }
+    } catch (err) {
+      console.error('Erreur lors de la suppression du rendez-vous:', err)
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de la suppression')
+      return false
+    }
+  }
+
   return {
     appointments,
     loading,
     error,
     refetch: fetchAppointments,
+    deleteAppointment,
   }
 }
 

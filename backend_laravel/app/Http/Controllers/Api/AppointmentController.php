@@ -90,6 +90,7 @@ class AppointmentController extends Controller
             'appointment_date' => 'required|date|after:now',
             'duration_minutes' => 'required|integer|min:15|max:240',
             'appointment_type' => 'required|in:presentiel,visio,domicile,urgence,suivi',
+            'location' => 'nullable|string|max:255|required_if:appointment_type,presentiel',
             'reason_for_visit' => 'required|string|max:500',
             'notes' => 'nullable|string',
             'consultation_fee' => 'required|numeric|min:0',
@@ -206,6 +207,7 @@ class AppointmentController extends Controller
             'appointment_date' => 'sometimes|required|date|after:now',
             'duration_minutes' => 'sometimes|required|integer|min:15|max:240',
             'appointment_type' => 'sometimes|required|in:presentiel,visio,domicile,urgence,suivi',
+            'location' => 'nullable|string|max:255|required_if:appointment_type,presentiel',
             'reason_for_visit' => 'sometimes|required|string|max:500',
             'notes' => 'nullable|string',
             'consultation_fee' => 'sometimes|required|numeric|min:0',
@@ -312,6 +314,79 @@ class AppointmentController extends Controller
             'success' => true,
             'data' => $appointment->fresh(),
             'message' => 'Appointment cancelled successfully'
+        ]);
+    }
+
+    /**
+     * Accept an appointment (for patients when doctor schedules)
+     */
+    public function accept(Appointment $appointment): JsonResponse
+    {
+        // Vérifier que le rendez-vous peut être accepté
+        if ($appointment->status !== 'scheduled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only scheduled appointments can be accepted'
+            ], 422);
+        }
+
+        // Vérifier que l'utilisateur connecté est le patient du rendez-vous
+        $user = auth()->user();
+        if ($user->role !== 'patient' || $appointment->patient_id !== $user->patient->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only accept your own appointments'
+            ], 403);
+        }
+
+        $appointment->update([
+            'status' => 'confirmed',
+            'confirmed_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $appointment->fresh(['patient', 'doctor']),
+            'message' => 'Appointment accepted successfully'
+        ]);
+    }
+
+    /**
+     * Reject an appointment (for patients when doctor schedules)
+     */
+    public function reject(Request $request, Appointment $appointment): JsonResponse
+    {
+        // Vérifier que le rendez-vous peut être refusé
+        if ($appointment->status !== 'scheduled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only scheduled appointments can be rejected'
+            ], 422);
+        }
+
+        // Vérifier que l'utilisateur connecté est le patient du rendez-vous
+        $user = auth()->user();
+        if ($user->role !== 'patient' || $appointment->patient_id !== $user->patient->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only reject your own appointments'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'rejection_reason' => 'nullable|string|max:500'
+        ]);
+
+        $appointment->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+            'cancellation_reason' => $validated['rejection_reason'] ?? 'Rejected by patient',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $appointment->fresh(['patient', 'doctor']),
+            'message' => 'Appointment rejected successfully'
         ]);
     }
 

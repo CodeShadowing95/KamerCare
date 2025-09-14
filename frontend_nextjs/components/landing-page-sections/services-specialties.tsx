@@ -24,9 +24,9 @@ import {
   Scan,
   FlaskConical,
   Dna,
-  Globe
+  Globe,
+  MoveRight
 } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
 interface ServicesSpecialtiesProps {
@@ -404,47 +404,44 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {specialties.map((specialty, index) => {
             const IconComponent = specialty.icon
             return (
               <div key={index} className="group relative">
-                <div className={`relative overflow-hidden rounded-2xl h-80 bg-gradient-to-br ${specialty.bgGradient} shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2`}>
-                <IconComponent className="w-56 h-56 text-white/20 absolute -bottom-10 -left-10" />
+                <div className={`relative overflow-hidden rounded-xl h-48 bg-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1`}>
+                <IconComponent className="w-52 h-52 text-gray-200 absolute -bottom-6 -right-6" />
 
                   {/* Background overlay */}
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-gray-100/30 group-hover:bg-gray-100/20 transition-all duration-300"></div>
                   
-                  {/* Icon positioned at top right */}
-                  <div className="absolute top-6 right-6 z-10">
-                    <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white border-opacity-30">
-                      <IconComponent className="w-7 h-7 text-white" />
+                  {/* Icon positioned at top left */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${specialty.bgGradient} backdrop-blur-sm flex items-center justify-center border border-white border-opacity-20`}>
+                      <IconComponent className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   
                   {/* Content positioned at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                    <h3 className="font-bold text-2xl text-white mb-3 leading-tight">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                    <h3 className="font-semibold text-lg text-gray-700 mb-2 leading-tight">
                       {specialty.name}
                     </h3>
-                    <p className="text-white text-opacity-90 text-sm leading-relaxed mb-4 line-clamp-3">
+                    <p className="text-gray-700 text-opacity-80 text-xs leading-relaxed mb-2 line-clamp-2">
                       {specialty.description || (language === 'fr' 
-                        ? 'Spécialité médicale disponible avec des professionnels qualifiés pour vos soins de santé.' 
-                        : 'Medical specialty available with qualified professionals for your healthcare needs.')}
+                        ? 'Spécialité médicale disponible avec des professionnels qualifiés.' 
+                        : 'Medical specialty available with qualified professionals.')}
                     </p>
-                    <div className="flex items-center text-white font-medium group-hover:text-yellow-300 transition-colors">
-                      <span className="text-sm">{language === 'fr' ? 'Découvrir' : 'Discover'}</span>
-                      <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
+                    <div className="flex items-center text-gray-700 font-medium group-hover:text-blue-500 transition-colors">
+                      <span className="text-xs">{language === 'fr' ? 'Découvrir' : 'Discover'}</span>
+                      <MoveRight className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                   
                   {/* Decorative elements */}
                   <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-8 left-6 w-2 h-2 bg-white bg-opacity-60 rounded-full"></div>
-                    <div className="absolute top-12 left-8 w-1 h-1 bg-white bg-opacity-40 rounded-full"></div>
-                    <div className="absolute bottom-20 right-8 w-3 h-3 bg-white bg-opacity-30 rounded-full"></div>
+                    <div className="absolute top-6 right-4 w-1.5 h-1.5 bg-white bg-opacity-50 rounded-full"></div>
+                    <div className="absolute top-8 right-6 w-1 h-1 bg-white bg-opacity-30 rounded-full"></div>
                   </div>
                 </div>
               </div>
@@ -452,40 +449,84 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
           })}
         </div>
         
-        {/* Additional info section */}
-        <div className="text-center">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-xl border border-slate-200 dark:border-slate-700 max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+        {/* Additional info section - Design compact */}
+        <div className="relative">
+          
+          <div className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20 dark:border-slate-700/50 max-w-4xl mx-auto">
+            {/* Fond décoratif avec gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 rounded-2xl transform rotate-1 -z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-tl from-blue-50 via-purple-50 to-emerald-50 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded-2xl transform -rotate-1 -z-10"></div>
+            
+            {/* Titre de la section */}
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                {language === 'fr' ? 'Pourquoi choisir KamerCare ?' : 'Why choose KamerCare?'}
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                {language === 'fr' ? 'Des chiffres qui parlent de notre excellence' : 'Numbers that speak of our excellence'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Statistique 1 - Médecins */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl transform rotate-6 group-hover:rotate-4 transition-transform duration-300 opacity-10"></div>
+                <div className="relative bg-white dark:bg-slate-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-emerald-100 dark:border-emerald-900/30">
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md transform group-hover:scale-105 transition-transform duration-300">
+                        <Users className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                  <h4 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-1 text-center">{stats.doctors}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 text-center leading-relaxed">{stats.doctorsDesc}</p>
                 </div>
-                <h4 className="font-bold text-slate-900 dark:text-white mb-2">{stats.doctors}</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-300">{stats.doctorsDesc}</p>
               </div>
               
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              {/* Statistique 2 - Disponibilité */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl transform -rotate-6 group-hover:-rotate-3 transition-transform duration-300 opacity-10"></div>
+                <div className="relative bg-white dark:bg-slate-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-blue-100 dark:border-blue-900/30">
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md transform group-hover:scale-105 transition-transform duration-300">
+                        <Clock className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                  <h4 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1 text-center">{stats.availability}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 text-center leading-relaxed">{stats.availabilityDesc}</p>
                 </div>
-                <h4 className="font-bold text-slate-900 dark:text-white mb-2">{stats.availability}</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-300">{stats.availabilityDesc}</p>
               </div>
               
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              {/* Statistique 3 - Certification */}
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl transform rotate-6 group-hover:rotate-2 transition-transform duration-300 opacity-10"></div>
+                <div className="relative bg-white dark:bg-slate-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-purple-100 dark:border-purple-900/30">
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md transform group-hover:scale-105 transition-transform duration-300">
+                        <Award className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                  <h4 className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1 text-center">{stats.certified}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 text-center leading-relaxed">{stats.certifiedDesc}</p>
                 </div>
-                <h4 className="font-bold text-slate-900 dark:text-white mb-2">{stats.certified}</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-300">{stats.certifiedDesc}</p>
               </div>
             </div>
             
-            <div className="mt-8">
-              <Button size="lg" className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <Search className="w-5 h-5 mr-2" />
-                {searchButton}
-              </Button>
+            {/* Bouton d'action compact */}
+            <div className="text-center mt-6">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-xl blur-md opacity-25 animate-pulse"></div>
+                <Button size="default" className="relative bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-white/20">
+                  <Search className="w-5 h-5 mr-2" />
+                  <span className="font-medium">{searchButton}</span>
+                  <div className="absolute inset-0 bg-white/10 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

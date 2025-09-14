@@ -62,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm']);
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
     Route::patch('/appointments/{appointment}/complete', [AppointmentController::class, 'complete']);
+    Route::post('/appointments/{appointment}/accept', [AppointmentController::class, 'accept']);
+    Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject']);
     Route::get('/appointments/today', [AppointmentController::class, 'today']);
     Route::get('/appointments/upcoming', [AppointmentController::class, 'upcoming']);
     Route::get('/appointments/types', [AppointmentController::class, 'getAppointmentTypes']);

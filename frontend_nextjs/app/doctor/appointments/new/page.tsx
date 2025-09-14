@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,7 @@ interface AppointmentForm {
   notes: string;
   priority: string;
   appointment_type: string;
+  location: string;
   consultationAmount: string;
 }
 
@@ -48,6 +49,7 @@ interface FormErrors {
 
 export default function NewAppointmentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const [formData, setFormData] = useState<AppointmentForm>({
     patient_id: null,
@@ -61,12 +63,44 @@ export default function NewAppointmentPage() {
     notes: '',
     priority: 'normal',
     appointment_type: 'presentiel',
+    location: '',
     consultationAmount: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
+
+  // Effet pour pré-remplir les champs en mode édition
+  useEffect(() => {
+    const isEdit = searchParams.get('edit') === 'true';
+    if (isEdit) {
+      setIsEditMode(true);
+      setAppointmentId(searchParams.get('id'));
+      
+      const patientId = searchParams.get('patient_id');
+      const date = searchParams.get('date');
+      const time = searchParams.get('time');
+      
+      setFormData({
+        patient_id: patientId ? parseInt(patientId) : null,
+        personName: searchParams.get('patient_name') || '',
+        personEmail: searchParams.get('patient_email') || '',
+        personPhone: searchParams.get('patient_phone') || '',
+        appointmentDate: date ? new Date(date) : null,
+        appointmentTime: time || '',
+        duration: searchParams.get('duration') || '30',
+        reason: searchParams.get('reason') || '',
+        notes: searchParams.get('notes') || '',
+        priority: 'normal',
+        appointment_type: searchParams.get('type') || 'presentiel',
+        consultationAmount: searchParams.get('fee') || '',
+        location: searchParams.get('location') || '',
+      });
+    }
+  }, [searchParams]);
 
   // Fonction de recherche de patients
   const searchPatients = async (query: string): Promise<Patient[]> => {
@@ -178,11 +212,18 @@ export default function NewAppointmentPage() {
         notes: formData.notes || null,
         consultation_fee: parseFloat(formData.consultationAmount) || 0.00,
         appointment_type: formData.appointment_type,
+        location: formData.appointment_type === 'presentiel' ? formData.location : null,
         created_by_user_id: user?.id // ID de l'utilisateur qui crée le RDV
       };
 
-      const response = await fetch('http://localhost:8000/api/appointments', {
-        method: 'POST',
+      const url = isEditMode 
+        ? `http://localhost:8000/api/appointments/${appointmentId}`
+        : 'http://localhost:8000/api/appointments';
+      
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -193,20 +234,31 @@ export default function NewAppointmentPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la création du rendez-vous');
+        const errorMessage = isEditMode 
+          ? 'Erreur lors de la modification du rendez-vous'
+          : 'Erreur lors de la création du rendez-vous';
+        throw new Error(errorData.message || errorMessage);
       }
 
       const result = await response.json();
-      setSuccessMessage('Rendez-vous créé avec succès!');
+      const successMessage = isEditMode 
+        ? 'Rendez-vous modifié avec succès!'
+        : 'Rendez-vous créé avec succès!';
+      setSuccessMessage(successMessage);
 
       // Redirection après 2 secondes
       setTimeout(() => {
-        router.push('/doctor?success=appointment-created');
+        const redirectParam = isEditMode ? 'appointment-updated' : 'appointment-created';
+        router.push(`/doctor?success=${redirectParam}`);
       }, 2000);
 
     } catch (error: any) {
-      console.error('Erreur lors de la création du RDV:', error);
-      setErrors({ general: error.message || 'Une erreur est survenue lors de la création du rendez-vous' });
+      const logMessage = isEditMode ? 'modification' : 'création';
+      console.error(`Erreur lors de la ${logMessage} du RDV:`, error);
+      const errorMessage = isEditMode 
+        ? 'Une erreur est survenue lors de la modification du rendez-vous'
+        : 'Une erreur est survenue lors de la création du rendez-vous';
+      setErrors({ general: error.message || errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -237,8 +289,12 @@ export default function NewAppointmentPage() {
             <Calendar className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Nouveau Rendez-vous</h1>
-            <p className="text-gray-600 mt-1">Planifier un nouveau rendez-vous patient</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isEditMode ? 'Modifier Rendez-vous' : 'Nouveau Rendez-vous'}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {isEditMode ? 'Modifier les informations du rendez-vous' : 'Planifier un nouveau rendez-vous patient'}
+            </p>
           </div>
         </div>
       </div>
@@ -405,7 +461,26 @@ export default function NewAppointmentPage() {
                     </p>
                   )}
                 </div>
+              </div>
 
+              {/* Champ Location conditionnel */}
+              {formData.appointment_type === 'presentiel' && (
+                <div>
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                    Lieu du rendez-vous <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="Ex: Cabinet médical, Clinique XYZ, Adresse complète..."
+                    className="mt-0.5 h-9"
+                    required={formData.appointment_type === 'presentiel'}
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="duration" className="text-sm font-medium text-gray-700">
                     Durée (minutes)
@@ -526,7 +601,10 @@ export default function NewAppointmentPage() {
             className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Save className="h-3.5 w-3.5" />
-            {isSubmitting ? 'Création...' : 'Créer le RDV'}
+            {isSubmitting 
+                          ? (isEditMode ? 'Modification...' : 'Création...') 
+                          : (isEditMode ? 'Modifier le RDV' : 'Créer le RDV')
+                        }
           </Button>
         </div>
       </form>

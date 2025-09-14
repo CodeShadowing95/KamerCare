@@ -33,6 +33,7 @@ class Appointment extends Model
         'duration_minutes',
         'status',
         'appointment_type',
+        'location',
         'reason_for_visit',
         'notes',
         'consultation_fee',

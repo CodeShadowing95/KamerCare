@@ -48,6 +48,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DeleteConfirmationModal } from "@/components/ui/delete-confirmation-modal"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -70,136 +71,191 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 
-// Fonction pour vérifier si une date est passée
-const isDatePassed = (dateString: string) => {
-  const appointmentDate = new Date(dateString);
-  const now = new Date();
+const getStatusColor = (status: Appointment["status"]) => {
+  switch (status) {
+    case "scheduled":
+      return "bg-accent/10 text-accent border-accent/20"
+    case "confirmed":
+      return "bg-primary/10 text-primary border-primary/20"
+    case "cancelled":
+      return "bg-destructive/10 text-destructive border-destructive/20"
+    case "completed":
+      return "bg-muted text-muted-foreground border-border"
+    case "in_progress":
+      return "bg-orange-100 text-orange-700 border-orange-200"
+    case "expired":
+      return "bg-red-100 text-red-700 border-red-200"
+    default:
+      return "bg-muted text-muted-foreground border-border"
+  }
+}
 
-  console.log("Date actuelle: ", now)
-  console.log("Date rendez-vous: ", appointmentDate)
-  return appointmentDate < now;
-};
+const getStatusText = (status: Appointment["status"]) => {
+  switch (status) {
+    case "requested":
+      return "Demandé"
+    case "scheduled":
+      return "Programmé"
+    case "confirmed":
+      return "Confirmé"
+    case "in_progress":
+      return "En cours"
+    case "completed":
+      return "Terminé"
+    case "cancelled":
+      return "Annulé"
+    case "expired":
+      return "Expiré"
+    case "no_show":
+      return "Absent"
+    default:
+      return "En attente"
+  }
+}
+
+const getPaymentStatusBadge = (paymentStatus: Appointment["payment_status"]) => {
+  switch (paymentStatus) {
+    case "paid":
+      return (
+        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-1 text-xs font-medium rounded-full">
+          Payé💸
+        </Badge>
+      )
+    case "refunded":
+      return (
+        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 text-xs font-medium rounded-full">
+          Remboursée
+        </Badge>
+      )
+    case "unpaid":
+      return (
+        <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 px-2 py-1 text-xs font-medium rounded-full">
+          Non payé
+        </Badge>
+      )
+    case "pending":
+    default:
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-1 text-xs font-medium rounded-full">
+          Pas encore
+        </Badge>
+      )
+  }
+}
+
+const getTypeLabel = (type: Appointment["appointment_type"]) => {
+  const labels = {
+    presentiel: "Présentiel",
+    visio: "Visioconférence",
+    domicile: "À domicile",
+    urgence: "Urgence",
+    suivi: "Suivi",
+  }
+  return labels[type] || type
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const isAppointmentExpired = (appointmentDate: string) => {
+  const now = new Date()
+  const appointmentTime = new Date(appointmentDate)
+  return appointmentTime < now
+}
+
+const getAppointmentStatus = (appointment: any) => {
+  if (isAppointmentExpired(appointment.appointment_date) && appointment.status !== 'completed' && appointment.status !== 'cancelled') {
+    return { status: 'expired', text: 'Expiré', className: 'bg-red-100 text-red-700 border-red-200' }
+  }
+  return { status: appointment.status, text: getStatusText(appointment.status), className: getStatusColor(appointment.status) }
+}
+
+// Fonction pour vérifier si un rendez-vous est à 30 minutes ou moins
+const isWithin30Minutes = (appointmentDate: string) => {
+  const now = new Date()
+  const appointmentTime = new Date(appointmentDate)
+  const diffInMinutes = (appointmentTime.getTime() - now.getTime()) / (1000 * 60)
+  return diffInMinutes <= 30 && diffInMinutes >= 0
+}
 
 // Composant pour le tableau des prochains rendez-vous
 function UpcomingAppointmentsTable({ router }: { router: any }) {
   const { user } = useAuth()
-  const { appointments, refetch, loading, error } = useAppointments({
+  const { appointments, refetch, loading, error, deleteAppointment } = useAppointments({
     upcoming: true,
     doctor_id: user?.doctor?.id || user?.id
   })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    })
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-
-
-  const getStatusColor = (status: Appointment["status"]) => {
-    switch (status) {
-      case "scheduled":
-        return "bg-accent/10 text-accent border-accent/20"
-      case "confirmed":
-        return "bg-primary/10 text-primary border-primary/20"
-      case "cancelled":
-        return "bg-destructive/10 text-destructive border-destructive/20"
-      case "completed":
-        return "bg-muted text-muted-foreground border-border"
-      case "in_progress":
-        return "bg-orange-100 text-orange-700 border-orange-200"
-      default:
-        return "bg-muted text-muted-foreground border-border"
-    }
-  }
-
-  const getStatusText = (status: Appointment["status"]) => {
-    switch (status) {
-      case "requested":
-        return "Demandé"
-      case "scheduled":
-        return "Programmé"
-      case "confirmed":
-        return "Confirmé"
-      case "in_progress":
-        return "En cours"
-      case "completed":
-        return "Terminé"
-      case "cancelled":
-        return "Annulé"
-      case "no_show":
-        return "Absent"
-      default:
-        return "En attente"
-    }
-  }
-
-  const getPaymentStatusBadge = (paymentStatus: Appointment["payment_status"]) => {
-    switch (paymentStatus) {
-      case "paid":
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-1 text-xs font-medium rounded-full">
-            Payé💸
-          </Badge>
-        )
-      case "refunded":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 text-xs font-medium rounded-full">
-            Remboursée
-          </Badge>
-        )
-      case "pending":
-      default:
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-1 text-xs font-medium rounded-full">
-            Pas encore
-          </Badge>
-        )
-    }
-  }
-
-  const getStatusLabel = (status: Appointment["status"]) => {
-    const labels = {
-      requested: "Demandé",
-      scheduled: "Programmé",
-      confirmed: "Confirmé",
-      in_progress: "En cours",
-      completed: "Terminé",
-      cancelled: "Annulé",
-      no_show: "Absent",
-    }
-    return labels[status] || status
-  }
-
-  const getTypeLabel = (type: Appointment["appointment_type"]) => {
-    const labels = {
-      presentiel: "Présentiel",
-      visio: "Visioconférence",
-      domicile: "À domicile",
-      urgence: "Urgence",
-      suivi: "Suivi",
-    }
-    return labels[type] || type
-  }
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Fonction pour ouvrir le modal avec les détails du rendez-vous
   const openAppointmentDetails = (appointment: any) => {
     setSelectedAppointment(appointment)
     setIsModalOpen(true)
+  }
+
+  // Fonctions pour gérer la suppression
+  const openDeleteModal = (appointment: Appointment) => {
+    setAppointmentToDelete(appointment)
+    setIsDeleteModalOpen(true)
+  }
+
+  // Fonction pour modifier un rendez-vous
+  const handleEditAppointment = (appointment: Appointment) => {
+    const params = new URLSearchParams({
+      edit: 'true',
+      id: appointment.id.toString(),
+      patient_id: appointment.patient.id?.toString() || '',
+      patient_name: appointment.patient.first_name + ' ' + appointment.patient.last_name || '',
+      patient_email: appointment.patient.email || '',
+      patient_phone: appointment.patient.phone || '',
+      date: appointment.appointment_date ? new Date(appointment.appointment_date).toISOString().split('T')[0] : '',
+      time: appointment.appointment_date ? new Date(appointment.appointment_date).toTimeString().slice(0, 5) : '',
+      duration: appointment.duration_minutes?.toString() || '30',
+      reason: appointment.reason_for_visit || '',
+      notes: appointment.notes || '',
+      type: appointment.appointment_type || 'presentiel',
+      fee: appointment.consultation_fee?.toString() || ''
+    });
+    router.push(`/doctor/appointments/new?${params.toString()}`);
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!appointmentToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      const success = await deleteAppointment(appointmentToDelete.id)
+      if (success) {
+        setIsDeleteModalOpen(false)
+        setAppointmentToDelete(null)
+      }
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false)
+    setAppointmentToDelete(null)
   }
 
   if (loading) {
@@ -266,14 +322,13 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
             >
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button
-              onClick={() => router.push('/doctor/appointments')}
-              variant="outline"
-              size="sm"
-              className="hover:bg-indigo-50 dark:hover:bg-slate-600 border-indigo-200 hover:border-indigo-400 transition-all duration-300 hover:scale-105 rounded-xl"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Planning complet
+            <Button variant="outline" size="sm" className="hover:bg-green-50 dark:hover:bg-slate-600 border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl">
+              <Download className="w-4 h-4 mr-2" />
+              Exporter
+            </Button>
+            <Button variant="outline" size="sm" className="hover:bg-purple-50 dark:hover:bg-slate-600 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:scale-105 rounded-xl">
+              <Filter className="w-4 h-4 mr-2" />
+              Filtrer
             </Button>
           </div>
 
@@ -322,7 +377,7 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-600">
                 {appointments.slice(0, 10).map((appointment, index) => {
-                  const isPassed = isDatePassed(appointment.appointment_date);
+                  const isPassed = isAppointmentExpired(appointment.appointment_date);
                   return (
                     <tr key={appointment.id} className={`transition-colors duration-200 ${isPassed
                       ? 'bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30'
@@ -356,8 +411,13 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-xs text-slate-500 dark:text-white max-w-xs truncate" title={appointment.reason_for_visit}>
-                          {appointment.reason_for_visit}
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-slate-900 dark:text-white">
+                            {getTypeLabel(appointment.appointment_type)}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate" title={appointment.reason_for_visit}>
+                            {appointment.reason_for_visit}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -375,36 +435,33 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center space-x-2">
-                          {isPassed ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 p-2 h-8 w-8"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="w-3 h-3 text-red-600" />
-                            </Button>
-                          ) : (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
-                                title="Voir les détails"
-                                onClick={() => openAppointmentDetails(appointment)}
-                              >
-                                <Eye className="w-3 h-3 text-indigo-600" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
-                                title="Modifier"
-                              >
-                                <Edit className="w-3 h-3 text-green-600" />
-                              </Button>
-                            </>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
+                            title="Voir les détails"
+                            onClick={() => openAppointmentDetails(appointment)}
+                          >
+                            <Eye className="w-3 h-3 text-indigo-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
+                            title="Modifier"
+                            onClick={() => handleEditAppointment(appointment)}
+                          >
+                            <Edit className="w-3 h-3 text-green-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 p-2 h-8 w-8"
+                            title="Supprimer"
+                            onClick={() => openDeleteModal(appointment)}
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -448,7 +505,7 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
                   selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
                     'bg-gray-100 text-gray-800 border-gray-300'
                 }`} variant="outline">
-                {selectedAppointment?.status ? getStatusLabel(selectedAppointment.status) : ''}
+                {selectedAppointment?.status ? getStatusText(selectedAppointment.status) : ''}
               </Badge>
             </div>
 
@@ -542,6 +599,15 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
           </div>
         </DialogContent>
       </Dialog>
+      
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer le rendez-vous"
+        description={`Êtes-vous sûr de vouloir supprimer le rendez-vous avec ${appointmentToDelete?.patient?.first_name} ${appointmentToDelete?.patient?.last_name} ? Cette action est irréversible.`}
+        isLoading={isDeleting}
+      />
     </Card>
   )
 }
@@ -549,58 +615,47 @@ function UpcomingAppointmentsTable({ router }: { router: any }) {
 // Composant pour le tableau des rendez-vous du jour
 function TodayAppointmentsTable({ router }: { router: any }) {
   const { user } = useAuth()
-  const { appointments, refetch, loading, error } = useAppointments({
+  const { appointments, refetch, loading, error, deleteAppointment } = useAppointments({
     today: true,
     doctor_id: user?.doctor?.id || user?.id
   })
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    })
+  // Fonction pour ouvrir le modal avec les détails du rendez-vous
+  const openAppointmentDetails = (appointment: any) => {
+    setSelectedAppointment(appointment)
+    setIsModalOpen(true)
   }
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  // Fonctions pour gérer la suppression
+  const openDeleteModal = (appointment: Appointment) => {
+    setAppointmentToDelete(appointment)
+    setIsDeleteModalOpen(true)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'requested': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
-      case 'scheduled': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-      case 'in_progress': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-      case 'no_show': return 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300'
-      default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+  const handleDeleteConfirm = async () => {
+    if (!appointmentToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      const success = await deleteAppointment(appointmentToDelete.id)
+      if (success) {
+        setIsDeleteModalOpen(false)
+        setAppointmentToDelete(null)
+      }
+    } finally {
+      setIsDeleting(false)
     }
   }
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'Confirmé'
-      case 'scheduled': return 'Programmé'
-      case 'completed': return 'Terminé'
-      case 'cancelled': return 'Annulé'
-      default: return 'En attente'
-    }
-  }
-
-  // Fonction pour vérifier si un rendez-vous est à 30 minutes ou moins
-  const isWithin30Minutes = (appointmentDate: string) => {
-    const now = new Date()
-    const appointmentTime = new Date(appointmentDate)
-    const diffInMinutes = (appointmentTime.getTime() - now.getTime()) / (1000 * 60)
-    return diffInMinutes <= 30 && diffInMinutes >= 0
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false)
+    setAppointmentToDelete(null)
   }
 
   // Filtrer les rendez-vous du jour actuel
@@ -609,6 +664,26 @@ function TodayAppointmentsTable({ router }: { router: any }) {
     const today = new Date()
     return appointmentDate.toDateString() === today.toDateString()
   })
+
+  // Fonction pour modifier un rendez-vous
+  const handleEditAppointment = (appointment: Appointment) => {
+    const params = new URLSearchParams({
+      edit: 'true',
+      id: appointment.id.toString(),
+      patient_id: appointment.patient.id?.toString() || '',
+      patient_name: appointment.patient.first_name + ' ' + appointment.patient.last_name || '',
+      patient_email: appointment.patient.email || '',
+      patient_phone: appointment.patient.phone || '',
+      date: appointment.appointment_date ? new Date(appointment.appointment_date).toISOString().split('T')[0] : '',
+      time: appointment.appointment_date ? new Date(appointment.appointment_date).toTimeString().slice(0, 5) : '',
+      duration: appointment.duration_minutes?.toString() || '30',
+      reason: appointment.reason_for_visit || '',
+      notes: appointment.notes || '',
+      type: appointment.appointment_type || 'presentiel',
+      fee: appointment.consultation_fee?.toString() || ''
+    });
+    router.push(`/doctor/appointments/new?${params.toString()}`);
+  }
 
   if (loading) {
     return (
@@ -674,15 +749,6 @@ function TodayAppointmentsTable({ router }: { router: any }) {
             >
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button
-              onClick={() => router.push('/doctor/appointments')}
-              variant="outline"
-              size="sm"
-              className="hover:bg-blue-50 dark:hover:bg-slate-600 border-blue-200 hover:border-blue-400 transition-all duration-300 hover:scale-105 rounded-xl"
-            >
-              <List className="w-4 h-4 mr-2" />
-              Voir tous
-            </Button>
             <Button variant="outline" size="sm" className="hover:bg-green-50 dark:hover:bg-slate-600 border-green-200 hover:border-green-400 transition-all duration-300 hover:scale-105 rounded-xl">
               <Download className="w-4 h-4 mr-2" />
               Exporter
@@ -716,7 +782,7 @@ function TodayAppointmentsTable({ router }: { router: any }) {
                     Patient
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Heure
+                    Date & Heure
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Motif
@@ -726,6 +792,9 @@ function TodayAppointmentsTable({ router }: { router: any }) {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Statut
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Paiement
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Actions
@@ -756,17 +825,20 @@ function TodayAppointmentsTable({ router }: { router: any }) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-slate-900 dark:text-white font-medium">
+                        {formatDate(appointment.appointment_date)}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
                         {formatTime(appointment.appointment_date)}
                       </div>
-                      {isWithin30Minutes(appointment.appointment_date) && (
-                        <div className="text-xs text-red-600 dark:text-red-400 font-medium">
-                          Dans moins de 30 min
-                        </div>
-                      )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-xs text-slate-500 dark:text-white max-w-xs truncate" title={appointment.reason_for_visit}>
-                        {appointment.reason_for_visit}
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium text-slate-900 dark:text-white">
+                          {getTypeLabel(appointment.appointment_type)}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate" title={appointment.reason_for_visit}>
+                          {appointment.reason_for_visit}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -775,9 +847,12 @@ function TodayAppointmentsTable({ router }: { router: any }) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge className={`${getStatusColor(appointment.status)} px-2 py-1 text-xs font-medium rounded-full`}>
-                        {getStatusText(appointment.status)}
+                      <Badge className={`${getAppointmentStatus(appointment).className} px-2 py-1 text-xs font-medium rounded-full`}>
+                        {getAppointmentStatus(appointment).text}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getPaymentStatusBadge(appointment.payment_status || 'pending')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center space-x-2">
@@ -796,6 +871,7 @@ function TodayAppointmentsTable({ router }: { router: any }) {
                           size="sm"
                           className="hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all duration-200 p-2 h-8 w-8"
                           title="Voir les détails"
+                          onClick={() => openAppointmentDetails(appointment)}
                         >
                           <Eye className="w-3 h-3 text-indigo-600" />
                         </Button>
@@ -804,8 +880,18 @@ function TodayAppointmentsTable({ router }: { router: any }) {
                           size="sm"
                           className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 p-2 h-8 w-8"
                           title="Modifier"
+                          onClick={() => handleEditAppointment(appointment)}
                         >
                           <Edit className="w-3 h-3 text-green-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 p-2 h-8 w-8"
+                          title="Supprimer"
+                          onClick={() => openDeleteModal(appointment)}
+                        >
+                          <Trash2 className="w-3 h-3 text-red-600" />
                         </Button>
                       </div>
                     </td>
@@ -817,14 +903,148 @@ function TodayAppointmentsTable({ router }: { router: any }) {
         )}
       </CardContent>
 
+      {/* Modal des détails du rendez-vous */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto bg-white border-blue-200">
+          <DialogHeader className="pb-2 bg-blue-50 -m-6 mb-4 p-4 border-b border-blue-200">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-base font-semibold text-blue-900">Détails RDV</DialogTitle>
+            </div>
+          </DialogHeader>
 
+          <div className="space-y-3">
+            <div className="flex justify-between items-center gap-2 p-2 bg-teal-50 rounded-md border border-teal-200">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-medium text-xs">
+                  {selectedAppointment?.patient?.first_name?.[0] || ''}
+                  {selectedAppointment?.patient?.last_name?.[0] || ''}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm text-blue-900 truncate">
+                    {selectedAppointment?.patient?.first_name} {selectedAppointment?.patient?.last_name}
+                  </h3>
+                  <p className="text-xs text-gray-600 flex items-center gap-1">
+                    <Phone className="h-3 w-3 text-blue-500" />
+                    {selectedAppointment?.patient?.phone}
+                  </p>
+                </div>
+              </div>
+
+              <Badge className={`${selectedAppointment?.status === 'confirmed' ? 'bg-green-100 text-green-800 border-green-300' :
+                selectedAppointment?.status === 'scheduled' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                  selectedAppointment?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                    'bg-gray-100 text-gray-800 border-gray-300'
+                }`} variant="outline">
+                {selectedAppointment?.status ? getStatusText(selectedAppointment.status) : ''}
+              </Badge>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <Calendar className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Date:</span>
+                <span className="text-gray-600">{selectedAppointment?.appointment_date ? formatDate(selectedAppointment.appointment_date) : 'Non disponible'}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Heure:</span>
+                <span className="text-gray-600">
+                  {selectedAppointment?.appointment_date ? formatTime(selectedAppointment.appointment_date) : 'Non disponible'} ({selectedAppointment?.duration_minutes || 0}min)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <Stethoscope className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Médecin:</span>
+                <span className="text-gray-600">
+                  Dr. {selectedAppointment?.doctor?.first_name} {selectedAppointment?.doctor?.last_name}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <MapPin className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-blue-900">Type:</span>
+                <span className="text-gray-600">{selectedAppointment?.appointment_type ? getTypeLabel(selectedAppointment.appointment_type) : 'Non spécifié'}</span>
+              </div>
+
+              <div className="flex items-start gap-2 text-xs">
+                <FileText className="h-3 w-3 text-blue-500 flex-shrink-0 mt-0.5" />
+                <span className="font-medium text-blue-900">Motif:</span>
+                <span className="text-gray-600">{selectedAppointment?.reason_for_visit || 'Non spécifié'}</span>
+              </div>
+
+              {selectedAppointment?.payment_status && (
+                <div className="flex items-center gap-2 text-xs">
+                  <CreditCard className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                  <span className="font-medium text-blue-900">Paiement:</span>
+                  <span className="text-gray-600 capitalize">{getPaymentStatusBadge(selectedAppointment?.payment_status || 'pending')}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Notes - Ultra Compact */}
+            {selectedAppointment?.notes && (
+              <>
+                <Separator className="my-2 border-blue-200" />
+                <div className="p-2 bg-blue-50 rounded-md border border-blue-200">
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    <FileText className="h-3 w-3 inline mr-1 text-blue-500" />
+                    {selectedAppointment?.notes}
+                  </p>
+                </div>
+              </>
+            )}
+
+            <Separator className="my-2 border-blue-200" />
+
+            {/* Action Buttons - Avec textes */}
+            <div className="flex flex-col gap-2">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 flex items-center gap-2 justify-center">
+                <Edit className="h-3 w-3" />
+                <span>Modifier</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-green-500 text-green-600 hover:bg-green-50 bg-transparent text-xs px-3 py-2 flex items-center gap-2 justify-center"
+              >
+                <CalendarPlus className="h-3 w-3" />
+                <span>Calendrier</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-red-500 text-red-600 hover:bg-red-50 bg-transparent text-xs px-3 py-2 flex items-center gap-2 justify-center"
+              >
+                <CalendarX className="h-3 w-3" />
+                <span>Annuler</span>
+              </Button>
+            </div>
+
+            {/* Footer Note - Ultra Compact */}
+            <div className="text-xs text-gray-500 text-center p-1 bg-gray-100 rounded text-[10px] border border-gray-200">
+              SMS 24h avant • Annulation 24h min
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer le rendez-vous"
+        description={`Êtes-vous sûr de vouloir supprimer le rendez-vous avec ${appointmentToDelete?.patient?.first_name} ${appointmentToDelete?.patient?.last_name} ? Cette action est irréversible.`}
+        isLoading={isDeleting}
+      />
     </Card>
   )
 }
 
 // Composant pour le tableau des demandes de rendez-vous
 function AppointmentRequestsTable({ router }: { router: any }) {
-  const { requests, loading, error, refetch, confirmRequest, cancelRequest } = useAppointmentRequests()
+  const { requests, loading, error, refetch, confirmRequest, cancelRequest, deleteRequest } = useAppointmentRequests()
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
   const [cancellingId, setCancellingId] = useState<number | null>(null)
   const [selectedRequest, setSelectedRequest] = useState<AppointmentRequest | null>(null)
@@ -832,6 +1052,9 @@ function AppointmentRequestsTable({ router }: { router: any }) {
   const [selectedStatus, setSelectedStatus] = useState('')
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [requestToDelete, setRequestToDelete] = useState<AppointmentRequest | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleConfirm = async (id: number) => {
     setConfirmingId(id)
@@ -851,24 +1074,31 @@ function AppointmentRequestsTable({ router }: { router: any }) {
     setCancellingId(null)
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
+  // Fonctions pour gérer la suppression
+  const openDeleteModal = (request: AppointmentRequest) => {
+    setRequestToDelete(request)
+    setIsDeleteModalOpen(true)
   }
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  const handleDeleteConfirm = async () => {
+    if (!requestToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      const success = await deleteRequest(requestToDelete.id)
+      if (success) {
+        setIsDeleteModalOpen(false)
+        setRequestToDelete(null)
+      }
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
-
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false)
+    setRequestToDelete(null)
+  }
 
   // Fonction pour filtrer les demandes
   const filteredRequests = requests.filter(request => {
@@ -1074,12 +1304,9 @@ function AppointmentRequestsTable({ router }: { router: any }) {
               </thead>
               <tbody>
                 {filteredRequests.map((request) => {
-                  const isPassed = isDatePassed(request.appointment_date);
+                  const isPassed = isAppointmentExpired(request.appointment_date);
                   return (
-                    <tr key={request.id} className={`border-b border-slate-100 dark:border-slate-700 transition-all duration-300 group ${isPassed
-                      ? 'bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30'
-                      : 'hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-slate-800 dark:hover:to-slate-700'
-                      }`}>
+                    <tr key={request.id} className="border-b border-slate-100 dark:border-slate-700 transition-all duration-300 group hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-slate-800 dark:hover:to-slate-700">
                       <td className="py-2 px-3">
                         <div className="flex items-center space-x-2">
                           <Avatar className="h-8 w-8 ring-1 ring-orange-100 group-hover:ring-orange-200 transition-all duration-300">
@@ -1101,11 +1328,14 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                           <div className="text-slate-600 dark:text-slate-400">à {formatTime(request.appointment_date)}</div>
                         </div>
                       </td>
-                      <td className="py-2 px-3">
-                        <div className="max-w-xs">
-                          <p className="text-slate-900 dark:text-slate-100 font-medium truncate text-xs" title={request.reason_for_visit}>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-slate-900 dark:text-white">
+                            {getTypeLabel(request.appointment_type)}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate" title={request.reason_for_visit}>
                             {request.reason_for_visit}
-                          </p>
+                          </div>
                         </div>
                       </td>
                       <td className="py-2 px-3">
@@ -1114,16 +1344,12 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                         </div>
                       </td>
                       <td className="py-2 px-3">
-                        <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 font-medium text-xs px-1.5 py-0.5">
-                          <ClockIcon className="w-2.5 h-2.5 mr-0.5" />
-                          En attente
+                        <Badge className={`${getAppointmentStatus(request).className} px-2 py-1 text-xs font-medium rounded-full`}>
+                          {getAppointmentStatus(request).text}
                         </Badge>
                       </td>
                       <td className="py-2 px-3">
-                        <Badge variant="outline" className="bg-gray-50 border-gray-200 text-gray-700 font-medium text-xs px-1.5 py-0.5">
-                          <CreditCard className="w-2.5 h-2.5 mr-0.5" />
-                          Non payé
-                        </Badge>
+                        {getPaymentStatusBadge(request.payment_status || 'pending')}
                       </td>
                       <td className="py-2 px-3">
                         <div className="text-xs text-slate-900 dark:text-slate-100 font-medium">
@@ -1132,28 +1358,22 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                       </td>
                       <td className="py-2 px-3">
                         <div className="flex items-center justify-center space-x-1">
-                          {isPassed ? (
-                            <Button
-                              size="sm"
-                              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedRequest(request)}
+                            className="bg-white text-slate-700 border border-slate-700 shadow-lg transition-all duration-300 hover:bg-slate-100 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                            title="Voir les détails"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          {!isAppointmentExpired(request.appointment_date) && (
                             <>
-                              <Button
-                                size="sm"
-                                onClick={() => setSelectedRequest(request)}
-                                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
-                              >
-                                <Eye className="w-3 h-3" />
-                              </Button>
                               <Button
                                 size="sm"
                                 onClick={() => handleConfirm(request.id)}
                                 disabled={confirmingId === request.id || cancellingId === request.id}
                                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                                title="Confirmer le RDV"
                               >
                                 {confirmingId === request.id ? (
                                   <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
@@ -1167,7 +1387,8 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                                 size="sm"
                                 onClick={() => handleCancel(request.id)}
                                 disabled={confirmingId === request.id || cancellingId === request.id}
-                                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                                title="Annuler le RDV"
                               >
                                 {cancellingId === request.id ? (
                                   <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
@@ -1179,6 +1400,14 @@ function AppointmentRequestsTable({ router }: { router: any }) {
                               </Button>
                             </>
                           )}
+                          <Button
+                            size="sm"
+                            onClick={() => openDeleteModal(request)}
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110 rounded-lg h-7 w-7 p-0"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -1301,6 +1530,15 @@ function AppointmentRequestsTable({ router }: { router: any }) {
           </DialogContent>
         </Dialog>
       )}
+      
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer la demande de rendez-vous"
+        description={`Êtes-vous sûr de vouloir supprimer la demande de rendez-vous de ${requestToDelete?.patient?.first_name} ${requestToDelete?.patient?.last_name} ? Cette action est irréversible.`}
+        isLoading={isDeleting}
+      />
     </Card>
   )
 }
@@ -1309,9 +1547,7 @@ export default function DoctorDashboard() {
   const router = useRouter()
   const { isAuthenticated, isLoading, user } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [unreadMessages] = useState(12)
-  const { requests, loading, error, refetch, confirmRequest, cancelRequest } = useAppointmentRequests()
+  const { requests, loading, error, refetch, confirmRequest, cancelRequest, deleteRequest } = useAppointmentRequests()
 
 
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -1340,43 +1576,6 @@ export default function DoctorDashboard() {
     return null
   }
 
-
-
-  const appointments = [
-    {
-      id: 1,
-      patient: "Marie Ngono",
-      time: "09:00",
-      status: "confirmed",
-      reason: "Consultation générale",
-      phone: "+237 677 123 456",
-    },
-    {
-      id: 2,
-      patient: "Jean Mballa",
-      time: "09:30",
-      status: "waiting",
-      reason: "Suivi hypertension",
-      phone: "+237 655 789 012",
-    },
-    {
-      id: 3,
-      patient: "Fatima Alhadji",
-      time: "10:00",
-      status: "completed",
-      reason: "Contrôle diabète",
-      phone: "+237 699 345 678",
-    },
-    {
-      id: 4,
-      patient: "Paul Biya Jr",
-      time: "10:30",
-      status: "cancelled",
-      reason: "Douleurs abdominales",
-      phone: "+237 677 901 234",
-    },
-  ]
-
   const queue = [
     { id: 1, ticket: "A001", patient: "Marie Ngono", estimatedTime: "5 min", status: "current" },
     { id: 2, ticket: "A002", patient: "Jean Mballa", estimatedTime: "15 min", status: "waiting" },
@@ -1390,88 +1589,6 @@ export default function DoctorDashboard() {
     cancelledAppointments: 1,
     weeklyPresenceRate: 85,
     averageRating: 4.2,
-  }
-
-  const prescriptions = [
-    {
-      id: 1,
-      patient: "Marie Ngono",
-      date: "2024-01-15",
-      medications: ["Paracétamol 500mg", "Amoxicilline 250mg"],
-      status: "active",
-    },
-    {
-      id: 2,
-      patient: "Jean Mballa",
-      date: "2024-01-14",
-      medications: ["Metformine 850mg", "Lisinopril 10mg"],
-      status: "completed",
-    },
-  ]
-
-  const messages = [
-    {
-      id: 1,
-      patient: "Marie Ngono",
-      message: "Bonjour docteur, j'ai encore des douleurs...",
-      time: "10:30",
-      unread: true,
-    },
-    {
-      id: 2,
-      patient: "Jean Mballa",
-      message: "Merci pour la consultation d'hier",
-      time: "09:15",
-      unread: false,
-    },
-  ]
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "requested":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
-      case "scheduled":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-      case "confirmed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      case "in_progress":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-      case "completed":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-      case "cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-      case "no_show":
-        return "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300"
-      // Anciens statuts pour compatibilité
-      case "waiting":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "requested":
-        return "Demandé"
-      case "scheduled":
-        return "Programmé"
-      case "confirmed":
-        return "Confirmé"
-      case "in_progress":
-        return "En cours"
-      case "completed":
-        return "Terminé"
-      case "cancelled":
-        return "Annulé"
-      case "no_show":
-        return "Absent"
-      // Anciens statuts pour compatibilité
-      case "waiting":
-        return "En attente"
-      default:
-        return status
-    }
   }
 
   return (
@@ -1620,7 +1737,7 @@ export default function DoctorDashboard() {
               <ClockArrowUp className="w-3 h-3" />
               <span>Demandes de RDV</span>
               {requests.length > 0 && (
-                <div className="bg-red-500 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-md border-2 border-white shadow-sm">
+                <div className="bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-md shadow-sm">
                   {requests.length}
                 </div>
               )}
@@ -1826,9 +1943,13 @@ export default function DoctorDashboard() {
                   <p className="text-blue-100 text-xs">Suivez et gérez vos rendez-vous avec vos patients</p>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-105 text-xs" onClick={() => router.push('/doctor/appointments')}>
+                    <List className="w-3 h-3 mr-1" />
+                    Voir tout
+                  </Button>
                   <Button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-105 text-xs">
-                    <Plus className="w-3 h-3 mr-1" />
-                    Nouveau RDV
+                    <Calendar className="w-3 h-3 mr-1" />
+                    Planning complet
                   </Button>
                 </div>
               </div>

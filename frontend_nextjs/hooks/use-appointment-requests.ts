@@ -33,6 +33,7 @@ interface UseAppointmentRequestsReturn {
   refetch: () => void
   confirmRequest: (id: number) => Promise<boolean>
   cancelRequest: (id: number, reason: string) => Promise<boolean>
+  deleteRequest: (id: number) => Promise<boolean>
 }
 
 export function useAppointmentRequests(): UseAppointmentRequestsReturn {
@@ -150,6 +151,36 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
     fetchRequests()
   }, [token, user?.doctor?.id])
 
+  const deleteRequest = async (id: number): Promise<boolean> => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/appointments/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Remove from local state
+        setRequests(prev => prev.filter(request => request.id !== id))
+        return true
+      } else {
+        throw new Error(data.message || 'Erreur lors de la suppression')
+      }
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err)
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      return false
+    }
+  }
+
   return {
     requests,
     loading,
@@ -157,5 +188,6 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
     refetch: fetchRequests,
     confirmRequest,
     cancelRequest,
+    deleteRequest,
   }
 }
