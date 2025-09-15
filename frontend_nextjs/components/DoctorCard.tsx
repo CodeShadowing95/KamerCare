@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapPin, Star, Clock, User, Calendar, DollarSign, Briefcase, AlertCircle, Award, Heart, ArrowDown, ChevronDown } from 'lucide-react';
 import { Doctor } from '@/hooks/use-doctors';
 import { useAuth } from '@/hooks/use-auth';
+import { DoctorSpecialization } from '@/components/ui/doctor-specialization';
 
 interface DoctorCardProps {
   doctor: Doctor;
@@ -154,18 +155,11 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
 
       {/* Spécialités */}
       <div className="mb-2 sm:mb-3">
-        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-          {specialties.slice(0, window.innerWidth < 640 ? 1 : 2).map((specialty, index) => (
-            <span key={index} className="text-xs bg-gradient-to-r from-teal-50 to-blue-50 text-teal-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-teal-200/50 font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 truncate max-w-[120px] sm:max-w-none">
-              {specialty}
-            </span>
-          ))}
-          {specialties.length > (window.innerWidth < 640 ? 1 : 2) && (
-            <span className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 shadow-sm hover:shadow transition-all duration-200">
-              <ChevronDown className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-gray-600" />
-            </span>
-          )}
-        </div>
+        <DoctorSpecialization 
+          specialization={specialties.join(', ')}
+          className="text-xs"
+          maxWidth="max-w-[200px] sm:max-w-[250px]"
+        />
       </div>
 
       {/* Note et Expérience */}

@@ -50,7 +50,7 @@ class DoctorController extends Controller
             'data' => $doctors,
             'message' => 'Doctors retrieved successfully'
         ]);
-    }
+     }
 
     /**
      * Store a newly created resource in storage.
@@ -65,8 +65,7 @@ class DoctorController extends Controller
             'date_of_birth' => 'nullable|date|before:today',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
-            'specialization' => 'required|array|min:1',
-            'specialization.*' => 'required|string|max:255',
+            'specialization' => 'required|string|max:1000',
             'hospital' => 'nullable|string|max:255',
             'license_number' => 'required|string|unique:doctors,license_number',
             'phone' => 'required|string|max:20',
@@ -96,6 +95,11 @@ class DoctorController extends Controller
         $doctorData = collect($validated)->except(['email', 'password'])->toArray();
         $doctorData['user_id'] = $user->id;
         $doctorData['is_certified'] = 'No'; // Valeur par défaut
+        
+        // Convertir le tableau de spécialisations en chaîne séparée par des virgules si nécessaire
+        if (isset($doctorData['specialization']) && is_array($doctorData['specialization'])) {
+            $doctorData['specialization'] = implode(', ', $doctorData['specialization']);
+        }
         
         $doctor = Doctor::create($doctorData);
         $doctor->load('user');
@@ -133,8 +137,7 @@ class DoctorController extends Controller
             'email' => ['nullable', 'email', Rule::unique('doctors')->ignore($doctor->id)],
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
-            'specialization' => 'sometimes|required|array|min:1',
-            'specialization.*' => 'required|string|max:255',
+            'specialization' => 'sometimes|required|string|max:1000',
             'hospital' => 'nullable|string|max:255',
             'license_number' => ['sometimes', 'required', 'string', Rule::unique('doctors')->ignore($doctor->id)],
             'phone' => 'sometimes|required|string|max:20',
@@ -149,6 +152,11 @@ class DoctorController extends Controller
             'consultation_fee' => 'sometimes|required|numeric|min:0',
             'is_available' => 'boolean'
         ]);
+
+        // Convertir le tableau de spécialisations en chaîne séparée par des virgules si nécessaire
+        if (isset($validated['specialization']) && is_array($validated['specialization'])) {
+            $validated['specialization'] = implode(', ', $validated['specialization']);
+        }
 
         $doctor->update($validated);
 

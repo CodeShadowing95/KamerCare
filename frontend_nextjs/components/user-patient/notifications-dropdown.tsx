@@ -155,16 +155,24 @@ export default function NotificationsDropdown() {
       if (!token) return
 
       const response = await fetch(`http://localhost:8000/api/appointments/${appointmentId}/cancel`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ 
+          cancellation_reason: 'Annulé par le patient' 
+        })
       })
 
       if (response.ok) {
-        // Rafraîchir la liste des rendez-vous
-        await fetchAppointments()
+        const data = await response.json()
+        if (data.success) {
+          // Rafraîchir la liste des rendez-vous
+          await fetchAppointments()
+        } else {
+          console.error('Erreur lors de l\'annulation:', data.message)
+        }
       } else {
         console.error('Erreur lors de l\'annulation du rendez-vous')
       }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { User, Mail, Phone, Calendar, MapPin, Building, GraduationCap, Award, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, UserPlus, Shield, AlertTriangle, FileText, Stethoscope, Heart, Users, Home, ChevronLeft, ChevronRight, Briefcase, DollarSign, Building2, Clock, MapPinned } from "lucide-react"
+import { DoctorSpecialization } from "@/components/ui/doctor-specialization"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
@@ -824,21 +825,15 @@ export default function DoctorSignup() {
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <p className="text-xs text-gray-600 mb-2">Spécialités sélectionnées :</p>
                           <div className="flex flex-wrap gap-1">
-                            {formData.specialization.map((spec) => (
-                              <span key={spec} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {spec}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const currentSpecializations = formData.specialization.filter(s => s !== spec);
-                                    handleInputChange('specialization', currentSpecializations);
-                                  }}
-                                  className="ml-1 text-blue-600 hover:text-blue-800"
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
+                            <DoctorSpecialization 
+                              specialization={formData.specialization.join(', ')}
+                              className="text-xs"
+                              showRemoveButtons={true}
+                              onRemove={(spec) => {
+                                const currentSpecializations = formData.specialization.filter(s => s !== spec);
+                                handleInputChange('specialization', currentSpecializations);
+                              }}
+                            />
                           </div>
                         </div>
                       )}

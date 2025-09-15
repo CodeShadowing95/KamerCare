@@ -22,6 +22,7 @@ import {
   Zap
 } from 'lucide-react';
 import { Appointment } from '@/hooks/use-appointments';
+import { DoctorSpecialization } from '@/components/ui/doctor-specialization';
 
 interface PaymentMethod {
   id: string;
@@ -282,35 +283,11 @@ export default function PaymentPage() {
                            Dr. {appointment.doctor.first_name} {appointment.doctor.last_name}
                          </h3>
                          <div className="flex items-center gap-2 mt-1">
-                           {(() => {
-                              // Les spécialisations sont stockées sous forme de tableau JSON
-                              let specializations = [];
-                              if (appointment.doctor.specialization) {
-                                if (Array.isArray(appointment.doctor.specialization)) {
-                                  specializations = appointment.doctor.specialization;
-                                } else if (typeof appointment.doctor.specialization === 'string') {
-                                  try {
-                                    specializations = JSON.parse(appointment.doctor.specialization);
-                                  } catch {
-                                    specializations = [appointment.doctor.specialization];
-                                  }
-                                }
-                              }
-                              
-                              const primarySpecialization = specializations[0] || 'Médecin généraliste';
-                              const additionalCount = specializations.length - 1;
-                              
-                              return (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-blue-100 text-sm font-medium">{primarySpecialization}</span>
-                                  {additionalCount > 0 && (
-                                    <Badge className="bg-white/20 text-white border-white/30 text-xs px-2 py-0.5 h-5">
-                                      +{additionalCount} spécialité{additionalCount > 1 ? 's' : ''}
-                                    </Badge>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                           <DoctorSpecialization 
+                             specialization={appointment.doctor.specialization}
+                             className="text-blue-100 text-sm font-medium"
+                             maxWidth="max-w-[200px]"
+                           />
                          </div>
                        </div>
                      </div>
