@@ -13,7 +13,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Mail, Lock, Heart, ArrowLeft, Shield, Stethoscope, CheckCircle, Pill, Syringe, Thermometer, Activity, Cross, Zap, Brain, Microscope, Bandage, Clipboard } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -52,6 +51,23 @@ export default function LoginPage() {
       }
     }
   }, [isAuthenticated, authLoading, router])
+
+  // Check for signup success parameter and show toast
+  useEffect(() => {
+    const signupSuccess = searchParams.get('signup')
+    if (signupSuccess === 'success') {
+      toast({
+        title: "Inscription réussie !",
+        description: "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.",
+        variant: "default",
+        duration: 5000,
+      })
+      // Clean up the URL parameter
+      const url = new URL(window.location.href)
+      url.searchParams.delete('signup')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [searchParams, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -424,7 +440,6 @@ export default function LoginPage() {
         
 
       `}</style>
-      <Toaster />
     </div>
   )
 }

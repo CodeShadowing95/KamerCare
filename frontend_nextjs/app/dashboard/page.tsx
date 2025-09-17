@@ -25,7 +25,6 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { useAppointments, type Appointment } from "@/hooks/use-appointments"
-import { Toaster } from "@/components/ui/toaster"
 import { DoctorSpecialization } from "@/components/ui/doctor-specialization"
 
 export default function DashboardPage() {
@@ -479,7 +478,6 @@ export default function DashboardPage() {
             </Card>
           </div>
         )}
-      <Toaster />
     </div>
   )
 }
