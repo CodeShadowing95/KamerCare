@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class ChangeSpecializationToTextInDoctorsTable extends Migration
 {
@@ -14,6 +15,11 @@ class ChangeSpecializationToTextInDoctorsTable extends Migration
      */
     public function up()
     {
+        // Vérifier si la table doctors existe
+        if (!Schema::hasTable('doctors')) {
+            throw new Exception('La table doctors n\'existe pas. Assurez-vous que la migration create_doctors_table a été exécutée.');
+        }
+        
         // Vérifier si la colonne temporaire existe déjà et la supprimer si c'est le cas
         $columns = Schema::getColumnListing('doctors');
         if (in_array('specialization_temp', $columns)) {
