@@ -81,19 +81,14 @@ export default function DoctorSignup() {
     hospital: "",
     license_number: "",
     years_of_experience: "",
-    education: "",
-    certifications: "",
-    references: "",
     bio: "",
     consultation_fee: 0,
-    office_address: "",
-    qualifications: "",
     is_available: true,
 
-    // Horaires de consultation avec dates dynamiques
+    // Étape 3: Pratique médicale - Horaires de consultation
     consultation_hours: initializeConsultationHours(),
 
-    // Étape 3: Sécurité
+    // Étape 4: Sécurité
     password: '',
     confirmPassword: '',
     agreeToTerms: false
@@ -102,11 +97,10 @@ export default function DoctorSignup() {
   const [acceptPrivacy, setAcceptPrivacy] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const totalSteps = 5
+  const totalSteps = 4
   const stepTitles = [
     "Informations personnelles",
     "Informations professionnelles de base",
-    "Formation et qualifications",
     "Pratique médicale",
     "Sécurité"
   ]
@@ -288,14 +282,6 @@ export default function DoctorSignup() {
           formData.years_of_experience !== ''
         )
       case 3:
-        // Validation de la formation et qualifications
-        return (
-          formData.education.trim() !== '' &&
-          formData.certifications.trim() !== '' &&
-          formData.references.trim() !== '' &&
-          formData.qualifications && typeof formData.qualifications === 'string' && formData.qualifications.trim() !== ''
-        )
-      case 4:
         // Validation de la pratique médicale - plus flexible pour les heures
         const hasAtLeastOneSchedule = Object.values(formData.consultation_hours).some(
           (schedule: any) => schedule.available && schedule.slots.length > 0 &&
@@ -304,10 +290,9 @@ export default function DoctorSignup() {
         return (
           formData.bio.trim() !== '' &&
           Number(formData.consultation_fee) > 0 &&
-          formData.office_address.trim() !== '' &&
           hasAtLeastOneSchedule
         )
-      case 5:
+      case 4:
         // Validation de la sécurité
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&.,;:]{8,}$/
 
@@ -316,8 +301,6 @@ export default function DoctorSignup() {
         const passwordsMatch = formData.password === formData.confirmPassword;
         const passwordValid = passwordRegex.test(formData.password);
         const termsAccepted = formData.agreeToTerms === true;
-
-
 
         return (
           passwordNotEmpty &&
@@ -336,9 +319,8 @@ export default function DoctorSignup() {
     const step2Valid = validateStep(2);
     const step3Valid = validateStep(3);
     const step4Valid = validateStep(4);
-    const step5Valid = validateStep(5);
 
-    const allValid = step1Valid && step2Valid && step3Valid && step4Valid && step5Valid;
+    const allValid = step1Valid && step2Valid && step3Valid && step4Valid;
 
     return allValid;
   };
@@ -358,7 +340,7 @@ export default function DoctorSignup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!validateStep(5)) return
+    if (!validateStep(4)) return
 
     setIsLoading(true)
     setError('')
@@ -378,12 +360,7 @@ export default function DoctorSignup() {
         license_number: formData.license_number,
         phone: formData.phone,
         bio: formData.bio,
-        qualifications: formData.qualifications.split('\n').filter(q => q.trim() !== ''),
-        education: formData.education.split('\n').filter(e => e.trim() !== ''),
-        certifications: formData.certifications.split('\n').filter(c => c.trim() !== ''),
-        references: formData.references.split('\n').filter(r => r.trim() !== ''),
         years_of_experience: formData.years_of_experience,
-        office_address: formData.office_address,
         consultation_fee: Number(formData.consultation_fee),
         is_available: formData.is_available,
         consultation_hours: formData.consultation_hours
@@ -394,7 +371,7 @@ export default function DoctorSignup() {
       if (response.success) {
         setSuccess('Inscription réussie ! Redirection vers la page de connexion...')
         setTimeout(() => {
-          router.push('/doctor/login')
+          router.push('/doctor/login?success=Nouveau%20docteur%20enregistré')
         }, 2000)
       } else {
         setError(response.message || 'Une erreur est survenue lors de l\'inscription')
@@ -473,22 +450,22 @@ export default function DoctorSignup() {
         <span className="text-xs font-medium">Retour à l'accueil</span>
       </Link>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-2">
         <div className="w-full max-w-4xl">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
-                <Stethoscope className="w-12 h-12 text-blue-600" />
+          <div className="text-center mb-4">
+            <div className="flex justify-center mb-3">
+              <div className="p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
+                <Stethoscope className="w-10 h-10 text-blue-600" />
               </div>
             </div>
-            <h1 className="text-4xl leading-tight md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-3xl leading-tight md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
               Rejoignez la revolution medicale
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-base text-gray-600 mb-4">
               Creez votre compte professionnel et rejoignez notre communaute medicale.
             </p>
 
-            <div className="flex justify-center space-x-8 mb-8">
+            <div className="flex justify-center space-x-6 mb-4">
               <div className="flex items-center space-x-2">
                 <Shield className="w-5 h-5 text-green-600" />
                 <span className="text-xs sm:text-sm text-gray-700 font-medium">Inscription securisee et verifiee</span>
@@ -508,7 +485,7 @@ export default function DoctorSignup() {
             </p>
           </div>
 
-          <Card className="backdrop-blur-sm bg-white/90 shadow-2xl border-0 rounded-3xl overflow-hidden">
+          <Card className="backdrop-blur-sm bg-white/90 shadow-2xl border-0 rounded-3xl overflow-hidden py-0">
             <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white p-8">
               <div className="flex items-center justify-between">
                 <div>
@@ -531,7 +508,7 @@ export default function DoctorSignup() {
               {/* Step Indicator */}
               <div className="flex justify-center mb-8 relative z-10">
                 <div className="flex items-center space-x-4">
-                  {[1, 2, 3, 4, 5].map((step) => (
+                  {[1, 2, 3, 4].map((step) => (
                     <div key={step} className="flex items-center">
                       <div className={`
                         w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 shadow-lg
@@ -550,9 +527,9 @@ export default function DoctorSignup() {
                           step
                         )}
                       </div>
-                      {step < 5 && (
+                      {step < 4 && (
                         <div className={`
-                          w-16 h-1 mx-2 rounded-full transition-all duration-300
+                          w-12 h-1 mx-2 rounded-full transition-all duration-300
                           ${currentStep > step
                             ? 'bg-gradient-to-r from-green-400 to-emerald-400'
                             : 'bg-gray-200'
@@ -569,7 +546,7 @@ export default function DoctorSignup() {
                   {/* Step 1: Personal Information */}
                   {currentStep === 1 && (
                     <div className="space-y-6">
-                      <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3 w-full">
                           <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700 flex items-center">
                             <div className="p-1.5 bg-blue-100 rounded-lg mr-2">
@@ -579,11 +556,11 @@ export default function DoctorSignup() {
                           </Label>
                           <Input
                             id="firstName"
-                            name="first_name"
+                            name="firstName"
                             value={formData.first_name}
                             onChange={(e) => handleInputChange('first_name', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Votre prenom"
+                            className="h-10 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                            placeholder="Votre prénom"
                             required
                           />
                         </div>
@@ -597,10 +574,10 @@ export default function DoctorSignup() {
                           </Label>
                           <Input
                             id="lastName"
-                            name="last_name"
+                            name="lastName"
                             value={formData.last_name}
                             onChange={(e) => handleInputChange('last_name', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                            className="h-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                             placeholder="Votre nom"
                             required
                           />
@@ -621,7 +598,7 @@ export default function DoctorSignup() {
                             type="email"
                             value={formData.email}
                             onChange={(e) => handleInputChange('email', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                            className="h-10 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                             placeholder="votre.email@exemple.com"
                             required
                           />
@@ -640,7 +617,7 @@ export default function DoctorSignup() {
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                            className="h-10 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                             placeholder="+237 6XX XXX XXX"
                             required
                           />
@@ -660,7 +637,7 @@ export default function DoctorSignup() {
                           type="date"
                           value={formData.date_of_birth}
                           onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
-                          className="h-12 border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                          className="h-10 border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                           required
                         />
                       </div>
@@ -687,7 +664,7 @@ export default function DoctorSignup() {
                               onChange={(e) => handleCityInputChange(e.target.value)}
                               onFocus={() => citySearchTerm.length >= 2 && setShowCitySuggestions(true)}
                               onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
-                              className="h-12 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                              className="h-10 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                               placeholder="Tapez le nom de votre ville..."
                               required
                               autoComplete="off"
@@ -744,15 +721,15 @@ export default function DoctorSignup() {
                             <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
                               <MapPin className="w-4 h-4 text-yellow-600" />
                             </div>
-                            Adresse *
+                            Adresse de cabinet / Hôpital de fonction *
                           </Label>
                           <Input
                             id="address"
                             name="address"
                             value={formData.address}
                             onChange={(e) => handleInputChange('address', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Votre adresse complete"
+                            className="h-10 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                            placeholder="Ex: 123 Rue de la Médecine, Yaoundé"
                             required
                           />
                         </div>
@@ -851,7 +828,7 @@ export default function DoctorSignup() {
                             name="licenseNumber"
                             value={formData.license_number}
                             onChange={(e) => handleInputChange('license_number', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                            className="h-10 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                             placeholder="Ex: CM-MD-2024-001234"
                             required
                           />
@@ -865,7 +842,7 @@ export default function DoctorSignup() {
                             Annees d'experience *
                           </Label>
                           <Select value={formData.years_of_experience} onValueChange={(value) => handleInputChange('years_of_experience', value)}>
-                            <SelectTrigger className="w-full h-12 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md">
+                            <SelectTrigger className="w-full h-10 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md">
                               <SelectValue placeholder="Selectionnez vos annees d'experience" />
                             </SelectTrigger>
                             <SelectContent>
@@ -882,85 +859,8 @@ export default function DoctorSignup() {
                     </div>
                   )}
 
-                  {/* Step 3: Formation et qualifications */}
+                  {/* Step 3: Medical Practice */}
                   {currentStep === 3 && (
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <Label htmlFor="education" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-pink-100 rounded-lg mr-2">
-                            <GraduationCap className="w-4 h-4 text-pink-600" />
-                          </div>
-                          Formation medicale *
-                        </Label>
-                        <Textarea
-                          id="education"
-                          name="education"
-                          value={formData.education}
-                          onChange={(e) => handleInputChange('education', e.target.value)}
-                          className="min-h-[100px] border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
-                          placeholder="Decrivez votre parcours de formation medicale (universite, diplomes, etc.)"
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="certifications" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
-                            <Award className="w-4 h-4 text-yellow-600" />
-                          </div>
-                          Certifications (optionnel)
-                        </Label>
-                        <Textarea
-                          id="certifications"
-                          name="certifications"
-                          value={formData.certifications}
-                          onChange={(e) => handleInputChange('certifications', e.target.value)}
-                          className="min-h-[80px] border-2 border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
-                          placeholder="Listez vos certifications professionnelles"
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="references" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-teal-100 rounded-lg mr-2">
-                            <Users className="w-4 h-4 text-teal-600" />
-                          </div>
-                          References professionnelles (optionnel)
-                        </Label>
-                        <Textarea
-                          id="references"
-                          name="references"
-                          value={formData.references}
-                          onChange={(e) => handleInputChange('references', e.target.value)}
-                          className="min-h-[80px] border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
-                          placeholder="Contacts de collegues ou superviseurs pouvant attester de votre competence (Nom, email et numero de telephone)"
-                        />
-                      </div>
-
-                      {/* Qualifications */}
-                      <div className="space-y-3">
-                        <Label htmlFor="qualifications" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
-                            <Award className="w-4 h-4 text-yellow-600" />
-                          </div>
-                          Qualifications supplémentaires
-                        </Label>
-                        <Textarea
-                          id="qualifications"
-                          name="qualifications"
-                          value={formData.qualifications}
-                          onChange={(e) => handleInputChange('qualifications', e.target.value)}
-                          className="min-h-[80px] border-2 border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
-                          placeholder="Listez vos qualifications supplémentaires (une par ligne)\nEx: Diplôme en cardiologie\nFormation en échographie\nCertification en urgences"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-
-
-                  {/* Step 4: Medical Practice */}
-                  {currentStep === 4 && (
                     <div className="space-y-6">
                       {/* Bio */}
                       <div className="space-y-3">
@@ -975,7 +875,7 @@ export default function DoctorSignup() {
                           name="bio"
                           value={formData.bio}
                           onChange={(e) => handleInputChange('bio', e.target.value)}
-                          className="min-h-[120px] border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
+                          className="min-h-[100px] border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
                           placeholder="Décrivez votre parcours professionnel, vos spécialisations et votre approche médicale..."
                         />
                       </div>
@@ -994,27 +894,9 @@ export default function DoctorSignup() {
                           type="number"
                           value={formData.consultation_fee}
                           onChange={(e) => handleInputChange('consultation_fee', e.target.value)}
-                          className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                          className="h-10 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
                           placeholder="Ex: 15000"
                           min="0"
-                        />
-                      </div>
-
-                      {/* Office Address */}
-                      <div className="space-y-3">
-                        <Label htmlFor="office_address" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-purple-100 rounded-lg mr-2">
-                            <MapPin className="w-4 h-4 text-purple-600" />
-                          </div>
-                          Adresse du cabinet
-                        </Label>
-                        <Input
-                          id="office_address"
-                          name="office_address"
-                          value={formData.office_address}
-                          onChange={(e) => handleInputChange('office_address', e.target.value)}
-                          className="h-12 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                          placeholder="Adresse complète de votre cabinet médical"
                         />
                       </div>
 
@@ -1089,8 +971,8 @@ export default function DoctorSignup() {
                     </div>
                   )}
 
-                  {/* Step 5: Security */}
-                  {currentStep === 5 && (
+                  {/* Step 4: Security */}
+                  {currentStep === 4 && (
                     <div className="space-y-6">
                       <div className="space-y-3">
                         <Label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center">
@@ -1106,7 +988,7 @@ export default function DoctorSignup() {
                             type={showPassword ? "text" : "password"}
                             value={formData.password}
                             onChange={(e) => handleInputChange('password', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
+                            className="h-10 border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
                             placeholder="Mot de passe securise"
                             required
                           />
@@ -1138,7 +1020,7 @@ export default function DoctorSignup() {
                             type={showConfirmPassword ? "text" : "password"}
                             value={formData.confirmPassword}
                             onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                            className="h-12 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
+                            className="h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
                             placeholder="Confirmer le mot de passe"
                             required
                           />
@@ -1156,14 +1038,14 @@ export default function DoctorSignup() {
                         </div>
                       </div>
 
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100 shadow-sm">
-                        <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl border border-blue-100 shadow-sm">
+                        <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
                           <div className="p-1 bg-blue-200 rounded-lg mr-2">
                             <Shield className="w-4 h-4 text-blue-700" />
                           </div>
                           Criteres de securite du mot de passe
                         </h4>
-                        <ul className="text-xs text-blue-700 space-y-1.5">
+                        <ul className="text-xs text-blue-700 space-y-1">
                           <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Au moins 8 caracteres</li>
                           <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Une lettre majuscule et une minuscule</li>
                           <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Au moins un chiffre</li>
@@ -1171,8 +1053,8 @@ export default function DoctorSignup() {
                         </ul>
                       </div>
 
-                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-xl border border-yellow-100 shadow-sm">
-                        <h4 className="text-sm font-semibold text-yellow-800 mb-3 flex items-center">
+                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-xl border border-yellow-100 shadow-sm">
+                        <h4 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
                           <div className="p-1 bg-yellow-200 rounded-lg mr-2">
                             <AlertTriangle className="w-4 h-4 text-yellow-700" />
                           </div>
@@ -1183,8 +1065,8 @@ export default function DoctorSignup() {
                         </p>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border border-green-100 shadow-sm">
                           <div className="flex items-start space-x-3">
                             <Checkbox
                               id="agreeToTerms"
@@ -1261,7 +1143,7 @@ export default function DoctorSignup() {
                   ) : (
                     <Button
                       type="submit"
-                      disabled={currentStep !== 5 || !validateAllSteps() || isLoading}
+                      disabled={currentStep !== 4 || !validateAllSteps() || isLoading}
                       className="flex items-center space-x-2 px-8 py-3 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {isLoading ? (

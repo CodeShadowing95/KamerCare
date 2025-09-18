@@ -76,7 +76,7 @@ export function useAppointments(filters?: {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`Erreur HTTP! statut: ${response.status}`)
       }
 
       const data = await response.json()
@@ -114,7 +114,7 @@ export function useAppointments(filters?: {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`Erreur HTTP! statut: ${response.status}`)
       }
 
       const data = await response.json()

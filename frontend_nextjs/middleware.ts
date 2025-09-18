@@ -2,7 +2,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Pages qui nécessitent une authentification
-const protectedRoutes = ['/doctor', '/doctor/appointments', '/doctor/patients', '/doctor/queue', '/doctor/messages', '/doctor/prescriptions', '/doctor/analytics']
+const protectedRoutes = [
+  '/doctor',
+  '/doctor/appointments',
+  '/doctor/patients',
+  '/doctor/queue',
+  '/doctor/messages',
+  '/doctor/prescriptions',
+  '/doctor/analytics',
+  '/reglement',
+  '/dashboard/*',
+  '/admin',
+]
 
 // Pages d'authentification (accessibles uniquement si non connecté)
 const authRoutes = ['/doctor/login', '/doctor/signup']

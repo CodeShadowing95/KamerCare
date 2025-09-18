@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   BarChart3,
   Users,
@@ -21,16 +21,50 @@ import {
   DollarSign,
   Database,
   Bell,
+  User,
+  LogOut,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const { user, logout } = useAuth()
+  const router = useRouter()
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Fermer le menu quand on clique ailleurs
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/login")
+  }
+
+  const handleProfile = () => {
+    setShowUserMenu(false)
+    // Navigation vers le profil admin
+    router.push("/admin/profile")
+  }
 
   const stats = {
     totalAppointments: 15420,
@@ -157,104 +191,187 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
-        <div className="p-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg flex items-center justify-center shadow-lg">
-              <Shield className="w-6 h-6 text-white" />
+      <div className="fixed inset-y-0 left-0 w-72 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-200/60 dark:border-slate-700/60 shadow-xl">
+        {/* Header avec avatar admin */}
+        <div className="relative p-6 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-indigo-500/20 to-purple-600/20 backdrop-blur-sm"></div>
+          <div className="relative">
+            {/* Avatar et informations admin */}
+            <div 
+              className="flex items-center space-x-4 cursor-pointer group transition-all duration-200 hover:bg-white/10 rounded-xl p-3 -m-3"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+            >
+              <div className="relative">
+                <Avatar className="w-12 h-12 ring-2 ring-white/30 shadow-lg">
+                  {/* <AvatarImage src="/admin.png" alt={user?.name || 'Admin'} /> */}
+                  <AvatarFallback className="bg-gradient-to-br from-orange-500/50 to-rose-500/40 text-white font-semibold text-lg">
+                    {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'AD'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white shadow-sm"></div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-white truncate">
+                  {user?.name || 'Kepta Ezechiel'}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-emerald-500/20 text-emerald-100 border-emerald-400/30 text-xs px-2 py-0.5">
+                    Admin
+                  </Badge>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-white/70 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
             </div>
-            <div>
-              <div className="font-semibold text-slate-900 dark:text-white">Super Admin</div>
-              <div className="text-sm text-emerald-600 dark:text-emerald-400">Système national</div>
-            </div>
+
+            {/* Menu contextuel */}
+            {showUserMenu && (
+              <div 
+                ref={menuRef}
+                className="absolute top-full left-3 right-3 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-200"
+              >
+                <div className="py-2">
+                  <button
+                    onClick={handleProfile}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
+                  >
+                    <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Profil</span>
+                  </button>
+                  <div className="h-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150 text-red-600 dark:text-red-400"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-sm font-medium">Déconnexion</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <nav className="px-4 space-y-2">
+        <nav className="px-3 pt-4 space-y-1">
           <Button
             variant={activeTab === "overview" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "overview" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "overview" 
+                ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200/50 shadow-sm dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-300 dark:border-blue-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("overview")}
           >
-            <BarChart3 className="w-4 h-4 mr-3" />
+            <BarChart3 className="w-4 h-4 mr-2.5" />
             Vue d'ensemble
           </Button>
           <Button
             variant={activeTab === "hospitals" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "hospitals" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "hospitals" 
+                ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200/50 shadow-sm dark:from-indigo-900/30 dark:to-purple-900/30 dark:text-indigo-300 dark:border-indigo-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("hospitals")}
           >
-            <Building2 className="w-4 h-4 mr-3" />
+            <Building2 className="w-4 h-4 mr-2.5" />
             Hôpitaux
           </Button>
           <Button
             variant={activeTab === "users" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "users" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "users" 
+                ? "bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border border-purple-200/50 shadow-sm dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300 dark:border-purple-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("users")}
           >
-            <Users className="w-4 h-4 mr-3" />
+            <Users className="w-4 h-4 mr-2.5" />
             Utilisateurs
           </Button>
           <Button
             variant={activeTab === "roles" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "roles" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "roles" 
+                ? "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200/50 shadow-sm dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-300 dark:border-emerald-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("roles")}
           >
-            <Shield className="w-4 h-4 mr-3" />
+            <Shield className="w-4 h-4 mr-2.5" />
             Rôles & Permissions
           </Button>
           <Button
             variant={activeTab === "specialties" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "specialties" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "specialties" 
+                ? "bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-700 border border-teal-200/50 shadow-sm dark:from-teal-900/30 dark:to-cyan-900/30 dark:text-teal-300 dark:border-teal-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("specialties")}
           >
-            <Activity className="w-4 h-4 mr-3" />
+            <Activity className="w-4 h-4 mr-2.5" />
             Spécialités
           </Button>
           <Button
             variant={activeTab === "payments" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "payments" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "payments" 
+                ? "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200/50 shadow-sm dark:from-amber-900/30 dark:to-orange-900/30 dark:text-amber-300 dark:border-amber-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("payments")}
           >
-            <DollarSign className="w-4 h-4 mr-3" />
+            <DollarSign className="w-4 h-4 mr-2.5" />
             Paiements
           </Button>
           <Button
             variant={activeTab === "content" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "content" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "content" 
+                ? "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border border-rose-200/50 shadow-sm dark:from-rose-900/30 dark:to-pink-900/30 dark:text-rose-300 dark:border-rose-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("content")}
           >
-            <FileText className="w-4 h-4 mr-3" />
+            <FileText className="w-4 h-4 mr-2.5" />
             Contenus
           </Button>
           <Button
             variant={activeTab === "logs" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "logs" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "logs" 
+                ? "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border border-slate-200/50 shadow-sm dark:from-slate-800/50 dark:to-gray-800/50 dark:text-slate-300 dark:border-slate-600/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("logs")}
           >
-            <Database className="w-4 h-4 mr-3" />
+            <Database className="w-4 h-4 mr-2.5" />
             Journaux
           </Button>
           <Button
             variant={activeTab === "reports" ? "secondary" : "ghost"}
-            className={`w-full justify-start ${activeTab === "reports" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`}
+            className={`w-full justify-start h-10 px-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
+              activeTab === "reports" 
+                ? "bg-gradient-to-r from-violet-50 to-purple-50 text-violet-700 border border-violet-200/50 shadow-sm dark:from-violet-900/30 dark:to-purple-900/30 dark:text-violet-300 dark:border-violet-700/30" 
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50"
+            }`}
             onClick={() => setActiveTab("reports")}
           >
-            <FileText className="w-4 h-4 mr-3" />
+            <FileText className="w-4 h-4 mr-2.5" />
             Rapports
           </Button>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="ml-64">
-        {/* Top Bar */}
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+      <div className="ml-72">
+        {/* Top Bar avec dégradé élégant */}
+        <header className="bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/20 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 border-b border-slate-200/60 dark:border-slate-700/60 px-8 py-6 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-sans">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-800 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent font-sans">
                 {activeTab === "overview" && "Vue d'ensemble"}
                 {activeTab === "hospitals" && "Gestion des hôpitaux"}
                 {activeTab === "users" && "Gestion des utilisateurs"}
@@ -265,7 +382,7 @@ export default function AdminDashboard() {
                 {activeTab === "logs" && "Journaux système"}
                 {activeTab === "reports" && "Rapports & Analytics"}
               </h1>
-              <p className="text-slate-600 dark:text-slate-400 font-serif">
+              <p className="text-slate-600 dark:text-slate-400 font-medium mt-1">
                 Système national de prise de rendez-vous médicaux
               </p>
             </div>
@@ -293,75 +410,83 @@ export default function AdminDashboard() {
         </header>
 
         {/* Content */}
-        <main className="p-6">
+        <main className="p-8 bg-gradient-to-br from-transparent via-blue-50/20 to-indigo-50/10 dark:from-transparent dark:via-slate-800/20 dark:to-slate-900/10 min-h-screen">
           {activeTab === "overview" && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">RDV Total</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">RDV Total</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                           {stats.totalAppointments.toLocaleString()}
                         </p>
-                        <div className="flex items-center mt-1">
-                          <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          <span className="text-sm text-green-600">+12%</span>
+                        <div className="flex items-center mt-2">
+                          <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
+                          <span className="text-sm font-medium text-emerald-600">+12%</span>
                         </div>
                       </div>
-                      <Calendar className="w-8 h-8 text-emerald-600" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Calendar className="w-6 h-6 text-white" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-indigo-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Hôpitaux Actifs</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.activeHospitals}</p>
-                        <div className="flex items-center mt-1">
-                          <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          <span className="text-sm text-green-600">+3</span>
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Hôpitaux Actifs</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{stats.activeHospitals}</p>
+                        <div className="flex items-center mt-2">
+                          <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
+                          <span className="text-sm font-medium text-emerald-600">+3</span>
                         </div>
                       </div>
-                      <Building2 className="w-8 h-8 text-blue-600" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Building2 className="w-6 h-6 text-white" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-purple-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Utilisateurs</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Utilisateurs</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                           {stats.totalUsers.toLocaleString()}
                         </p>
-                        <div className="flex items-center mt-1">
-                          <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          <span className="text-sm text-green-600">+8%</span>
+                        <div className="flex items-center mt-2">
+                          <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
+                          <span className="text-sm font-medium text-emerald-600">+8%</span>
                         </div>
                       </div>
-                      <Users className="w-8 h-8 text-purple-600" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Users className="w-6 h-6 text-white" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-emerald-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Disponibilité</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.systemUptime}%</p>
-                        <div className="flex items-center mt-1">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                          <span className="text-sm text-green-600">Excellent</span>
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Disponibilité</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.systemUptime}%</p>
+                        <div className="flex items-center mt-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
+                          <span className="text-sm font-medium text-emerald-600">Excellent</span>
                         </div>
                       </div>
-                      <Activity className="w-8 h-8 text-green-600" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Activity className="w-6 h-6 text-white" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -369,30 +494,34 @@ export default function AdminDashboard() {
 
               {/* Performance Metrics */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Métriques de performance</CardTitle>
-                    <CardDescription>Indicateurs clés du système</CardDescription>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
+                      Métriques de performance
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-400">
+                      Indicateurs clés du système
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">RDV quotidiens</span>
-                        <span className="font-semibold text-slate-900 dark:text-white">{stats.dailyAppointments}</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700/50 dark:to-slate-600/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">RDV quotidiens</span>
+                        <span className="font-bold text-blue-700 dark:text-blue-300">{stats.dailyAppointments}</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Temps d'attente moyen</span>
-                        <span className="font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-700/50 dark:to-slate-600/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">Temps d'attente moyen</span>
+                        <span className="font-bold text-indigo-700 dark:text-indigo-300">
                           {stats.averageWaitTime} min
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Taux d'absence</span>
-                        <span className="font-semibold text-slate-900 dark:text-white">{stats.noShowRate}%</span>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700/50 dark:to-slate-600/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">Taux d'absence</span>
+                        <span className="font-bold text-purple-700 dark:text-purple-300">{stats.noShowRate}%</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Satisfaction patients</span>
-                        <span className="font-semibold text-slate-900 dark:text-white">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-700/50 dark:to-slate-600/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">Satisfaction patients</span>
+                        <span className="font-bold text-emerald-700 dark:text-emerald-300">
                           {stats.patientSatisfaction}/5
                         </span>
                       </div>
@@ -400,28 +529,32 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Activité récente</CardTitle>
-                    <CardDescription>Dernières actions système</CardDescription>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
+                      Activité récente
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-400">
+                      Dernières actions système
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {recentActivities.map((activity) => (
-                        <div key={activity.id} className="flex items-center space-x-3">
+                        <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg bg-gradient-to-r from-slate-50/50 to-slate-100/30 dark:from-slate-700/30 dark:to-slate-600/20 hover:from-slate-100/70 hover:to-slate-200/50 dark:hover:from-slate-700/50 dark:hover:to-slate-600/40 transition-all duration-200">
                           <div
-                            className={`w-2 h-2 rounded-full ${
+                            className={`w-3 h-3 rounded-full shadow-sm ${
                               activity.type === "appointment"
-                                ? "bg-green-500"
+                                ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
                                 : activity.type === "hospital"
-                                  ? "bg-blue-500"
+                                  ? "bg-gradient-to-r from-blue-400 to-blue-600"
                                   : activity.type === "user"
-                                    ? "bg-yellow-500"
-                                    : "bg-purple-500"
+                                    ? "bg-gradient-to-r from-amber-400 to-amber-600"
+                                    : "bg-gradient-to-r from-purple-400 to-purple-600"
                             }`}
                           />
                           <div className="flex-1">
-                            <p className="text-sm text-slate-900 dark:text-white">{activity.action}</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{activity.action}</p>
                             <p className="text-xs text-slate-600 dark:text-slate-400">
                               par {activity.user} • il y a {activity.time}
                             </p>
@@ -434,17 +567,23 @@ export default function AdminDashboard() {
               </div>
 
               {/* Regional Heatmap Placeholder */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Carte de chaleur par région</CardTitle>
-                  <CardDescription>Utilisation du système par région</CardDescription>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-800 dark:to-slate-800/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
+                    Carte de chaleur par région
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                    Utilisation du système par région
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                  <div className="h-64 bg-gradient-to-br from-slate-100/50 to-slate-200/30 dark:from-slate-700/30 dark:to-slate-800/50 rounded-xl flex items-center justify-center border border-slate-200/50 dark:border-slate-600/30">
                     <div className="text-center">
-                      <MapPin className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                      <p className="text-slate-600 dark:text-slate-400">Carte interactive du Cameroun</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-500">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <MapPin className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium">Carte interactive du Cameroun</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                         Données de géolocalisation en temps réel
                       </p>
                     </div>

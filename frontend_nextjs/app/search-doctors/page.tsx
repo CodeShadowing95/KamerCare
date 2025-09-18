@@ -570,7 +570,7 @@ export default function SearchDoctorsPage() {
                 </div>
                 <div className="flex max-[420px]:flex-col flex-row items-center justify-between gap-2 mb-4">
                   <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <span className="font-bold text-slate-800">{filteredDoctors.length}</span> médecin{filteredDoctors.length > 1 ? 's' : ''} trouvés
+                    <span className="font-bold text-slate-800">{filteredDoctors.length}</span> médecin{filteredDoctors.length > 1 ? 's' : '(s)'} trouvé(s)
                   </span>
                   <Select defaultValue="price">
                     <SelectTrigger className="w-[180px] h-8 text-xs border border-slate-300">

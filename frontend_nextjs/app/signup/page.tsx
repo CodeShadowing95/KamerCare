@@ -177,11 +177,17 @@ export default function SignupPage() {
     }))
   }
 
+  // Fonction pour gérer la saisie dans le champ ville
+  const handleCityInputChange = (value: string) => {
+    setCitySearchTerm(value)
+    setFormData(prev => ({ ...prev, city: value }))
+  }
+
   // Fonction pour gérer la sélection d'une ville
   const handleCitySelect = (cityName: string, region?: string) => {
-    const cityValue = region ? `${cityName}, ${region}` : cityName
-    setFormData(prev => ({ ...prev, city: cityValue }))
-    setCitySearchTerm(cityValue)
+    const fullCityName = region ? `${cityName}, ${region.toUpperCase()}` : cityName
+    setCitySearchTerm(fullCityName)
+    setFormData(prev => ({ ...prev, city: fullCityName }))
     setShowCitySuggestions(false)
   }
 
@@ -194,20 +200,18 @@ export default function SignupPage() {
 
   // Synchroniser citySearchTerm avec formData.city
   useEffect(() => {
-    if (formData.city !== citySearchTerm && formData.city !== '') {
-      setCitySearchTerm(formData.city)
-    }
-  }, [formData.city, citySearchTerm])
+    setCitySearchTerm(formData.city)
+  }, [formData.city])
 
   // Effet pour rechercher les villes lors de la saisie
   useEffect(() => {
-    if (citySearchTerm.length >= 3 && citySearchTerm !== formData.city) {
+    if (citySearchTerm.length >= 2) {
       searchCities(citySearchTerm)
       setShowCitySuggestions(true)
     } else {
       setShowCitySuggestions(false)
     }
-  }, [citySearchTerm, searchCities, formData.city])
+  }, [citySearchTerm, searchCities])
 
   // Fermer les suggestions quand on clique à l'extérieur
   useEffect(() => {
@@ -502,8 +506,16 @@ export default function SignupPage() {
                     </div>
 
                     <div className="space-y-2 group">
-                      <Label htmlFor="city" className="text-sm font-medium text-gray-700 dark:text-gray-300 group-focus-within:text-emerald-600 dark:group-focus-within:text-emerald-400 transition-colors">
-                        Ville *
+                      <Label htmlFor="city" className="text-sm font-medium text-gray-700 dark:text-gray-300 group-focus-within:text-emerald-600 dark:group-focus-within:text-emerald-400 transition-colors flex items-center">
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-4 h-4 text-emerald-600" />
+                          <span>Ville *</span>
+                          {citiesLoading && (
+                            <div className="ml-2">
+                              <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          )}
+                        </div>
                       </Label>
                       <div className="relative" data-city-autocomplete>
                         <Input
@@ -511,19 +523,17 @@ export default function SignupPage() {
                           name="city"
                           type="text"
                           required
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          onFocus={() => {
-                            if (citySearchTerm.length >= 3) {
-                              setShowCitySuggestions(true)
-                            }
-                          }}
+                          value={citySearchTerm}
+                          onChange={(e) => handleCityInputChange(e.target.value)}
+                          onFocus={() => citySearchTerm.length >= 2 && setShowCitySuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
                           className="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm hover:bg-white/70 dark:hover:bg-gray-800/70"
-                          placeholder="Tapez votre ville (ex: Douala, Yaoundé...)"
+                          placeholder="Tapez le nom de votre ville..."
+                          autoComplete="off"
                         />
                         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/0 via-teal-500/0 to-emerald-500/0 group-focus-within:from-emerald-500/10 group-focus-within:via-teal-500/5 group-focus-within:to-emerald-500/10 transition-all duration-300 pointer-events-none"></div>
                         
-                        {/* Dropdown des suggestions de villes */}
+                        {/* Suggestions d'auto-complétion */}
                         {showCitySuggestions && (
                           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-600 rounded-xl shadow-xl max-h-60 overflow-y-auto">
                             {citiesLoading ? (
@@ -534,26 +544,21 @@ export default function SignupPage() {
                                 </div>
                               </div>
                             ) : searchResults.length > 0 ? (
-                              searchResults.slice(0, 8).map((city, index) => (
+                              searchResults.map((city, index) => (
                                 <div
-                                  key={`${city.city}-${city.region}-${index}`}
+                                  key={`${city.city}-${city.region || 'unknown'}-${index}`}
                                   className="p-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                                  onClick={() => handleCitySelect(city.city, city.region)}
+                                  onClick={() => handleCitySelect(city.city, city.region || '')}
                                 >
                                   <div className="flex items-center space-x-2">
                                     <MapPin className="w-4 h-4 text-emerald-500" />
                                     <span className="text-gray-900 dark:text-gray-100">
-                                      {city.city}
-                                      {city.region && (
-                                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 ml-1">
-                                          , {city.region.toUpperCase()}
-                                        </span>
-                                      )}
+                                      {city.city}{city.region && <>, <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{city.region.toUpperCase()}</span></>}
                                     </span>
                                   </div>
                                 </div>
                               ))
-                            ) : citySearchTerm.length >= 3 ? (
+                            ) : citySearchTerm.length >= 2 ? (
                               <div className="p-3 text-center text-gray-500">
                                 <div className="flex items-center justify-center space-x-2">
                                   <MapPin className="w-4 h-4" />
@@ -562,7 +567,7 @@ export default function SignupPage() {
                               </div>
                             ) : (
                               <div className="p-3 text-center text-gray-500">
-                                <span className="text-sm">Tapez au moins 3 caractères pour rechercher</span>
+                                <span className="text-sm">Tapez au moins 2 caractères pour rechercher</span>
                               </div>
                             )}
                           </div>

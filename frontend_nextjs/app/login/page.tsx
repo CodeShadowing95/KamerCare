@@ -40,17 +40,20 @@ export default function LoginPage() {
         if (userRole === 'doctor') {
           // Clear localStorage and redirect to doctor page
           localStorage.clear()
-          router.push('/doctor-portal')
+          router.push('/doctor')
         } else if (userRole === 'admin') {
           router.push('/admin')
         } else {
-          router.push('/')
+          // Utiliser redirectTo en priorité, puis redirect, puis page d'accueil
+          const finalRedirectUrl = redirectUrl || '/'
+          router.push(finalRedirectUrl)
         }
       } else {
-        router.push('/')
+        const finalRedirectUrl = redirectUrl || '/'
+        router.push(finalRedirectUrl)
       }
     }
-  }, [isAuthenticated, authLoading, router])
+  }, [isAuthenticated, authLoading, router, redirectUrl])
 
   // Check for signup success parameter and show toast
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function LoginPage() {
               variant: "default",
             })
             setTimeout(() => {
-              router.push('/doctor-portal')
+              router.push('/doctor')
             }, 1000)
           } else if (user.role === 'admin') {
             toast({
@@ -118,7 +121,7 @@ export default function LoginPage() {
               router.push('/admin')
             }, 1000)
           } else {
-            // Success for patients
+            // Success for patients - utiliser redirectTo en priorité
             const finalRedirectUrl = redirectUrl || '/'
             toast({
               title: "Connexion réussie",
@@ -130,7 +133,7 @@ export default function LoginPage() {
             }, 1000)
           }
         } else {
-          // Fallback redirect for patients
+          // Fallback redirect for patients - utiliser redirectUrl en priorité
           const finalRedirectUrl = redirectUrl || '/'
           setSuccess("Connexion réussie ! Redirection en cours...")
           toast({
@@ -229,23 +232,11 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
-        <div className="text-center mb-8 animate-fade-in">
-          <Link href="/" className={`inline-flex items-center text-emerald-600 hover:text-emerald-700 mb-6 transition-all duration-300 hover:scale-105 group ${isLoading ? 'opacity-50 pointer-events-none cursor-not-allowed hover:text-emerald-600 hover:scale-100' : ''}`}>
+        <div className="text-center mb-4 animate-fade-in">
+          <Link href="/" className={`inline-flex items-center text-emerald-600 hover:text-emerald-700 transition-all duration-300 hover:scale-105 group ${isLoading ? 'opacity-50 pointer-events-none cursor-not-allowed hover:text-emerald-600 hover:scale-100' : ''}`}>
             <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
             Retour à l'accueil
           </Link>
-          
-          {/* <div className="flex items-center justify-center mb-6">
-            <div className="relative">
-              <div className="bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 p-4 rounded-2xl shadow-lg transform hover:scale-110 transition-all duration-300">
-                <div className="flex items-center space-x-2">
-                  <Heart className="w-6 h-6 text-emerald-600 animate-pulse" />
-                  <Stethoscope className="w-6 h-6 text-teal-600" />
-                </div>
-              </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
-            </div>
-          </div> */}
         </div>
 
         {/* Login Form */}

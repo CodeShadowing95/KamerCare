@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Shield, ArrowLeft, Heart, Activity, Zap, Star, Lock, UserPlus, User, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,28 @@ export default function DoctorLogin() {
   const [success, setSuccess] = useState("");
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Vérifier si il y a un paramètre success dans l'URL
+    const successParam = searchParams.get('success');
+    if (successParam) {
+      toast({
+        title: "Inscription effectuée avec succès!",
+        description: "Vous pouvez maintenant vous connecter avec vos identifiants.",
+        variant: "default",
+        className: "border-green-200 bg-green-50 text-green-800",
+      });
+      
+      // Nettoyer l'URL en supprimant le paramètre success
+      const url = new URL(window.location.href);
+      url.searchParams.delete('success');
+      window.history.replaceState({}, '', url.toString());
+    }
     
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -35,7 +52,7 @@ export default function DoctorLogin() {
     
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [searchParams, toast]);
 
   // Redirect if already authenticated
   useEffect(() => {

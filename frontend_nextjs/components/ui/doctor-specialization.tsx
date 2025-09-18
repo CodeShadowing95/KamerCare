@@ -107,7 +107,7 @@ export const DoctorSpecialization: React.FC<DoctorSpecializationProps> = ({
           role="button"
           aria-label={`${remainingCount} autres spécialisations: ${tooltipContent}`}
         >
-          +{remainingCount} autre{remainingCount > 1 ? 's' : ''}
+          +{remainingCount} autre{remainingCount > 1 ? 's' : '(s)'}
         </span>
       </Tooltip>
     </div>

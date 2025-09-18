@@ -45,7 +45,8 @@ class UpdateDoctorRequest extends FormRequest
             ],
             
             // Doctor specific information
-            'specialization' => ['sometimes', 'required', 'string', 'max:100'],
+            'specialization' => ['sometimes', 'required', 'array', 'min:1'],
+            'specialization.*' => ['required', 'string', 'max:100'],
             'license_number' => [
                 'sometimes', 
                 'required', 
@@ -83,6 +84,11 @@ class UpdateDoctorRequest extends FormRequest
             'phone.unique' => 'Ce numéro de téléphone est déjà utilisé.',
             
             'specialization.required' => 'La spécialisation est obligatoire.',
+            'specialization.array' => 'La spécialisation doit être un tableau.',
+            'specialization.min' => 'Au moins une spécialisation est requise.',
+            'specialization.*.required' => 'Chaque spécialisation est obligatoire.',
+            'specialization.*.string' => 'Chaque spécialisation doit être une chaîne de caractères.',
+            'specialization.*.max' => 'Chaque spécialisation ne peut pas dépasser 100 caractères.',
             'license_number.required' => 'Le numéro de licence est obligatoire.',
             'license_number.unique' => 'Ce numéro de licence est déjà utilisé.',
             

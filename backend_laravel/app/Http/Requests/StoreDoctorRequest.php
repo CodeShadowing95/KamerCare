@@ -28,7 +28,8 @@ class StoreDoctorRequest extends FormRequest
             'phone' => ['required', 'string', 'max:20', 'unique:users'],
             
             // Doctor specific information
-            'specialization' => ['required', 'string', 'max:100'],
+            'specialization' => ['required', 'array', 'min:1'],
+            'specialization.*' => ['required', 'string', 'max:100'],
             'license_number' => ['required', 'string', 'max:50', 'unique:doctors'],
             'years_of_experience' => ['required', 'string', 'max:10'],
             'consultation_fee' => ['required', 'numeric', 'min:0'],
@@ -61,6 +62,11 @@ class StoreDoctorRequest extends FormRequest
             'phone.unique' => 'Ce numéro de téléphone est déjà utilisé.',
             
             'specialization.required' => 'La spécialisation est obligatoire.',
+            'specialization.array' => 'La spécialisation doit être un tableau.',
+            'specialization.min' => 'Au moins une spécialisation doit être sélectionnée.',
+            'specialization.*.required' => 'Chaque spécialisation est obligatoire.',
+            'specialization.*.string' => 'Chaque spécialisation doit être une chaîne de caractères.',
+            'specialization.*.max' => 'Chaque spécialisation ne peut pas dépasser 100 caractères.',
             'license_number.required' => 'Le numéro de licence est obligatoire.',
             'license_number.unique' => 'Ce numéro de licence est déjà utilisé.',
             
