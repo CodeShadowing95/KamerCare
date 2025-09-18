@@ -110,15 +110,24 @@ class ApiService {
       },
     };
 
+    console.log(`🌐 Requête API: ${options.method || 'GET'} ${url}`, {
+      headers: config.headers,
+      body: options.body ? JSON.parse(options.body as string) : undefined
+    });
+
     try {
       const response = await fetch(url, config);
+      
+      console.log(`📡 Réponse API: ${response.status} ${response.statusText}`);
       
       // Check if response is ok before trying to parse JSON
       if (!response.ok) {
         let errorData;
         try {
           errorData = await response.json();
+          console.error('❌ Erreur API:', errorData);
         } catch (jsonError) {
+          console.error('❌ Erreur de parsing JSON:', jsonError);
           // If JSON parsing fails, create a generic error
           throw {
             message: `HTTP ${response.status}: ${response.statusText}`,
@@ -133,8 +142,11 @@ class ApiService {
       }
       
       const data = await response.json();
+      console.log('✅ Données reçues:', data);
       return data;
     } catch (error) {
+      console.error('🚨 Erreur dans makeRequest:', error);
+      
       if (error instanceof TypeError) {
         // Network error
         throw {

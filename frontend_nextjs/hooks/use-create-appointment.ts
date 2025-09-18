@@ -57,11 +57,15 @@ export function useCreateAppointment(): UseCreateAppointmentReturn {
         duration_minutes: appointmentData.duration_minutes || 30,
         notes: appointmentData.notes || '',
         consultation_fee: appointmentData.consultation_fee,
-        status: 'scheduled', // Statut initial pour une demande
+        location: appointmentData.appointment_type === 'presentiel' ? 'Cabinet médical' : null,
         created_by_user_id: user.id
       }
 
+      console.log('🚀 Données envoyées à l\'API:', requestData)
+
       const responseData = await apiService.createAppointment(requestData, token)
+
+      console.log('📥 Réponse de l\'API:', responseData)
 
       if (responseData.success) {
         return {
@@ -73,8 +77,28 @@ export function useCreateAppointment(): UseCreateAppointmentReturn {
         throw new Error(responseData.message || 'Erreur lors de la création de la demande')
       }
     } catch (err) {
-      console.error('Erreur lors de la création du rendez-vous:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Une erreur inattendue est survenue'
+      console.error('❌ Erreur lors de la création du rendez-vous:', err)
+      
+      let errorMessage = 'Une erreur inattendue est survenue'
+      
+      // Gestion spécifique des erreurs d'API
+      if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = (err as any).message
+        
+        // Gestion des erreurs de validation
+        if ((err as any).errors && typeof (err as any).errors === 'object') {
+          const validationErrors = Object.values((err as any).errors).flat()
+          errorMessage = validationErrors.join(', ')
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message
+        
+        // Gestion des erreurs réseau
+        if (err.message.includes('fetch')) {
+          errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.'
+        }
+      }
+      
       setError(errorMessage)
       return {
         success: false,
