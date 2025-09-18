@@ -40,7 +40,7 @@ export default function LoginPage() {
         if (userRole === 'doctor') {
           // Clear localStorage and redirect to doctor page
           localStorage.clear()
-          router.push('/doctor')
+          router.push('/doctor-portal')
         } else if (userRole === 'admin') {
           router.push('/admin')
         } else {
@@ -109,7 +109,7 @@ export default function LoginPage() {
               variant: "default",
             })
             setTimeout(() => {
-              router.push('/doctor')
+              router.push('/doctor-portal')
             }, 1000)
           } else if (user.role === 'admin') {
             toast({
