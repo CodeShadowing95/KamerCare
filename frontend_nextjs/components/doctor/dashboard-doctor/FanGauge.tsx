@@ -11,7 +11,7 @@ const FanGauge: React.FC<NavbarFanGaugeProps> = ({ currentFans, targetFans = 180
 
   const formatNumber = (num: number): string => {
     if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
+      return (num / 1000).toFixed() + 'k';
     }
     return num.toString();
   };
@@ -103,7 +103,7 @@ const FanGauge: React.FC<NavbarFanGaugeProps> = ({ currentFans, targetFans = 180
               <p className="text-xs text-gray-300">Établit votre expertise comme référence dans le secteur.</p>
             </div>
 
-            <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 rounded-lg border border-yellow-300 shadow-lg">
+            {/* <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 rounded-lg border border-yellow-300 shadow-lg">
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-2xl">💸</span>
                 <h4 className="font-bold text-gray-900 text-sm">Monétisation du Compte</h4>
@@ -116,11 +116,11 @@ const FanGauge: React.FC<NavbarFanGaugeProps> = ({ currentFans, targetFans = 180
                 <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse"></div>
                 <span className="text-xs font-semibold text-gray-900">Objectif Premium</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Footer */}
             <div className="mt-3 pt-2 border-t border-gray-700 text-center">
-              <p className="text-gray-400 text-xs">Objectif : {formatNumber(targetFans)} fans</p>
+              <p className="text-gray-400 text-xs">Objectif : {formatNumber(targetFans)} patients</p>
             </div>
           </div>
         </div>

@@ -117,7 +117,7 @@ export async function searchDoctorsAPI(filters: SearchFilters): Promise<Doctor[]
     
     if (filters.city) params.city = filters.city
     if (filters.specialty || filters.specialization) {
-      params.specialization = filters.specialty || filters.specialization
+      params.specialization = filters.specialty === "all" || filters.specialization === "all" ? undefined : filters.specialty || filters.specialization
     }
     if (filters.name || filters.search) {
       params.search = filters.name || filters.search
@@ -183,6 +183,11 @@ export function useDoctors() {
       
       // Appliquer les filtres côté client pour les propriétés non supportées par l'API
       let filteredDoctors = [...results]
+      
+      // Filtrer pour ne garder que les docteurs certifiés
+      filteredDoctors = filteredDoctors.filter(doctor => 
+        doctor.is_certified === 'Yes'
+      )
       
       // Filtrer par note minimale
       if (filters.minRating) {

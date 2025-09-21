@@ -29,7 +29,7 @@ export default function LoginPage() {
     password: "",
   })
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - Redirection automatique basée sur les rôles
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       const userData = localStorage.getItem('auth_user')
@@ -37,23 +37,21 @@ export default function LoginPage() {
         const user = JSON.parse(userData)
         const userRole = user.role
         
+        // Redirection automatique selon le rôle utilisateur
         if (userRole === 'doctor') {
-          // Clear localStorage and redirect to doctor page
-          localStorage.clear()
-          router.push('/doctor-portal')
+          router.push('/doctor')
         } else if (userRole === 'admin') {
           router.push('/admin')
         } else {
-          // Utiliser redirectTo en priorité, puis redirect, puis page d'accueil
-          const finalRedirectUrl = redirectUrl || '/'
-          router.push(finalRedirectUrl)
+          // Pour tout autre rôle (patient, etc.), rediriger vers la page d'accueil
+          router.push('/')
         }
       } else {
-        const finalRedirectUrl = redirectUrl || '/'
-        router.push(finalRedirectUrl)
+        // Si pas de données utilisateur, rediriger vers la page d'accueil
+        router.push('/')
       }
     }
-  }, [isAuthenticated, authLoading, router, redirectUrl])
+  }, [isAuthenticated, authLoading, router])
 
   // Check for signup success parameter and show toast
   useEffect(() => {
@@ -102,14 +100,14 @@ export default function LoginPage() {
           // Redirect based on user role
           if (user.role === 'doctor') {
             // Clear localStorage and redirect to doctor page
-            localStorage.clear()
+            // localStorage.clear()
             toast({
               title: "Redirection",
               description: "Redirection vers la page docteur...",
               variant: "default",
             })
             setTimeout(() => {
-              router.push('/doctor-portal')
+              router.push('/doctor')
             }, 1000)
           } else if (user.role === 'admin') {
             toast({

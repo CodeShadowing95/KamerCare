@@ -54,10 +54,27 @@ export default function DoctorLogin() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [searchParams, toast]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - Redirection automatique basée sur les rôles
   useEffect(() => {
     if (isAuthenticated && typeof window !== undefined) {
-      window.location.href = "/doctor"
+      const userData = localStorage.getItem('auth_user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        const userRole = user.role
+        
+        // Redirection automatique selon le rôle utilisateur
+        if (userRole === 'doctor') {
+          window.location.href = "/doctor"
+        } else if (userRole === 'admin') {
+          window.location.href = "/admin"
+        } else {
+          // Pour tout autre rôle (patient, etc.), rediriger vers la page d'accueil
+          window.location.href = "/"
+        }
+      } else {
+        // Si pas de données utilisateur, rediriger vers la page d'accueil
+        window.location.href = "/"
+      }
     }
   }, [isAuthenticated, router]);
 

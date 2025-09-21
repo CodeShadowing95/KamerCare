@@ -1642,7 +1642,7 @@ export default function DoctorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Aujourd'hui</p>
-                <p className="text-2xl font-bold text-emerald-800 dark:text-emerald-200 mt-1">{stats.todayAppointments}</p>
+                <p className="text-2xl font-bold text-emerald-800 dark:text-emerald-200 mt-1">0</p>
                 <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Rendez-vous</p>
               </div>
               <div className="bg-emerald-500 p-2 rounded-full group-hover:scale-110 transition-transform duration-300">
@@ -1658,7 +1658,7 @@ export default function DoctorDashboard() {
               <div>
                 <p className="text-xs text-green-600 dark:text-green-400 font-medium">Confirmés</p>
                 <p className="text-2xl font-bold text-green-800 dark:text-green-200 mt-1">
-                  {stats.confirmedAppointments}
+                  0
                 </p>
                 <p className="text-xs text-green-600/70 dark:text-green-400/70">Patients</p>
               </div>
@@ -1674,7 +1674,7 @@ export default function DoctorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Taux présence</p>
-                <p className="text-2xl font-bold text-blue-800 dark:text-blue-200 mt-1">{stats.weeklyPresenceRate}%</p>
+                <p className="text-2xl font-bold text-blue-800 dark:text-blue-200 mt-1">0%</p>
                 <p className="text-xs text-blue-600/70 dark:text-blue-400/70">Cette semaine</p>
               </div>
               <div className="bg-blue-500 p-2 rounded-full group-hover:scale-110 transition-transform duration-300">
@@ -1690,10 +1690,10 @@ export default function DoctorDashboard() {
               <div>
                 <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">Satisfaction</p>
                 <div className="flex items-center space-x-2 mt-1">
-                  <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-200">{stats.averageRating}</p>
+                  <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-200">0</p>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-3 h-3 ${i < Math.floor(stats.averageRating) ? 'text-yellow-400 fill-current' : 'text-yellow-200'}`} />
+                      <Star key={i} className={`w-3 h-3 ${i < Math.floor(0) ? 'text-yellow-400 fill-current' : 'text-yellow-200'}`} />
                     ))}
                   </div>
                 </div>

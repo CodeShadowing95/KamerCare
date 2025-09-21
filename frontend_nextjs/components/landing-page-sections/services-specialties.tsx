@@ -409,30 +409,30 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
             const IconComponent = specialty.icon
             return (
               <div key={index} className="group relative">
-                <div className={`relative overflow-hidden rounded-xl h-48 bg-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1`}>
-                <IconComponent className="w-52 h-52 text-gray-200 absolute -bottom-6 -right-6" />
+                <div className={`relative overflow-hidden rounded-xl h-48 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg dark:shadow-slate-900/50 dark:hover:shadow-slate-900/70 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-gray-100 dark:border-slate-700`}>
+                <IconComponent className="w-44 h-44 text-gray-100 dark:text-slate-700 absolute -bottom-6 -right-6" />
 
                   {/* Background overlay */}
-                  <div className="absolute inset-0 bg-gray-100/30 group-hover:bg-gray-100/20 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-gray-100/30 dark:bg-slate-700/30 group-hover:bg-gray-100/20 dark:group-hover:bg-slate-700/20 transition-all duration-300"></div>
                   
                   {/* Icon positioned at top left */}
                   <div className="absolute top-4 left-4 z-10">
-                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${specialty.bgGradient} backdrop-blur-sm flex items-center justify-center border border-white border-opacity-20`}>
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${specialty.bgGradient} backdrop-blur-sm flex items-center justify-center border border-white/20 dark:border-white/10 shadow-lg`}>
                       <IconComponent className="w-5 h-5 text-white" />
                     </div>
                   </div>
                   
                   {/* Content positioned at bottom */}
                   <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                    <h3 className="font-semibold text-lg text-gray-700 mb-2 leading-tight">
+                    <h3 className="font-semibold text-lg text-gray-700 dark:text-slate-200 mb-2 leading-tight">
                       {specialty.name}
                     </h3>
-                    <p className="text-gray-700 text-opacity-80 text-xs leading-relaxed mb-2 line-clamp-2">
+                    <p className="text-gray-700 dark:text-slate-300 text-opacity-80 dark:text-opacity-90 text-xs leading-relaxed mb-2 line-clamp-2">
                       {specialty.description || (language === 'fr' 
                         ? 'Spécialité médicale disponible avec des professionnels qualifiés.' 
                         : 'Medical specialty available with qualified professionals.')}
                     </p>
-                    <div className="flex items-center text-gray-700 font-medium group-hover:text-blue-500 transition-colors">
+                    <div className="flex items-center text-gray-700 dark:text-slate-300 font-medium group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
                       <span className="text-xs">{language === 'fr' ? 'Découvrir' : 'Discover'}</span>
                       <MoveRight className="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -440,8 +440,8 @@ export default function ServicesSpecialties({ language }: ServicesSpecialtiesPro
                   
                   {/* Decorative elements */}
                   <div className="absolute top-0 left-0 w-full h-full">
-                    <div className="absolute top-6 right-4 w-1.5 h-1.5 bg-white bg-opacity-50 rounded-full"></div>
-                    <div className="absolute top-8 right-6 w-1 h-1 bg-white bg-opacity-30 rounded-full"></div>
+                    <div className="absolute top-6 right-4 w-1.5 h-1.5 bg-slate-400/50 dark:bg-slate-400/50 rounded-full"></div>
+                    <div className="absolute top-8 right-6 w-1 h-1 bg-slate-400/30 dark:bg-slate-400/30 rounded-full"></div>
                   </div>
                 </div>
               </div>

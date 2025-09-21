@@ -46,7 +46,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
     if (!doctor.consultation_hours) return "Horaires non disponibles";
     if (typeof doctor.consultation_hours === 'string') return doctor.consultation_hours;
     if (typeof doctor.consultation_hours === 'object') {
-      const availableDays = Object.entries(doctor.consultation_hours)
+      const availableDays = Object.entries(doctor.consultation_hours).slice(0,2)
         .filter(([dateKey, dayData]: [string, any]) => {
           // Filtrer seulement les jours disponibles avec des créneaux
           return dayData && typeof dayData === 'object' && 
@@ -230,7 +230,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
                         {showSpecialtiestooltip && (
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
                             <div className="bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
-                              <div className="font-medium mb-1">Autres spécialités :</div>
+                              <div className="font-medium mb-1 whitespace-nowrap">Autres spécialités :</div>
                               <div className="space-y-0.5">
                                 {displaySpecialties.slice(1).map((specialty, index) => (
                                   <div key={index} className="text-slate-200 whitespace-nowrap">
@@ -255,26 +255,26 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
               <div className="flex items-center space-x-1">
                 <Star className="w-3 h-3 text-yellow-400 fill-current" />
                 <span className="text-slate-500 text-xs">4.8</span>
-                <span className="text-slate-500 text-[11px] leading-[14px]">(127)</span>
+                <span className="text-slate-500 text-xs leading-[14px]">(127 avis)</span>
               </div>
 
               {/* Localisation */}
               <div className="flex items-center text-slate-500 text-xs">
                 <MapPin className="w-3 h-3 mr-1.5 text-slate-600" />
-                {/* <span className="truncate text-[11px] leading-[14px]">{doctor.city}</span> */}
-                <span className="truncate text-[11px] leading-[14px]">RHP8+66G, Yaoundé | En ligne</span>
+                {/* <span className="truncate text-xs leading-[14px]">{doctor.city}</span> */}
+                <span className="truncate text-xs leading-[14px]">RHP8+66G, Yaoundé</span>
               </div>
 
               {/* Expérience */}
               <div className="flex items-center space-x-1 text-slate-500">
                 <Briefcase className="w-3 h-3 mr-1.5 text-slate-600" />
-                <span className="truncate text-[11px] leading-[14px]">{displayExperience}</span>
+                <span className="truncate text-xs leading-[14px]">{displayExperience}</span>
               </div>
             </div>
 
             {/* Heures de consultation */}
             <div className="flex items-center space-x-1 text-slate-500 text-[11px] leading-[14px]">
-              <CalendarClock className="w-3 h-3 mr-1.5 text-slate-600" />
+              <CalendarClock className="w-3 h-3 mr-1.5 text-slate-600 flex-shrink-0" />
               {formatConsultationHours()}
             </div>
           </div>

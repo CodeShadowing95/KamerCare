@@ -88,7 +88,7 @@ function CitySearchInput({ value, onChange, placeholder }: CitySearchInputProps)
               setIsOpen(true)
             }
           }}
-          className="w-full h-10 pl-10 pr-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-200 rounded-lg text-sm"
+          className="w-full h-10 pl-10 pr-4 bg-white/50 dark:bg-slate-800/50 border-2 border-slate-200/50 dark:border-slate-600/50 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 rounded-xl text-sm"
         />
       </div>
 
@@ -164,9 +164,9 @@ export default function HeroSection({
       specialty: "Spécialité médicale",
       searchButton: "Rechercher des créneaux disponibles",
       regionPlaceholder: "Sélectionnez votre région",
-      cityPlaceholder: "Choisissez une ville",
+      cityPlaceholder: "Recherchez une ville...",
       hospitalPlaceholder: "Sélectionnez un hôpital",
-      specialtyPlaceholder: "Choisissez une spécialité",
+      specialtyPlaceholder: "Toutes les spécialités",
       stats: {
         hospitals: "Hôpitaux",
         specialties: "Spécialités",
@@ -192,9 +192,9 @@ export default function HeroSection({
       specialty: "Medical specialty",
       searchButton: "Search available slots",
       regionPlaceholder: "Select your region",
-      cityPlaceholder: "Choose a city",
+      cityPlaceholder: "Search for a city...",
       hospitalPlaceholder: "Select a hospital",
-      specialtyPlaceholder: "Choose a specialty",
+      specialtyPlaceholder: "All specialties",
       stats: {
         hospitals: "Hospitals",
         specialties: "Specialties",
@@ -377,6 +377,9 @@ export default function HeroSection({
                               />
                             </div>
                           </div>
+                          <SelectItem value="all">
+                            Toutes les spécialités
+                          </SelectItem>
                           {filteredSpecialties.length > 0 ? (
                             filteredSpecialties.map((specialty) => (
                               <SelectItem key={specialty} value={specialty}>

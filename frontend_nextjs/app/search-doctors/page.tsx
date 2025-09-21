@@ -5,8 +5,6 @@ import { useSearchParams } from "next/navigation"
 import { ArrowLeft, MapPin, Star, Calendar, Clock, Heart, User, Phone, Mail, ChevronDown, Settings, LogOut, FileText, Search } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import {
@@ -535,7 +533,7 @@ export default function SearchDoctorsPage() {
               <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
                 <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 leading-tight">Médecins disponibles</h1>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
-                  {city && `${city}`} {city && specialty && ' • '} {specialty && `${specialty}`}
+                  {city && `${city}`} {city && specialty && ' • '} {specialty && specialty === "all" ? "Toutes les spécialités" : `${specialty}`}
                 </p>
               </div>
             </div>

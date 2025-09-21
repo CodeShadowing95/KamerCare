@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { Info } from 'lucide-react'
 
 interface DoctorSpecializationProps {
   specialization: string | null | undefined
@@ -75,7 +76,7 @@ export const DoctorSpecialization: React.FC<DoctorSpecializationProps> = ({
   return (
     <div className={cn('flex items-center gap-1', className)}>
       {/* Première spécialisation */}
-      <span className={cn('text-sm font-medium truncate', maxWidth)}>
+      <span className={cn('text-xs font-medium truncate', maxWidth)}>
         {firstSpecialization}
         {showRemoveButtons && onRemove && (
           <button
@@ -87,7 +88,7 @@ export const DoctorSpecialization: React.FC<DoctorSpecializationProps> = ({
             className="ml-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full p-0.5 transition-colors"
             aria-label={`Supprimer ${firstSpecialization}`}
           >
-            ×
+            x
           </button>
         )}
       </span>
@@ -98,7 +99,7 @@ export const DoctorSpecialization: React.FC<DoctorSpecializationProps> = ({
         show={showTooltip}
       >
         <span
-          className="inline-flex items-center justify-center min-w-[60px] h-5 px-2 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full cursor-help transition-colors hover:bg-blue-200 dark:hover:bg-blue-900/50"
+          className="relative"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
@@ -107,7 +108,7 @@ export const DoctorSpecialization: React.FC<DoctorSpecializationProps> = ({
           role="button"
           aria-label={`${remainingCount} autres spécialisations: ${tooltipContent}`}
         >
-          +{remainingCount} autre{remainingCount > 1 ? 's' : '(s)'}
+          <Info className="w-3 h-3 text-slate-500 hover:text-slate-700 cursor-help" />
         </span>
       </Tooltip>
     </div>

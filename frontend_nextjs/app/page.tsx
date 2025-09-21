@@ -1,17 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Navbar from "@/components/user-patient/navbar"
 import { Footer, HeroBanner, CommentCaMarche, ServiceSpecialites, HopitauxParRegion, Engagements, PrendreRDV } from "@/components/landing-page-sections"
 import FAQ from "@/components/landing-page-sections/faq"
 
 export default function LandingPage() {
+  const router = useRouter()
+
+  // Vérification de l'authentification et redirection basée sur le rôle
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const userDataString = localStorage.getItem('user')
+    
+    if (token && userDataString) {
+      try {
+        const userData = JSON.parse(userDataString)
+        const userRole = userData?.role
+        
+        // Redirection basée sur le rôle
+        if (userRole === 'doctor') {
+          router.push('/doctor')
+        } else if (userRole === 'admin') {
+          router.push('/admin')
+        }
+        // Si le rôle est 'patient' ou autre, rester sur la page d'accueil
+      } catch (error) {
+        console.error('Erreur lors de la lecture des données utilisateur:', error)
+        // En cas d'erreur, nettoyer le localStorage
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      }
+    }
+  }, [])
   const [isDark, setIsDark] = useState(false)
   const [language, setLanguage] = useState("fr")
   const [selectedRegion, setSelectedRegion] = useState("")
   const [selectedCity, setSelectedCity] = useState("")
   const [selectedHospital, setSelectedHospital] = useState("")
-  const [selectedSpecialty, setSelectedSpecialty] = useState("")
+  const [selectedSpecialty, setSelectedSpecialty] = useState("all")
 
   const regions = [
     { id: "adamaoua", name: "Adamaoua" },

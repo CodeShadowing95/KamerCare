@@ -17,7 +17,8 @@ import {
   Moon,
   Globe,
   HelpCircle,
-  CalendarPlus
+  CalendarPlus,
+  Video
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -81,13 +82,13 @@ const quickActions = [
     color: "bg-blue-500",
     href: "/doctor/appointments/new"
   },
-  // {
-  //   id: "quick-note",
-  //   label: "Note rapide",
-  //   icon: MessageSquare,
-  //   color: "bg-green-500",
-  //   href: "/doctor/notes/new"
-  // },
+  {
+    id: "quick-visio",
+    label: "Consultation rapide",
+    icon: Video,
+    color: "bg-green-500",
+    href: "/doctor/rdv-rapide"
+  },
   // {
   //   id: "emergency",
   //   label: "Urgence",
@@ -166,7 +167,7 @@ export function DoctorNavbar({ onMenuClick, className }: NavbarProps) {
                 key={action.id}
                 variant="ghost"
                 size="sm"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 onClick={() => {
                   if (action.href) {
                     window.location.href = action.href
@@ -174,8 +175,8 @@ export function DoctorNavbar({ onMenuClick, className }: NavbarProps) {
                 }}
               >
                 <div className={cn("w-2 h-2 rounded-full", action.color)} />
-                <Icon className="h-4 w-4" />
-                <span className="text-sm">{action.label}</span>
+                <Icon className="h-3 w-3" />
+                <span className="text-xs">{action.label}</span>
               </Button>
             )
           })}

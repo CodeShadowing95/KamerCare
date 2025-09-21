@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Pages qui nécessitent une authentification
-const protectedRoutes = [
+// Pages qui nécessitent une authentification pour les docteurs
+const doctorRoutes = [
   '/doctor',
   '/doctor/appointments',
   '/doctor/patients',
@@ -10,16 +10,32 @@ const protectedRoutes = [
   '/doctor/messages',
   '/doctor/prescriptions',
   '/doctor/analytics',
-  '/reglement',
-  '/dashboard/*',
-  '/admin',
 ]
 
+// Pages qui nécessitent une authentification pour les patients
+const patientRoutes = [
+  '/dashboard',
+  '/reglement',
+]
+
+// Pages qui nécessitent une authentification pour les administrateurs
+const adminRoutes = [
+  '/admin',
+  '/admin/dashboard',
+  '/admin/manage-users',
+  '/admin/hospitals',
+  '/admin/analytics',
+  '/admin/settings',
+]
+
+// Toutes les routes protégées
+const protectedRoutes = [...doctorRoutes, ...patientRoutes, ...adminRoutes]
+
 // Pages d'authentification (accessibles uniquement si non connecté)
-const authRoutes = ['/doctor/login', '/doctor/signup']
+const authRoutes = ['/doctor/login', '/doctor/signup', '/login', '/signup']
 
 // Pages publiques (accessibles à tous)
-const publicRoutes = ['/', '/login', '/signup']
+const publicRoutes = ['/', '/search-doctors']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -35,6 +51,12 @@ export function middleware(request: NextRequest) {
     if (route === '/doctor') {
       return pathname === '/doctor' || (pathname.startsWith('/doctor/') && !authRoutes.some(authRoute => pathname.startsWith(authRoute)))
     }
+    if (route === '/admin') {
+      return pathname === '/admin' || pathname.startsWith('/admin/')
+    }
+    if (route === '/dashboard') {
+      return pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+    }
     return pathname.startsWith(route)
   })
   
@@ -49,12 +71,27 @@ export function middleware(request: NextRequest) {
   
   // Si l'utilisateur n'est pas authentifié et essaie d'accéder à une route protégée
   if (!isAuthenticated && isProtectedRoute) {
-    const loginUrl = new URL('/doctor/login', request.url)
-    return NextResponse.redirect(loginUrl)
+    // Redirection intelligente basée sur le type de route
+    if (adminRoutes.some(route => pathname.startsWith(route))) {
+      // Pour les routes admin, rediriger vers la page de connexion admin
+      const loginUrl = new URL('/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    } else if (doctorRoutes.some(route => pathname.startsWith(route))) {
+      // Pour les routes docteur, rediriger vers la page de connexion docteur
+      const loginUrl = new URL('/doctor/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    } else {
+      // Pour les autres routes (patient), rediriger vers la page de connexion générale
+      const loginUrl = new URL('/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
   }
   
   // Si l'utilisateur est authentifié et essaie d'accéder à une page d'auth
   if (isAuthenticated && isAuthRoute) {
+    // Redirection intelligente basée sur le rôle utilisateur
+    // Note: Le middleware ne peut pas accéder au localStorage, donc on redirige vers /doctor par défaut
+    // La logique de redirection basée sur les rôles est gérée dans les pages de connexion
     const dashboardUrl = new URL('/doctor', request.url)
     return NextResponse.redirect(dashboardUrl)
   }

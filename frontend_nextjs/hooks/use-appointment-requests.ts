@@ -54,7 +54,7 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
 
       const params = new URLSearchParams()
       params.append('status', 'requested')
-      params.append('docto_id', user.doctor.id.toString())
+      params.append('doctor_id', user.doctor.id.toString())
 
       const response = await fetch(`http://localhost:8000/api/appointments?${params.toString()}`, {
         headers: {
@@ -67,7 +67,7 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data = await response.json()      
       
       if (data.success) {
         setRequests(data.data.data || [])

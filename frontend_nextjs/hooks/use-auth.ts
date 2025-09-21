@@ -68,6 +68,8 @@ export function useAuth(): AuthState & AuthActions {
       
       if (token && userStr) {
         const user = JSON.parse(userStr);
+        console.log('User from localStorage:', user);
+        
         setState({
           user,
           token,
@@ -191,6 +193,7 @@ export function useAuth(): AuthState & AuthActions {
       // Clear localStorage, cookies and state regardless of API call result
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('activeTab');
       
       // Clear auth cookie
       document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';

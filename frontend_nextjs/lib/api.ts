@@ -269,6 +269,65 @@ class ApiService {
       body: JSON.stringify(appointmentData),
     });
   }
+
+  // User management API methods
+  async getAllUsers(params?: {
+    search?: string;
+    role?: string;
+    status?: string;
+    sort_by?: string;
+    sort_order?: string;
+    per_page?: number;
+    page?: number;
+  }, token?: string): Promise<{
+    success: boolean;
+    data: {
+      data: any[];
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+    message: string;
+  }> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.role) queryParams.append('role', params.role);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    
+    const endpoint = `/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.makeRequest(endpoint, {
+      method: 'GET',
+      headers: token ? {
+        'Authorization': `Bearer ${token}`,
+      } : {},
+    });
+  }
+
+  // Toggle doctor certification status
+  async toggleDoctorCertification(userId: number, token: string): Promise<{
+    success: boolean;
+    data?: {
+      user_id: number;
+      doctor_id: number;
+      previous_status: string;
+      new_status: string;
+      certified: boolean;
+    };
+    message: string;
+  }> {
+    return this.makeRequest(`/users/${userId}/toggle-certification`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
 }
 
 export const apiService = new ApiService();

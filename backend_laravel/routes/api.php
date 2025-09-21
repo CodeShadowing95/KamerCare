@@ -41,6 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // User search routes for appointments
     Route::get('/users/search', [UserController::class, 'search']);
     
+    // User management routes (admin only)
+    Route::get('/users', [UserController::class, 'index']);
+    Route::patch('/users/{user}/toggle-certification', [UserController::class, 'toggleCertification']);
+    
     // Patient management routes
     Route::apiResource('patients', PatientController::class);
     Route::get('/patients/search', [PatientController::class, 'search']);
