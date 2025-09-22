@@ -77,8 +77,7 @@ class AuthController extends Controller
             'dateOfBirth' => 'required_if:role,patient|date',
             'gender' => 'required_if:role,patient|in:male,female,other',
             // Doctor specific fields
-            'specialization' => 'required_if:role,doctor|array|min:1',
-            'specialization.*' => 'required|string|max:100',
+            'specialization' => 'required_if:role,doctor|string|max:500',
             'license_number' => 'required_if:role,doctor|string|max:255|unique:doctors',
             'bio' => 'nullable|string',
             'qualifications' => 'nullable|string',
