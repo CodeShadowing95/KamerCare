@@ -168,12 +168,12 @@ classDiagram
     
     Doctor ||--o{ Appointment : "has many"
     Doctor ||--o{ MedicalRecord : "has many"
-    Doctor }o--o{ Patient : "many to many"
+    Doctor }|--o{ Patient : "many to many"
     
     Patient ||--o{ Appointment : "has many"
     Patient ||--o{ MedicalRecord : "has many"
     
-    Appointment ||--o| MedicalRecord : "has one"
+    Appointment ||--|| MedicalRecord : "has one"
     Appointment }o--|| Doctor : "belongs to"
     Appointment }o--|| Patient : "belongs to"
     
