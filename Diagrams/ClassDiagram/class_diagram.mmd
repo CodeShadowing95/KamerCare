@@ -1,0 +1,187 @@
+classDiagram
+    %% Classes principales du système KamerCare
+    
+    class User {
+        +Long id
+        +String name
+        +String email
+        +String password
+        +String role
+        +String phone
+        +Boolean is_active
+        +DateTime email_verified_at
+        +String remember_token
+        +DateTime created_at
+        +DateTime updated_at
+        
+        +doctor() Doctor
+        +patient() Patient
+        +scopeActive(query) Query
+        +scopeByRole(query, role) Query
+        +isDoctor() Boolean
+        +isAdmin() Boolean
+        +isPatient() Boolean
+    }
+    
+    class Doctor {
+        +Long id
+        +Long user_id
+        +String first_name
+        +String last_name
+        +Date date_of_birth
+        +String email
+        +String address
+        +String city
+        +String specialization
+        +String hospital
+        +String license_number
+        +String phone
+        +Text bio
+        +Array qualifications
+        +Array education
+        +Array certifications
+        +Array references
+        +Integer years_of_experience
+        +String office_address
+        +Array consultation_hours
+        +Decimal consultation_fee
+        +Boolean is_available
+        +Boolean is_certified
+        +DateTime created_at
+        +DateTime updated_at
+        
+        +user() User
+        +appointments() Appointment[]
+        +medicalRecords() MedicalRecord[]
+        +patients() Patient[]
+        +allPatients() Patient[]
+        +getFullNameAttribute() String
+        +getNameAttribute() String
+        +scopeAvailable(query) Query
+        +scopeBySpecialization(query, specialization) Query
+    }
+    
+    class Patient {
+        +Long id
+        +Long user_id
+        +String first_name
+        +String last_name
+        +String email
+        +String phone
+        +Date date_of_birth
+        +String gender
+        +String address
+        +String emergency_contact_name
+        +String emergency_contact_phone
+        +Text medical_history
+        +Text allergies
+        +Text current_medications
+        +String blood_type
+        +String insurance_number
+        +DateTime created_at
+        +DateTime updated_at
+        
+        +user() User
+        +appointments() Appointment[]
+        +medicalRecords() MedicalRecord[]
+        +doctors() Doctor[]
+        +allDoctors() Doctor[]
+        +getFullNameAttribute() String
+        +getAgeAttribute() Integer
+    }
+    
+    class Appointment {
+        +Long id
+        +Long patient_id
+        +Long doctor_id
+        +Long created_by_user_id
+        +DateTime appointment_date
+        +Integer duration_minutes
+        +String status
+        +String appointment_type
+        +String location
+        +Text reason_for_visit
+        +Text notes
+        +Decimal consultation_fee
+        +String payment_status
+        +DateTime confirmed_at
+        +DateTime cancelled_at
+        +String cancellation_reason
+        +DateTime created_at
+        +DateTime updated_at
+        
+        +patient() Patient
+        +doctor() Doctor
+        +medicalRecord() MedicalRecord
+        +createdBy() User
+        +scopeUpcoming(query) Query
+        +scopeToday(query) Query
+        +scopeByStatus(query, status) Query
+        +scopeByType(query, type) Query
+        +scopeVisio(query) Query
+        +scopePresentiel(query) Query
+        +getEndTimeAttribute() DateTime
+        +getIsUpcomingAttribute() Boolean
+        +getAppointmentTypeLabelAttribute() String
+        +getIsVisioAttribute() Boolean
+        +getIsPresentielAttribute() Boolean
+        +getIsDomicileAttribute() Boolean
+        +confirm() void
+        +cancel(reason) void
+    }
+    
+    class MedicalRecord {
+        +Long id
+        +Long patient_id
+        +Long doctor_id
+        +Long appointment_id
+        +Date visit_date
+        +Text chief_complaint
+        +Text history_of_present_illness
+        +Text physical_examination
+        +Text vital_signs
+        +Text diagnosis
+        +Text treatment_plan
+        +Text medications_prescribed
+        +Text lab_tests_ordered
+        +Text follow_up_instructions
+        +Date next_appointment_date
+        +Text doctor_notes
+        +Array attachments
+        +DateTime created_at
+        +DateTime updated_at
+        
+        +patient() Patient
+        +doctor() Doctor
+        +appointment() Appointment
+        +scopeRecent(query, days) Query
+        +scopeByPatient(query, patientId) Query
+        +scopeByDoctor(query, doctorId) Query
+        +getHasAttachmentsAttribute() Boolean
+        +addAttachment(filename, path) void
+    }
+    
+    %% Relations entre les classes
+    User ||--o{ Doctor : "has one"
+    User ||--o{ Patient : "has one"
+    User ||--o{ Appointment : "created by"
+    
+    Doctor ||--o{ Appointment : "has many"
+    Doctor ||--o{ MedicalRecord : "has many"
+    Doctor }o--o{ Patient : "many to many"
+    
+    Patient ||--o{ Appointment : "has many"
+    Patient ||--o{ MedicalRecord : "has many"
+    
+    Appointment ||--o| MedicalRecord : "has one"
+    Appointment }o--|| Doctor : "belongs to"
+    Appointment }o--|| Patient : "belongs to"
+    
+    MedicalRecord }o--|| Doctor : "belongs to"
+    MedicalRecord }o--|| Patient : "belongs to"
+    MedicalRecord }o--|| Appointment : "belongs to"
+    
+    %% Notes sur les types de rendez-vous
+    note for Appointment "Types: presentiel, visio, domicile, urgence, suivi"
+    note for User "Roles: patient, doctor, admin"
+    note for Doctor "Specialization stored as TEXT (comma-separated)"
