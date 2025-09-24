@@ -4,29 +4,27 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class ChangeSpecializationToTextInDoctorsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::table('doctors', function (Blueprint $table) {
-            $table->text('specialization')->change();
+            $table->unsignedBigInteger('hospital_id')->nullable()->after('specialization');
+            $table->foreign('hospital_id')->references('id')->on('hospitals')->onDelete('set null');
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::table('doctors', function (Blueprint $table) {
-            $table->json('specialization')->change();
+            $table->dropForeign(['hospital_id']);
+            $table->dropColumn('hospital_id');
         });
     }
-}
+};

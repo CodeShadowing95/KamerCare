@@ -18,7 +18,7 @@ class ModifySpecializationColumnInDoctorsTable extends Migration
         });
         
         Schema::table('doctors', function (Blueprint $table) {
-            $table->json('specialization')->nullable();
+            $table->text('specialization')->nullable();
         });
     }
 

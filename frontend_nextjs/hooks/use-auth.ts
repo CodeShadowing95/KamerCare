@@ -68,7 +68,6 @@ export function useAuth(): AuthState & AuthActions {
       
       if (token && userStr) {
         const user = JSON.parse(userStr);
-        console.log('User from localStorage:', user);
         
         setState({
           user,

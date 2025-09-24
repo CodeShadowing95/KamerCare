@@ -18,7 +18,7 @@ class Doctor extends Model
         'address',
         'city',
         'specialization',
-        'hospital',
+        'hospital_id',
         'license_number',
         'phone',
         'bio',
@@ -52,6 +52,11 @@ class Doctor extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
     }
 
     public function appointments()

@@ -33,7 +33,7 @@ classDiagram
         +String address
         +String city
         +String specialization
-        +String hospital
+        +Long hospital_id
         +String license_number
         +String phone
         +Text bio
@@ -51,6 +51,7 @@ classDiagram
         +DateTime updated_at
         
         +user() User
+        +hospital() Hospital
         +appointments() Appointment[]
         +medicalRecords() MedicalRecord[]
         +patients() Patient[]
@@ -161,14 +162,33 @@ classDiagram
         +addAttachment(filename, path) void
     }
     
+    class Hospital {
+        +Long id
+        +String nom
+        +String ville
+        +Text adresse
+        +String tel
+        +String photo
+        +DateTime created_at
+        +DateTime updated_at
+        
+        +doctors() Doctor[]
+        +getFullAddressAttribute() String
+        +scopeInCity(query, city) Query
+        +getPhotoUrlAttribute() String
+    }
+    
     %% Relations entre les classes
     User ||--o{ Doctor : "has one"
     User ||--o{ Patient : "has one"
     User ||--o{ Appointment : "created by"
     
+    Hospital ||--o{ Doctor : "has many"
+    
     Doctor ||--o{ Appointment : "has many"
     Doctor ||--o{ MedicalRecord : "has many"
     Doctor }|--o{ Patient : "many to many"
+    Doctor }o--o| Hospital : "belongs to"
     
     Patient ||--o{ Appointment : "has many"
     Patient ||--o{ MedicalRecord : "has many"
@@ -185,3 +205,4 @@ classDiagram
     note for Appointment "Types: presentiel, visio, domicile, urgence, suivi"
     note for User "Roles: patient, doctor, admin"
     note for Doctor "Specialization stored as TEXT (comma-separated)"
+    note for Hospital "Relation optionnelle: Un docteur peut ne pas être rattaché à un hôpital"

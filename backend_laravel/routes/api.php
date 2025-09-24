@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DoctorController;
+use App\Http\Controllers\Api\HospitalController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\MedicalRecordController;
 use App\Http\Controllers\CitiesController;
@@ -83,6 +84,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public routes for getting available doctors and specializations
 Route::get('/public/doctors', [DoctorController::class, 'index']);
+
+// Public routes for hospitals
+Route::get('/public/hospitals', [HospitalController::class, 'index']);
+Route::get('/public/hospitals/{hospital}', [HospitalController::class, 'show']);
+Route::post('/public/hospitals', [HospitalController::class, 'store']);
 
 // Public routes for cities and regions
 Route::prefix('cities')->group(function () {

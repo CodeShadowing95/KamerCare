@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { apiService, DoctorRegistrationData, ConsultationHours, TimeSlot } from "../../../lib/api"
 import { useRouter } from "next/navigation"
+import { HospitalSelect } from "@/components/ui/hospital-select"
 import { useCities } from "../../../hooks/use-cities"
 
 export default function DoctorSignup() {
@@ -75,6 +76,7 @@ export default function DoctorSignup() {
     date_of_birth: "",
     address: "",
     city: "",
+    hospital_id: null as number | null,
 
     // Étape 2: Informations professionnelles de base
     specialization: [] as string[],
@@ -271,7 +273,7 @@ export default function DoctorSignup() {
           formData.phone.trim() !== '' &&
           phoneRegex.test(formData.phone) &&
           formData.date_of_birth !== '' &&
-          formData.address.trim() !== '' &&
+          // formData.address.trim() !== '' &&
           formData.city.trim() !== ''
         )
       case 2:
@@ -356,14 +358,15 @@ export default function DoctorSignup() {
         date_of_birth: formData.date_of_birth,
         address: formData.address,
         city: formData.city,
-        specialization: formData.specialization,
+        specialization: formData.specialization.join(', '), // Convertir le tableau en chaîne
         license_number: formData.license_number,
         phone: formData.phone,
         bio: formData.bio,
         years_of_experience: formData.years_of_experience,
         consultation_fee: Number(formData.consultation_fee),
         is_available: formData.is_available,
-        consultation_hours: formData.consultation_hours
+        consultation_hours: formData.consultation_hours,
+        hospital_id: formData.hospital_id
       }
 
       const response = await apiService.registerDoctor(doctorData)
@@ -685,12 +688,12 @@ export default function DoctorSignup() {
                                   searchResults.map((city, index) => (
                                     <div
                                       key={`${city.city}-${city.region || 'unknown'}-${index}`}
-                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-200 z-50"
+                                      className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-200 z-50"
                                       onClick={() => handleCitySelect(city.city, city.region || '')}
                                     >
                                       <div className="flex items-center space-x-2">
                                         <MapPinned className="w-4 h-4 text-teal-500" />
-                                        <span className="text-gray-900">
+                                        <span className="text-gray-900 text-xs">
                                           {city.city}{city.region && <>, <span className="text-xs font-semibold text-teal-600">{city.region.toUpperCase()}</span></>}
                                         </span>
                                       </div>
@@ -717,19 +720,17 @@ export default function DoctorSignup() {
                         </div>
 
                         <div className="space-y-3">
-                          <Label htmlFor="address" className="text-sm font-semibold text-gray-700 flex items-center">
+                          <Label htmlFor="hospital" className="text-sm font-semibold text-gray-700 flex items-center">
                             <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
                               <MapPin className="w-4 h-4 text-yellow-600" />
                             </div>
-                            Adresse de cabinet / Hôpital de fonction *
+                            Hôpital de fonction *
                           </Label>
-                          <Input
-                            id="address"
-                            name="address"
-                            value={formData.address}
-                            onChange={(e) => handleInputChange('address', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Ex: 123 Rue de la Médecine, Yaoundé"
+                          <HospitalSelect
+                            value={formData.hospital_id}
+                            onValueChange={(value) => handleInputChange('hospital_id', value)}
+                            placeholder="Sélectionner un hôpital ou choisir 'Aucun'"
+                            className="w-full"
                             required
                           />
                         </div>
@@ -1135,7 +1136,7 @@ export default function DoctorSignup() {
                       type="button"
                       onClick={nextStep}
                       disabled={!validateStep(currentStep)}
-                      className="flex items-center space-x-2 px-8 py-3 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="flex items-center space-x-2 px-8 py-3 h-12 z-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       <span className="font-medium">Suivant</span>
                       <ArrowRight className="w-4 h-4" />

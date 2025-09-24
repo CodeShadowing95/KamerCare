@@ -71,19 +71,7 @@ const SidebarAdmin = () => {
         localStorage.setItem("activeTab", "hospitals")
         router.push('/admin/manage-hospitals')
       },
-      enabled: false,
-    },
-    {
-      id: 'roles',
-      title: 'Rôles & Permissions',
-      icon: Shield,
-      selectedTabClassName: "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200/50 shadow-sm dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-300 dark:border-emerald-700/30",
-      onClick: () => {
-        setActiveTab("roles")
-        localStorage.setItem("activeTab", "roles")
-        router.push('/admin/manage-roles')
-      },
-      enabled: false,
+      enabled: true,
     },
     {
       id: 'specialties',
@@ -123,7 +111,7 @@ const SidebarAdmin = () => {
     },
     {
       id: 'logs',
-      title: 'Journaux',
+      title: 'Journaux d\'activités',
       icon: Database,
       selectedTabClassName: "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border border-rose-200/50 shadow-sm dark:from-rose-900/30 dark:to-pink-900/30 dark:text-rose-300 dark:border-rose-700/30",
       onClick: () => {

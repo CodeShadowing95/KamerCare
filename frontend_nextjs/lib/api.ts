@@ -56,8 +56,9 @@ export interface DoctorRegistrationData {
   date_of_birth?: string;
   address?: string;
   city?: string;
-  specialization: string[];
+  specialization: string;
   hospital?: string;
+  hospital_id?: number | null;
   license_number: string;
   phone: string;
   bio?: string;
@@ -238,6 +239,73 @@ class ApiService {
     message: string;
   }> {
     return this.makeRequest('/specializations');
+  }
+
+  // Hospital-related API methods
+  async getHospitals(params?: {
+    search?: string;
+    ville?: string;
+    per_page?: number;
+    page?: number;
+  }): Promise<{
+    success: boolean;
+    data: {
+      data: any[];
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+    message: string;
+  }> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.ville) queryParams.append('ville', params.ville);
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    
+    const endpoint = `/public/hospitals${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.makeRequest(endpoint);
+  }
+
+  // Create a new hospital
+  async createHospital(hospitalData: {
+    nom: string;
+    type: 'public' | 'private';
+    adresse: string;
+    ville: string;
+    indicatif?: string;
+    telephone?: string;
+    email: string;
+  }): Promise<{
+    success: boolean;
+    data?: any;
+    message: string;
+    errors?: Record<string, string[]>;
+  }> {
+    // Si le téléphone est fourni et non vide, combiner avec l'indicatif
+    let finalTelephone = null;
+    if (hospitalData.telephone && hospitalData.telephone.trim() !== '' && hospitalData.indicatif) {
+      finalTelephone = `${hospitalData.indicatif} ${hospitalData.telephone}`;
+    }
+    
+    const dataToSend = {
+      nom: hospitalData.nom,
+      type: hospitalData.type,
+      adresse: hospitalData.adresse,
+      ville: hospitalData.ville,
+      telephone: finalTelephone,
+      email: hospitalData.email
+    };
+    
+    return this.makeRequest('/public/hospitals', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend),
+    });
   }
 
   async createAppointment(
