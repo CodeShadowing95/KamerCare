@@ -1,100 +1,54 @@
 graph TB
-    %% Diagramme de déploiement KamerCare
+    %% Diagramme de déploiement KamerCare - Version compacte
     
-    subgraph "Internet"
-        Users[👥 Utilisateurs<br/>Patients, Docteurs, Admins]
-        CDN[🌐 CDN<br/>Content Delivery Network<br/>Distribution statique]
+    Users[👥 Utilisateurs<br/>Web & Mobile]
+    CDN[🌐 CDN<br/>Assets statiques]
+    
+    LB[⚖️ Load Balancer<br/>Nginx]
+    
+    subgraph "🖥️ Serveur Web"
+        Frontend[Next.js 14<br/>:3000]
+        Backend[Laravel 10<br/>:8000]
+        Redis[🔴 Redis<br/>Cache]
     end
     
-    subgraph "Load Balancer"
-        LB[⚖️ Load Balancer<br/>Nginx/Apache<br/>Distribution de charge]
+    MySQL[(🗄️ MySQL 8.0<br/>:3306)]
+    Backup[💿 Backups<br/>Automatisés]
+    
+    subgraph "🌍 Services Externes"
+        Email[📧 Email]
+        Maps[🗺️ Maps API]
     end
     
-    subgraph "Serveur Web Principal"
-        subgraph "Container Frontend"
-            Frontend[🖥️ Frontend<br/>Next.js 14<br/>Port: 3000<br/>Node.js Runtime]
-            StaticFiles[📁 Fichiers Statiques<br/>Images, CSS, JS<br/>Public Assets]
-        end
-        
-        subgraph "Container Backend"
-            Backend[🔧 Backend API<br/>Laravel 10<br/>Port: 8000<br/>PHP 8.1+]
-            Storage[💾 Storage<br/>Uploads, Logs<br/>File System]
-        end
-        
-        subgraph "Services"
-            Redis[🔴 Redis<br/>Cache & Sessions<br/>Port: 6379]
-            Queue[📋 Queue Worker<br/>Background Jobs<br/>Laravel Queue]
-        end
-    end
-    
-    subgraph "Base de Données"
-        subgraph "Database Server"
-            MySQL[(🗄️ MySQL 8.0<br/>Port: 3306<br/>Primary Database)]
-            MySQLSlave[(🗄️ MySQL Replica<br/>Read-only<br/>Backup & Analytics)]
-        end
-        
-        subgraph "Backup System"
-            Backup[💿 Backup Storage<br/>Automated Backups<br/>Daily/Weekly/Monthly]
-        end
-    end
-    
-    subgraph "Monitoring & Security"
-        Monitor[📊 Monitoring<br/>Application Performance<br/>Error Tracking]
-        Firewall[🛡️ Firewall<br/>Security Rules<br/>DDoS Protection]
-        SSL[🔒 SSL/TLS<br/>HTTPS Encryption<br/>Certificate Management]
-    end
-    
-    subgraph "External Services"
-        Email[📧 Email Service<br/>SMTP Provider<br/>Notifications]
-        SMS[📱 SMS Gateway<br/>Appointment Reminders<br/>OTP Verification]
-        Maps[🗺️ Maps API<br/>Google Maps<br/>Location Services]
-    end
+    Monitor[📊 Monitoring<br/>& Security]
     
     %% Connexions principales
     Users --> CDN
-    Users --> Firewall
-    CDN --> LB
-    Firewall --> LB
-    
+    Users --> LB
+    CDN --> Frontend
     LB --> Frontend
     LB --> Backend
     
     Frontend --> Backend
-    Frontend --> StaticFiles
-    
     Backend --> MySQL
     Backend --> Redis
-    Backend --> Storage
-    Backend --> Queue
-    
-    MySQL --> MySQLSlave
-    MySQL --> Backup
-    
     Backend --> Email
-    Backend --> SMS
     Frontend --> Maps
     
+    MySQL --> Backup
     Monitor --> Frontend
     Monitor --> Backend
     Monitor --> MySQL
     
-    %% Styles et couleurs
-    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
-    classDef backend fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
-    classDef database fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#000
-    classDef service fill:#ffe66d,stroke:#333,stroke-width:2px,color:#000
-    classDef security fill:#a8e6cf,stroke:#333,stroke-width:2px,color:#000
-    classDef external fill:#ffd93d,stroke:#333,stroke-width:2px,color:#000
+    %% Styles
+    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px
+    classDef backend fill:#ff6b6b,stroke:#333,stroke-width:2px
+    classDef database fill:#4ecdc4,stroke:#333,stroke-width:2px
+    classDef service fill:#ffe66d,stroke:#333,stroke-width:2px
+    classDef external fill:#ffd93d,stroke:#333,stroke-width:2px
     
-    class Frontend,StaticFiles frontend
-    class Backend,Storage,Queue backend
-    class MySQL,MySQLSlave,Backup database
-    class Redis,Monitor service
-    class Firewall,SSL security
-    class Email,SMS,Maps external
-    
-    %% Annotations
-    Frontend -.->|"HTTP/HTTPS<br/>Port 3000"| Users
-    Backend -.->|"REST API<br/>JSON/HTTP"| Frontend
-    MySQL -.->|"SQL Queries<br/>Port 3306"| Backend
-    Redis -.->|"Cache/Sessions<br/>Port 6379"| Backend
+    class Frontend frontend
+    class Backend,Redis backend
+    class MySQL,Backup database
+    class LB,Monitor service
+    class Email,Maps external
