@@ -16,8 +16,8 @@ classDiagram
         
         +doctor() Doctor
         +patient() Patient
-        +scopeActive(query) Query
-        +scopeByRole(query, role) Query
+        +scopeActive() Query
+        +scopeByRole() Query
         +isDoctor() Boolean
         +isAdmin() Boolean
         +isPatient() Boolean
@@ -52,14 +52,14 @@ classDiagram
         
         +user() User
         +hospital() Hospital
-        +appointments() Appointment[]
-        +medicalRecords() MedicalRecord[]
-        +patients() Patient[]
-        +allPatients() Patient[]
+        +appointments() Appointment
+        +medicalRecords() MedicalRecord
+        +patients() Patient
+        +allPatients() Patient
         +getFullNameAttribute() String
         +getNameAttribute() String
-        +scopeAvailable(query) Query
-        +scopeBySpecialization(query, specialization) Query
+        +scopeAvailable() Query
+        +scopeBySpecialization() Query
     }
     
     class Patient {
@@ -83,10 +83,10 @@ classDiagram
         +DateTime updated_at
         
         +user() User
-        +appointments() Appointment[]
-        +medicalRecords() MedicalRecord[]
-        +doctors() Doctor[]
-        +allDoctors() Doctor[]
+        +appointments() Appointment
+        +medicalRecords() MedicalRecord
+        +doctors() Doctor
+        +allDoctors() Doctor
         +getFullNameAttribute() String
         +getAgeAttribute() Integer
     }
@@ -115,12 +115,12 @@ classDiagram
         +doctor() Doctor
         +medicalRecord() MedicalRecord
         +createdBy() User
-        +scopeUpcoming(query) Query
-        +scopeToday(query) Query
-        +scopeByStatus(query, status) Query
-        +scopeByType(query, type) Query
-        +scopeVisio(query) Query
-        +scopePresentiel(query) Query
+        +scopeUpcoming() Query
+        +scopeToday() Query
+        +scopeByStatus() Query
+        +scopeByType() Query
+        +scopeVisio() Query
+        +scopePresentiel() Query
         +getEndTimeAttribute() DateTime
         +getIsUpcomingAttribute() Boolean
         +getAppointmentTypeLabelAttribute() String
@@ -128,7 +128,7 @@ classDiagram
         +getIsPresentielAttribute() Boolean
         +getIsDomicileAttribute() Boolean
         +confirm() void
-        +cancel(reason) void
+        +cancel() void
     }
     
     class MedicalRecord {
@@ -155,11 +155,11 @@ classDiagram
         +patient() Patient
         +doctor() Doctor
         +appointment() Appointment
-        +scopeRecent(query, days) Query
-        +scopeByPatient(query, patientId) Query
-        +scopeByDoctor(query, doctorId) Query
+        +scopeRecent() Query
+        +scopeByPatient() Query
+        +scopeByDoctor() Query
         +getHasAttachmentsAttribute() Boolean
-        +addAttachment(filename, path) void
+        +addAttachment() void
     }
     
     class Hospital {
@@ -172,23 +172,23 @@ classDiagram
         +DateTime created_at
         +DateTime updated_at
         
-        +doctors() Doctor[]
+        +doctors() Doctor
         +getFullAddressAttribute() String
-        +scopeInCity(query, city) Query
+        +scopeInCity() Query
         +getPhotoUrlAttribute() String
     }
     
     %% Relations entre les classes
-    User ||--o{ Doctor : "has one"
-    User ||--o{ Patient : "has one"
+    User ||--o| Doctor : "has one"
+    User ||--o| Patient : "has one"
     User ||--o{ Appointment : "created by"
     
     Hospital ||--o{ Doctor : "has many"
     
     Doctor ||--o{ Appointment : "has many"
     Doctor ||--o{ MedicalRecord : "has many"
-    Doctor }|--o{ Patient : "many to many"
-    Doctor }o--o| Hospital : "belongs to"
+    Doctor }o--o{ Patient : "many to many"
+    Doctor }o--|| Hospital : "belongs to"
     
     Patient ||--o{ Appointment : "has many"
     Patient ||--o{ MedicalRecord : "has many"
@@ -200,9 +200,3 @@ classDiagram
     MedicalRecord }o--|| Doctor : "belongs to"
     MedicalRecord }o--|| Patient : "belongs to"
     MedicalRecord }o--|| Appointment : "belongs to"
-    
-    %% Notes sur les types de rendez-vous
-    note for Appointment "Types: presentiel, visio, domicile, urgence, suivi"
-    note for User "Roles: patient, doctor, admin"
-    note for Doctor "Specialization stored as TEXT (comma-separated)"
-    note for Hospital "Relation optionnelle: Un docteur peut ne pas être rattaché à un hôpital"
