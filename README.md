@@ -74,6 +74,140 @@ Démocratiser l'accès aux soins de santé au Cameroun en connectant patients et
 
 ## 🏗️ Architecture
 
+### 📐 Architecture MVC (Modèle-Vue-Contrôleur)
+
+KamerCare suit le pattern architectural MVC pour assurer une séparation claire des responsabilités et une maintenabilité optimale.
+
+```mermaid
+graph TB
+    %% Utilisateur
+    U[👤 Utilisateur] --> V
+    
+    %% Couche Vue (Frontend)
+    subgraph "🎨 VUE - Interface Utilisateur"
+        V[📱 Next.js Frontend]
+        V1[🖥️ Pages & Composants]
+        V2[🎨 Interface Utilisateur]
+        V3[📋 Formulaires]
+        V4[📊 Tableaux de Bord]
+        
+        V --> V1
+        V --> V2
+        V --> V3
+        V --> V4
+    end
+    
+    %% Communication HTTP
+    V -.->|"🌐 Requêtes HTTP/API"| C
+    C -.->|"📤 Réponses JSON"| V
+    
+    %% Couche Contrôleur (Backend)
+    subgraph "🎛️ CONTRÔLEUR - Logique Métier"
+        C[⚙️ Laravel Controllers]
+        C1[🔐 AuthController]
+        C2[👨‍⚕️ DoctorController]
+        C3[👥 PatientController]
+        C4[📅 AppointmentController]
+        C5[🏥 HospitalController]
+        
+        C --> C1
+        C --> C2
+        C --> C3
+        C --> C4
+        C --> C5
+    end
+    
+    %% Communication avec le Modèle
+    C -->|"📝 Opérations CRUD"| M
+    M -->|"📊 Données"| C
+    
+    %% Couche Modèle (Base de Données)
+    subgraph "🗄️ MODÈLE - Données & Logique"
+        M[📋 Laravel Models]
+        M1[👤 User Model]
+        M2[👨‍⚕️ Doctor Model]
+        M3[👥 Patient Model]
+        M4[📅 Appointment Model]
+        M5[🏥 Hospital Model]
+        
+        M --> M1
+        M --> M2
+        M --> M3
+        M --> M4
+        M --> M5
+    end
+    
+    %% Base de données
+    M -->|"💾 Eloquent ORM"| DB[(🗃️ MySQL Database)]
+    
+    %% Styles
+    classDef vue fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef controller fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef model fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef user fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef db fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class V,V1,V2,V3,V4 vue
+    class C,C1,C2,C3,C4,C5 controller
+    class M,M1,M2,M3,M4,M5 model
+    class U user
+    class DB db
+```
+
+### 📚 Légende et Flux de Données
+
+#### 🎨 **VUE (Frontend - Next.js)**
+| Composant | Responsabilité | Technologies |
+|-----------|----------------|--------------|
+| **Pages & Composants** | Interface utilisateur interactive | Next.js, React, TypeScript |
+| **Formulaires** | Saisie et validation des données | React Hook Form, Zod |
+| **Tableaux de Bord** | Visualisation des données | Charts.js, Tailwind CSS |
+| **Interface Utilisateur** | Expérience utilisateur optimisée | Radix UI, Lucide Icons |
+
+#### 🎛️ **CONTRÔLEUR (Backend - Laravel)**
+| Contrôleur | Responsabilité | Endpoints Principaux |
+|------------|----------------|---------------------|
+| **AuthController** | Authentification et autorisation | `/api/login`, `/api/register`, `/api/logout` |
+| **DoctorController** | Gestion des médecins | `/api/doctors`, `/api/doctors/{id}` |
+| **PatientController** | Gestion des patients | `/api/patients`, `/api/patients/{id}` |
+| **AppointmentController** | Gestion des rendez-vous | `/api/appointments`, `/api/appointments/{id}` |
+| **HospitalController** | Gestion des établissements | `/api/hospitals`, `/api/hospitals/{id}` |
+
+#### 🗄️ **MODÈLE (Base de Données - MySQL)**
+| Modèle | Responsabilité | Relations Principales |
+|--------|----------------|----------------------|
+| **User Model** | Utilisateurs système | `hasOne(Patient)`, `hasOne(Doctor)` |
+| **Doctor Model** | Profils médecins | `belongsTo(User)`, `hasMany(Appointments)` |
+| **Patient Model** | Profils patients | `belongsTo(User)`, `hasMany(Appointments)` |
+| **Appointment Model** | Rendez-vous médicaux | `belongsTo(Doctor)`, `belongsTo(Patient)` |
+| **Hospital Model** | Établissements de santé | `hasMany(Doctors)` |
+
+### 🔄 **Flux de Données MVC**
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 Utilisateur
+    participant V as 🎨 Vue (Next.js)
+    participant C as 🎛️ Contrôleur (Laravel)
+    participant M as 🗄️ Modèle (Eloquent)
+    participant DB as 💾 Base de Données
+
+    Note over U,DB: 📅 Exemple: Prise de rendez-vous
+    
+    U->>V: 1. Remplit le formulaire RDV
+    V->>V: 2. Validation côté client
+    V->>C: 3. POST /api/appointments
+    C->>C: 4. Validation des données
+    C->>M: 5. Appointment::create()
+    M->>DB: 6. INSERT INTO appointments
+    DB-->>M: 7. Données sauvegardées
+    M-->>C: 8. Instance Appointment
+    C-->>V: 9. Réponse JSON (201 Created)
+    V-->>U: 10. Confirmation visuelle
+```
+
+### 🏗️ **Architecture Globale du Système**
+
 ```mermaid
 graph TB
     A[Frontend Next.js] --> B[API Gateway]
