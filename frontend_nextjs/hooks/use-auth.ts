@@ -193,6 +193,7 @@ export function useAuth(): AuthState & AuthActions {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem('activeTab');
+      localStorage.removeItem('activeView');
       
       // Clear auth cookie
       document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
@@ -203,6 +204,11 @@ export function useAuth(): AuthState & AuthActions {
         isLoading: false,
         isAuthenticated: false,
       });
+
+      // Rediriger vers la page d'accueil après la déconnexion
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   };
 

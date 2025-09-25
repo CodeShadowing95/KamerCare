@@ -276,10 +276,11 @@ class AppointmentController extends Controller
      */
     public function confirm(Appointment $appointment): JsonResponse
     {
-        if ($appointment->status !== 'scheduled') {
+        // Permettre la confirmation des rendez-vous avec statut 'requested' ou 'scheduled'
+        if (!in_array($appointment->status, ['requested', 'scheduled'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only scheduled appointments can be confirmed'
+                'message' => 'Only requested or scheduled appointments can be confirmed'
             ], 422);
         }
 

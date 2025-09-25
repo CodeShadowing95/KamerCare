@@ -92,7 +92,7 @@ export function middleware(request: NextRequest) {
     // Redirection intelligente basée sur le rôle utilisateur
     // Note: Le middleware ne peut pas accéder au localStorage, donc on redirige vers /doctor par défaut
     // La logique de redirection basée sur les rôles est gérée dans les pages de connexion
-    const dashboardUrl = new URL('/doctor', request.url)
+    const dashboardUrl = new URL('/login', request.url)
     return NextResponse.redirect(dashboardUrl)
   }
   

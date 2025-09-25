@@ -87,7 +87,7 @@ export function useAppointmentRequests(): UseAppointmentRequestsReturn {
 
     try {
       const response = await fetch(`http://localhost:8000/api/appointments/${id}/confirm`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

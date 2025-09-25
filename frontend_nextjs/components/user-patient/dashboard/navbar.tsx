@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react'
 
 const Navbar = () => {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<string>('overview')
   const [isScrolled, setIsScrolled] = useState(false)
 
@@ -222,8 +222,7 @@ const Navbar = () => {
                 
                 <DropdownMenuItem 
                   onClick={() => {
-                    localStorage.clear()
-                    router.push('/login')
+                    logout()
                   }}
                   className="flex items-center space-x-2 px-2 py-1.5 rounded-md hover:bg-red-50/80 dark:hover:bg-red-900/20 transition-all duration-150 cursor-pointer"
                 >
