@@ -1,0 +1,184 @@
+graph TB
+    %% === FRONTEND COMPONENTS ===
+    subgraph "🎨 FRONTEND - Next.js"
+        %% Core App Structure
+        subgraph "📱 App Pages"
+            APP_HOME[🏠 Home Page]
+            APP_LOGIN[🔐 Login Pages]
+            APP_SIGNUP[📝 Signup Pages]
+            APP_DASHBOARD[📊 Dashboard]
+            APP_ADMIN[👨‍💼 Admin Panel]
+            APP_DOCTOR[👨‍⚕️ Doctor Portal]
+            APP_SEARCH[🔍 Search Doctors]
+        end
+        
+        %% UI Components
+        subgraph "🧩 UI Components"
+            UI_NAVBAR[🧭 Navigation]
+            UI_CARDS[🃏 Cards & Forms]
+            UI_CHARTS[📈 Charts]
+            UI_MAP[🗺️ Map Component]
+            UI_MODALS[💬 Dialogs & Modals]
+            UI_TABLES[📋 Data Tables]
+        end
+        
+        %% Business Components
+        subgraph "💼 Business Components"
+            COMP_DOCTOR_CARD[👨‍⚕️ DoctorCard]
+            COMP_APPOINTMENT[📅 Appointment]
+            COMP_PATIENT[👥 Patient]
+            COMP_HOSPITAL[🏥 Hospital]
+            COMP_AUTH[🔐 Auth Forms]
+        end
+        
+        %% Hooks & State
+        subgraph "🎣 Custom Hooks"
+            HOOK_AUTH[🔐 useAuth]
+            HOOK_DOCTORS[👨‍⚕️ useDoctors]
+            HOOK_APPOINTMENTS[📅 useAppointments]
+            HOOK_PATIENTS[👥 usePatients]
+            HOOK_HOSPITALS[🏥 useHospitals]
+        end
+    end
+    
+    %% === API LAYER ===
+    subgraph "🌐 API LAYER"
+        API_CLIENT[📡 API Client]
+        API_ROUTES[🛣️ API Routes]
+        MIDDLEWARE[🛡️ Middleware]
+    end
+    
+    %% === BACKEND COMPONENTS ===
+    subgraph "⚙️ BACKEND - Laravel"
+        %% Controllers
+        subgraph "🎛️ Controllers"
+            CTRL_AUTH[🔐 AuthController]
+            CTRL_DOCTOR[👨‍⚕️ DoctorController]
+            CTRL_PATIENT[👥 PatientController]
+            CTRL_APPOINTMENT[📅 AppointmentController]
+            CTRL_HOSPITAL[🏥 HospitalController]
+            CTRL_USER[👤 UserController]
+            CTRL_MEDICAL[📋 MedicalRecordController]
+            CTRL_SWAGGER[📚 SwaggerController]
+        end
+        
+        %% Models
+        subgraph "🗄️ Models"
+            MODEL_USER[👤 User]
+            MODEL_DOCTOR[👨‍⚕️ Doctor]
+            MODEL_PATIENT[👥 Patient]
+            MODEL_APPOINTMENT[📅 Appointment]
+            MODEL_HOSPITAL[🏥 Hospital]
+            MODEL_MEDICAL[📋 MedicalRecord]
+        end
+        
+        %% Services
+        subgraph "🔧 Services"
+            SERVICE_AUTH[🔐 Auth Service]
+            SERVICE_EMAIL[📧 Email Service]
+            SERVICE_NOTIFICATION[🔔 Notification]
+            SERVICE_VALIDATION[✅ Validation]
+        end
+    end
+    
+    %% === DATABASE ===
+    subgraph "💾 DATABASE"
+        DB_MYSQL[(🗃️ MySQL Database)]
+        DB_TABLES[📊 Tables:<br/>users, doctors, patients,<br/>appointments, hospitals,<br/>medical_records]
+    end
+    
+    %% === EXTERNAL SERVICES ===
+    subgraph "🌍 EXTERNAL"
+        EXT_MAPS[🗺️ Maps API]
+        EXT_EMAIL[📧 Email Service]
+        EXT_STORAGE[💾 File Storage]
+    end
+    
+    %% === CONNECTIONS ===
+    %% Frontend to API
+    APP_HOME --> API_CLIENT
+    APP_LOGIN --> API_CLIENT
+    APP_DASHBOARD --> API_CLIENT
+    APP_ADMIN --> API_CLIENT
+    APP_DOCTOR --> API_CLIENT
+    APP_SEARCH --> API_CLIENT
+    
+    %% Components to Hooks
+    COMP_DOCTOR_CARD --> HOOK_DOCTORS
+    COMP_APPOINTMENT --> HOOK_APPOINTMENTS
+    COMP_PATIENT --> HOOK_PATIENTS
+    COMP_HOSPITAL --> HOOK_HOSPITALS
+    COMP_AUTH --> HOOK_AUTH
+    
+    %% Hooks to API
+    HOOK_AUTH --> API_CLIENT
+    HOOK_DOCTORS --> API_CLIENT
+    HOOK_APPOINTMENTS --> API_CLIENT
+    HOOK_PATIENTS --> API_CLIENT
+    HOOK_HOSPITALS --> API_CLIENT
+    
+    %% API to Backend
+    API_CLIENT --> API_ROUTES
+    API_ROUTES --> MIDDLEWARE
+    MIDDLEWARE --> CTRL_AUTH
+    MIDDLEWARE --> CTRL_DOCTOR
+    MIDDLEWARE --> CTRL_PATIENT
+    MIDDLEWARE --> CTRL_APPOINTMENT
+    MIDDLEWARE --> CTRL_HOSPITAL
+    MIDDLEWARE --> CTRL_USER
+    MIDDLEWARE --> CTRL_MEDICAL
+    
+    %% Controllers to Models
+    CTRL_AUTH --> MODEL_USER
+    CTRL_DOCTOR --> MODEL_DOCTOR
+    CTRL_PATIENT --> MODEL_PATIENT
+    CTRL_APPOINTMENT --> MODEL_APPOINTMENT
+    CTRL_HOSPITAL --> MODEL_HOSPITAL
+    CTRL_USER --> MODEL_USER
+    CTRL_MEDICAL --> MODEL_MEDICAL
+    
+    %% Controllers to Services
+    CTRL_AUTH --> SERVICE_AUTH
+    CTRL_DOCTOR --> SERVICE_VALIDATION
+    CTRL_PATIENT --> SERVICE_VALIDATION
+    CTRL_APPOINTMENT --> SERVICE_NOTIFICATION
+    CTRL_USER --> SERVICE_EMAIL
+    
+    %% Models to Database
+    MODEL_USER --> DB_MYSQL
+    MODEL_DOCTOR --> DB_MYSQL
+    MODEL_PATIENT --> DB_MYSQL
+    MODEL_APPOINTMENT --> DB_MYSQL
+    MODEL_HOSPITAL --> DB_MYSQL
+    MODEL_MEDICAL --> DB_MYSQL
+    
+    %% External Services
+    UI_MAP --> EXT_MAPS
+    SERVICE_EMAIL --> EXT_EMAIL
+    CTRL_MEDICAL --> EXT_STORAGE
+    
+    %% Database Details
+    DB_MYSQL --> DB_TABLES
+    
+    %% === STYLES ===
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef api fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef backend fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef database fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    
+    %% Apply styles
+    class APP_HOME,APP_LOGIN,APP_SIGNUP,APP_DASHBOARD,APP_ADMIN,APP_DOCTOR,APP_SEARCH frontend
+    class UI_NAVBAR,UI_CARDS,UI_CHARTS,UI_MAP,UI_MODALS,UI_TABLES frontend
+    class COMP_DOCTOR_CARD,COMP_APPOINTMENT,COMP_PATIENT,COMP_HOSPITAL,COMP_AUTH frontend
+    class HOOK_AUTH,HOOK_DOCTORS,HOOK_APPOINTMENTS,HOOK_PATIENTS,HOOK_HOSPITALS frontend
+    
+    class API_CLIENT,API_ROUTES,MIDDLEWARE api
+    
+    class CTRL_AUTH,CTRL_DOCTOR,CTRL_PATIENT,CTRL_APPOINTMENT,CTRL_HOSPITAL,CTRL_USER,CTRL_MEDICAL,CTRL_SWAGGER backend
+    class MODEL_USER,MODEL_DOCTOR,MODEL_PATIENT,MODEL_APPOINTMENT,MODEL_HOSPITAL,MODEL_MEDICAL backend
+    class SERVICE_AUTH,SERVICE_EMAIL,SERVICE_NOTIFICATION,SERVICE_VALIDATION backend
+    
+    class DB_MYSQL,DB_TABLES database
+    
+    class EXT_MAPS,EXT_EMAIL,EXT_STORAGE external
