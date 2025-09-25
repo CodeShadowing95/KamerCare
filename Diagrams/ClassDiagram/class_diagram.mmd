@@ -179,24 +179,24 @@ classDiagram
     }
     
     %% Relations entre les classes
-    User ||--o| Doctor : "has one"
-    User ||--o| Patient : "has one"
-    User ||--o{ Appointment : "created by"
+    User ||--o| Doctor : has_one
+    User ||--o| Patient : has_one
+    User ||--o{ Appointment : created_by
     
-    Hospital ||--o{ Doctor : "has many"
+    Hospital ||--o{ Doctor : has_many
     
-    Doctor ||--o{ Appointment : "has many"
-    Doctor ||--o{ MedicalRecord : "has many"
-    Doctor }o--o{ Patient : "many to many"
-    Doctor }o--|| Hospital : "belongs to"
+    Doctor ||--o{ Appointment : has_many
+    Doctor ||--o{ MedicalRecord : has_many
+    Doctor }o--o{ Patient : many_to_many
+    Doctor }o--|| Hospital : belongs_to
     
-    Patient ||--o{ Appointment : "has many"
-    Patient ||--o{ MedicalRecord : "has many"
+    Patient ||--o{ Appointment : has_many
+    Patient ||--o{ MedicalRecord : has_many
     
-    Appointment ||--|| MedicalRecord : "has one"
-    Appointment }o--|| Doctor : "belongs to"
-    Appointment }o--|| Patient : "belongs to"
+    Appointment ||--|| MedicalRecord : has_one
+    Appointment }o--|| Doctor : belongs_to
+    Appointment }o--|| Patient : belongs_to
     
-    MedicalRecord }o--|| Doctor : "belongs to"
-    MedicalRecord }o--|| Patient : "belongs to"
-    MedicalRecord }o--|| Appointment : "belongs to"
+    MedicalRecord }o--|| Doctor : belongs_to
+    MedicalRecord }o--|| Patient : belongs_to
+    MedicalRecord }o--|| Appointment : belongs_to
