@@ -83,75 +83,53 @@ graph TB
     %% Utilisateur
     U[👤 Utilisateur] --> V
     
-    %% Couche Vue (Frontend)
-    subgraph "🎨 VUE - Interface Utilisateur"
-        V[📱 Next.js Frontend]
-        V1[🖥️ Pages & Composants]
-        V2[🎨 Interface Utilisateur]
-        V3[📋 Formulaires]
-        V4[📊 Tableaux de Bord]
-        
-        V --> V1
-        V --> V2
-        V --> V3
-        V --> V4
+    %% Disposition en V - Vue à gauche, Modèle à droite
+    subgraph "🎨 VUE"
+        V[📱 Next.js<br/>Frontend]
+        V1[🖥️ Pages &<br/>Composants]
+        V2[📋 Formulaires]
+        V3[📊 Tableaux<br/>de Bord]
     end
     
-    %% Communication HTTP
-    V -.->|"🌐 Requêtes HTTP/API"| C
-    C -.->|"📤 Réponses JSON"| V
+    subgraph "🗄️ MODÈLE"
+        M[📋 Laravel<br/>Models]
+        M1[👤 User<br/>Model]
+        M2[👨‍⚕️ Doctor<br/>Model]
+        M3[📅 Appointment<br/>Model]
+        DB[(🗃️ MySQL<br/>Database)]
+    end
     
-    %% Couche Contrôleur (Backend)
-    subgraph "🎛️ CONTRÔLEUR - Logique Métier"
+    %% Contrôleur au centre-bas
+    subgraph "🎛️ CONTRÔLEUR"
         C[⚙️ Laravel Controllers]
-        C1[🔐 AuthController]
-        C2[👨‍⚕️ DoctorController]
-        C3[👥 PatientController]
-        C4[📅 AppointmentController]
-        C5[🏥 HospitalController]
-        
-        C --> C1
-        C --> C2
-        C --> C3
-        C --> C4
-        C --> C5
+        C1[🔐 Auth]
+        C2[👨‍⚕️ Doctor]
+        C3[👥 Patient]
+        C4[📅 Appointment]
     end
     
-    %% Communication avec le Modèle
-    C -->|"📝 Opérations CRUD"| M
-    M -->|"📊 Données"| C
+    %% Flux de données en V
+    V -.->|"🌐 HTTP/API"| C
+    C -.->|"📤 JSON"| V
+    C -->|"📝 CRUD"| M
+    M -->|"📊 Data"| C
+    M --> DB
     
-    %% Couche Modèle (Base de Données)
-    subgraph "🗄️ MODÈLE - Données & Logique"
-        M[📋 Laravel Models]
-        M1[👤 User Model]
-        M2[👨‍⚕️ Doctor Model]
-        M3[👥 Patient Model]
-        M4[📅 Appointment Model]
-        M5[🏥 Hospital Model]
-        
-        M --> M1
-        M --> M2
-        M --> M3
-        M --> M4
-        M --> M5
-    end
+    %% Positionnement en V
+    V -.-> C
+    M -.-> C
     
-    %% Base de données
-    M -->|"💾 Eloquent ORM"| DB[(🗃️ MySQL Database)]
-    
-    %% Styles
+    %% Styles compacts
     classDef vue fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef controller fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
     classDef model fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
     classDef user fill:#fff3e0,stroke:#e65100,stroke-width:2px
     classDef db fill:#fce4ec,stroke:#880e4f,stroke-width:2px
     
-    class V,V1,V2,V3,V4 vue
-    class C,C1,C2,C3,C4,C5 controller
-    class M,M1,M2,M3,M4,M5 model
+    class V,V1,V2,V3 vue
+    class C,C1,C2,C3,C4 controller
+    class M,M1,M2,M3,DB model
     class U user
-    class DB db
 ```
 
 ### 📚 Légende et Flux de Données
