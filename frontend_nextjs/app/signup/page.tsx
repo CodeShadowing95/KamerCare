@@ -552,8 +552,8 @@ export default function SignupPage() {
                                 >
                                   <div className="flex items-center space-x-2">
                                     <MapPin className="w-4 h-4 text-emerald-500" />
-                                    <span className="text-gray-900 dark:text-gray-100">
-                                      {city.city}{city.region && <>, <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{city.region.toUpperCase()}</span></>}
+                                    <span className="text-xs text-gray-900 dark:text-gray-100">
+                                      {city.city}{city.region && <>, <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">{city.region.toUpperCase()}</span></>}
                                     </span>
                                   </div>
                                 </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, MapPin, Star, Calendar, Clock, Heart, User, Phone, Mail, ChevronDown, Settings, LogOut, FileText, Search } from "lucide-react"
+import { ArrowLeft, MapPin, Star, Calendar, Clock, Heart, User, Phone, Mail, ChevronDown, Settings, LogOut, FileText, Search, Filter, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +28,11 @@ import { useCreateAppointment } from "@/hooks/use-create-appointment"
 import { useAuth } from "@/hooks/use-auth"
 import DoctorCard from "@/components/DoctorCard"
 import { MapWrapper } from "@/components/MapComponent"
+import SmartSearchBar from "@/components/SmartSearchBar"
+import SearchFilters from "@/components/SearchFilters"
+import DoctorSortOptions, { type SortOption } from "@/components/DoctorSortOptions"
+import SearchStats from "@/components/SearchStats"
+import DoctorMapView from "@/components/DoctorMapView"
 
 
 
@@ -453,6 +458,19 @@ export default function SearchDoctorsPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentView, setCurrentView] = useState<'list' | 'map'>('list')
+  const [showFilters, setShowFilters] = useState(false)
+  const [showStats, setShowStats] = useState(false)
+  const [currentSort, setCurrentSort] = useState<SortOption>('relevance')
+  const [filters, setFilters] = useState({
+    specialties: [] as string[],
+    priceRange: [0, 100000] as [number, number],
+    maxDistance: 50,
+    availability: 'all' as 'all' | 'today' | 'week' | 'month',
+    languages: [] as string[],
+    consultationTypes: [] as string[],
+    minRating: 0
+  })
 
   const { doctors, loading, error, searchDoctors } = useDoctors()
 
@@ -464,20 +482,89 @@ export default function SearchDoctorsPage() {
     })
   }, [city, specialty, searchDoctors])
 
-  // Fonction de recherche
+  // Fonction de recherche et filtrage avancé
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredDoctors(doctors)
-    } else {
-      const filtered = doctors.filter(doctor => 
+    let filtered = doctors
+
+    // Filtrage par recherche textuelle
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(doctor => 
         doctor.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doctor.specialty?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doctor.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         `${doctor.first_name} ${doctor.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
       )
-      setFilteredDoctors(filtered)
     }
-  }, [searchQuery, doctors])
+
+    // Filtrage par spécialités
+    if (filters.specialties.length > 0) {
+      filtered = filtered.filter(doctor => 
+        doctor.specialty && filters.specialties.includes(doctor.specialty)
+      )
+    }
+
+    // Filtrage par fourchette de prix
+    filtered = filtered.filter(doctor => {
+      const price = doctor.consultation_fee || 0
+      return price >= filters.priceRange[0] && price <= filters.priceRange[1]
+    })
+
+    // Filtrage par note minimale
+    if (filters.minRating > 0) {
+      filtered = filtered.filter(doctor => 
+        (doctor.rating || 0) >= filters.minRating
+      )
+    }
+
+    // Filtrage par types de consultation
+    if (filters.consultationTypes.length > 0) {
+      filtered = filtered.filter(doctor => 
+        doctor.consultation_types?.some(type => 
+          filters.consultationTypes.includes(type)
+        )
+      )
+    }
+
+    // Tri des résultats
+    filtered = [...filtered].sort((a, b) => {
+      switch (currentSort) {
+        case 'rating-desc':
+          return (b.rating || 0) - (a.rating || 0)
+        case 'rating-asc':
+          return (a.rating || 0) - (b.rating || 0)
+        case 'price-asc':
+          return (a.consultation_fee || 0) - (b.consultation_fee || 0)
+        case 'price-desc':
+          return (b.consultation_fee || 0) - (a.consultation_fee || 0)
+        case 'name-asc':
+          const nameA = a.name || `${a.first_name} ${a.last_name}`
+          const nameB = b.name || `${b.first_name} ${b.last_name}`
+          return nameA.localeCompare(nameB)
+        case 'name-desc':
+          const nameA2 = a.name || `${a.first_name} ${a.last_name}`
+          const nameB2 = b.name || `${b.first_name} ${b.last_name}`
+          return nameB2.localeCompare(nameA2)
+        case 'reviews-desc':
+          return (b.reviews_count || 0) - (a.reviews_count || 0)
+        case 'experience-desc':
+          return (b.years_experience || 0) - (a.years_experience || 0)
+        case 'availability':
+          // Tri par disponibilité (simulé)
+          return Math.random() - 0.5
+        case 'distance-asc':
+          // Tri par distance (simulé)
+          return Math.random() - 0.5
+        case 'relevance':
+        default:
+          // Tri par pertinence (score basé sur plusieurs critères)
+          const scoreA = (a.rating || 0) * 0.4 + (a.reviews_count || 0) * 0.3 + (a.years_experience || 0) * 0.3
+          const scoreB = (b.rating || 0) * 0.4 + (b.reviews_count || 0) * 0.3 + (b.years_experience || 0) * 0.3
+          return scoreB - scoreA
+      }
+    })
+
+    setFilteredDoctors(filtered)
+  }, [searchQuery, doctors, filters, currentSort])
 
   // Mettre à jour filteredDoctors quand doctors change
   useEffect(() => {
@@ -486,6 +573,23 @@ export default function SearchDoctorsPage() {
 
   const handleDoctorSelect = (doctor: Doctor) => {
     setSelectedDoctor(doctor)
+  }
+
+  const handleDoctorFromSearch = (doctor: Doctor) => {
+    setSelectedDoctor(doctor)
+    // Optionnel: faire défiler vers la carte du médecin
+  }
+
+  const handleFiltersChange = (newFilters: typeof filters) => {
+    setFilters(newFilters)
+  }
+
+  const handleSortChange = (sort: SortOption) => {
+    setCurrentSort(sort)
+  }
+
+  const handleViewChange = (view: 'list' | 'map') => {
+    setCurrentView(view)
   }
 
   if (loading) {
@@ -550,86 +654,147 @@ export default function SearchDoctorsPage() {
 
       {/* Contenu principal */}
       <div className="container mx-auto px-6 py-8">
-        {filteredDoctors.length > 0 ? (
-          <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-180px)]">
-            {/* Colonne gauche - Liste des cartes docteur */}
-            <div className="w-full md:w-1/2 overflow-y-auto pr-3 pl-2">
-              <div className="flex flex-col gap-4">
-                {/* Barre de recherche */}
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Rechercher par nom, spécialité, ville..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-10 pl-4 py-2 w-full h-10 text-xs border-slate-200 dark:border-slate-700 focus:border-emerald-300 dark:focus:border-emerald-600 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-800 w-4 h-4" />
-                </div>
-                <div className="flex max-[420px]:flex-col flex-row items-center justify-between gap-2 mb-4">
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <span className="font-bold text-slate-800">{filteredDoctors.length}</span> médecin{filteredDoctors.length > 1 ? 's' : '(s)'} trouvé(s)
-                  </span>
-                  <Select defaultValue="price">
-                    <SelectTrigger className="w-[180px] h-8 text-xs border border-slate-300">
-                      <SelectValue placeholder="Trier par..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="price">Trier par prix</SelectItem>
-                      <SelectItem value="rating">Trier par note</SelectItem>
-                      <SelectItem value="distance">Trier par distance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {/* Liste des docteurs - 2 par ligne */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {filteredDoctors.map((doctor) => (
-                  <DoctorCardWithModal 
-                    key={doctor.id}
-                    doctor={doctor} 
-                    isSelected={selectedDoctor?.id === doctor.id}
-                    onSelect={() => handleDoctorSelect(doctor)}
-                  />
-                ))}
-              </div>
-            </div>
+        {/* Barre de recherche intelligente */}
+        <div className="mb-6">
+          <SmartSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            doctors={doctors}
+            onDoctorSelect={handleDoctorFromSearch}
+            placeholder="Rechercher par nom, spécialité, ville..."
+          />
+        </div>
 
-            {/* Colonne droite - Carte interactive */}
-            <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-200 dark:border-slate-700">
-              <div className="relative h-full">
-                <MapWrapper
-                  doctors={doctors}
-                  onDoctorSelect={handleDoctorSelect}
-                  className="h-full w-full"
-                />
-                {/* Contrôles de la carte */}
-                <div className="absolute top-4 right-4 flex flex-col gap-2">
-                  <button className="bg-white dark:bg-slate-800 p-2 rounded-md shadow-md border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </button>
-                  <button className="bg-white dark:bg-slate-800 p-2 rounded-md shadow-md border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
-                  </button>
+        {/* Contrôles et statistiques */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          {/* Boutons de contrôle */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={showFilters ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filtres
+              {(filters.specialties.length > 0 || filters.minRating > 0 || filters.consultationTypes.length > 0) && (
+                <span className="bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5 ml-1">
+                  {filters.specialties.length + (filters.minRating > 0 ? 1 : 0) + filters.consultationTypes.length}
+                </span>
+              )}
+            </Button>
+            
+            <Button
+              variant={showStats ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowStats(!showStats)}
+              className="gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Statistiques
+            </Button>
+          </div>
+
+          {/* Options de tri */}
+          <div className="flex-1">
+            <DoctorSortOptions
+              currentSort={currentSort}
+              onSortChange={handleSortChange}
+              resultsCount={filteredDoctors.length}
+              showQuickSort={true}
+            />
+          </div>
+        </div>
+
+        {/* Filtres avancés (repliables) */}
+        {showFilters && (
+          <div className="mb-6">
+            <SearchFilters
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              doctors={doctors}
+            />
+          </div>
+        )}
+
+        {/* Statistiques (repliables) */}
+        {showStats && (
+          <div className="mb-6">
+            <SearchStats
+              doctors={filteredDoctors}
+              totalDoctors={doctors.length}
+              filters={filters}
+              searchQuery={searchQuery}
+            />
+          </div>
+        )}
+
+        {filteredDoctors.length > 0 ? (
+          currentView === 'list' ? (
+            <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-180px)]">
+              {/* Colonne gauche - Liste des cartes docteur */}
+              <div className="w-full md:w-1/2 overflow-y-auto pr-3 pl-2 py-2">
+                {/* Liste des docteurs - 2 par ligne */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {filteredDoctors.map((doctor) => (
+                    <DoctorCardWithModal 
+                      key={doctor.id}
+                      doctor={doctor} 
+                      isSelected={selectedDoctor?.id === doctor.id}
+                      onSelect={() => handleDoctorSelect(doctor)}
+                    />
+                  ))}
                 </div>
-                {/* Indicateur de sélection */}
-                {selectedDoctor && (
-                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg border border-slate-200 dark:border-slate-700">
-                    <p className="text-xs font-medium text-slate-900 dark:text-slate-100">
-                      Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {selectedDoctor.city}
-                    </p>
+              </div>
+
+              {/* Colonne droite - Carte interactive */}
+              <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div className="relative h-full">
+                  <MapWrapper
+                    doctors={filteredDoctors}
+                    onDoctorSelect={handleDoctorSelect}
+                    className="h-full w-full"
+                  />
+                  {/* Contrôles de la carte */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    <button className="bg-white dark:bg-slate-800 p-2 rounded-md shadow-md border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </button>
+                    <button className="bg-white dark:bg-slate-800 p-2 rounded-md shadow-md border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                      </svg>
+                    </button>
                   </div>
-                )}
+                  {/* Indicateur de sélection */}
+                  {selectedDoctor && (
+                    <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg border border-slate-200 dark:border-slate-700">
+                      <p className="text-xs font-medium text-slate-900 dark:text-slate-100">
+                        Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {selectedDoctor.city}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            /* Vue carte plein écran */
+            <div className="h-[calc(100vh-200px)]">
+              <DoctorMapView
+                doctors={filteredDoctors}
+                selectedDoctor={selectedDoctor}
+                onDoctorSelect={handleDoctorSelect}
+                onViewChange={handleViewChange}
+                currentView={currentView}
+                className="h-full"
+              />
+            </div>
+          )
         ) : (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">

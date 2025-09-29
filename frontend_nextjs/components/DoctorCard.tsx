@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { MapPin, Star, Clock, User, Calendar, DollarSign, Briefcase, AlertCircle, Award, Heart, ArrowDown, ChevronDown, EllipsisVertical, CalendarClock, CalendarDays, ShieldCheck, Info } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, Star, Clock, User, Calendar, DollarSign, Briefcase, AlertCircle, Award, Heart, ArrowDown, ChevronDown, EllipsisVertical, CalendarClock, CalendarDays, ShieldCheck, Info, Flag } from 'lucide-react';
 import { Doctor } from '@/hooks/use-doctors';
 import { useAuth } from '@/hooks/use-auth';
+import { useDoctorLikes } from '@/hooks/use-doctor-likes';
 import { useRouter } from 'next/navigation';
 
 interface DoctorCardProps {
@@ -13,10 +14,80 @@ interface DoctorCardProps {
 
 const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onSelect, onReserve }) => {
   const { user, token } = useAuth();
+  const { toggleLike, getLikeData, isLoading } = useDoctorLikes();
   const [authError, setAuthError] = useState<string | null>(null);
   const [showLoginOverlay, setShowLoginOverlay] = useState(false);
   const [showSpecialtiestooltip, setShowSpecialtiestooltip] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [likeData, setLikeData] = useState({ is_liked: false, likes_count: 0 });
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Charger les données de like au montage du composant
+  useEffect(() => {
+    if (doctor.id) {
+      getLikeData(doctor.id, token || undefined).then(data => {
+        setLikeData(data);
+      });
+    }
+  }, [user, token, doctor.id, getLikeData]);
+
+  // Fermer le dropdown au clic extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
+
+  // Gérer le toggle du like
+  const handleLikeToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user || !token) {
+      setShowLoginOverlay(true);
+      setTimeout(() => {
+        setShowLoginOverlay(false);
+      }, 5000);
+      return;
+    }
+
+    try {
+      const success = await toggleLike(doctor.id, token, likeData.is_liked);
+      if (success) {
+        // Mettre à jour l'état local
+        setLikeData(prev => ({
+          is_liked: !prev.is_liked,
+          likes_count: prev.is_liked ? prev.likes_count - 1 : prev.likes_count + 1
+        }));
+      }
+    } catch (error) {
+      console.error('Erreur lors du toggle du like:', error);
+    }
+  };
+
+  // Gérer le clic sur le bouton ellipsis
+  const handleEllipsisClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDropdown(!showDropdown);
+  };
+
+  // Gérer le signalement du docteur
+  const handleReportDoctor = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDropdown(false);
+    // TODO: Implémenter la logique de signalement
+    console.log('Signaler le docteur:', doctor.id);
+  };
 
   // Adapter les propriétés du doctor pour correspondre à l'interface attendue
   const specialties = (() => {
@@ -156,7 +227,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
       <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       
       {/* Contenu principal avec layout horizontal */}
-      <div className="relative flex h-48">
+      <div className="relative flex h-52">
         {/* Section gauche - Photo du docteur */}
         <div className="w-32 flex-shrink-0 relative overflow-hidden">
           {/* Photo de profil */}
@@ -183,16 +254,26 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
           
           {/* Actions rapides sur la photo */}
           {user && token && (
-            <div className="absolute bottom-3 left-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <button className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-colors duration-200">
-                <Heart className="w-3 h-3 text-red-500" />
+            <div className="absolute bottom-3 left-3 flex space-x-2 transition-opacity duration-300">
+              <button 
+                onClick={handleLikeToggle}
+                disabled={isLoading}
+                className={`p-1.5 backdrop-blur-sm rounded-full shadow-lg transition-all duration-200 ${
+                  likeData.is_liked 
+                    ? 'bg-red-500/90 hover:bg-red-600/90' 
+                    : 'bg-white/90 hover:bg-white'
+                } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Heart className={`w-3 h-3 ${
+                  likeData.is_liked ? 'text-white fill-current' : 'text-red-500'
+                }`} />
               </button>
             </div>
           ) }
         </div>
         
         {/* Section droite - Informations du docteur */}
-        <div className="flex-1 px-4 py-2 flex flex-col justify-between">
+        <div className="flex-1 px-4 py-2 flex flex-col gap-2 justify-between">
           {/* Header avec nom et actions */}
           <div className="space-y-4">
             {/* Nom et spécialité */}
@@ -201,15 +282,27 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
                 <h3 className="font-bold text-teal-700 text-base leading-tight group-hover:text-emerald-700 transition-colors duration-300">
                   Dr. {doctor.first_name} {doctor.last_name}
                 </h3>
-                <button
-                  className="p-1 hover:bg-slate-100 rounded-full transition-colors duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // onMenuClick(doctor);
-                  }}
-                >
-                  <EllipsisVertical className="w-3 h-3 text-slate-500 hover:text-slate-700" />
-                </button>
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    className="p-1 hover:bg-slate-100 rounded-full transition-colors duration-200"
+                    onClick={handleEllipsisClick}
+                  >
+                    <EllipsisVertical className="w-3 h-3 text-slate-500 hover:text-slate-700" />
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {showDropdown && (
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={handleReportDoctor}
+                        className="w-full px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors duration-150"
+                      >
+                        <Flag className="w-4 h-4 text-red-500" />
+                        <span>Signaler le docteur</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="flex flex-wrap gap-1">
@@ -251,11 +344,19 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
             </div>
 
             <div className="space-y-0.5">
-              {/* Note */}
-              <div className="flex items-center space-x-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                <span className="text-slate-500 text-xs">4.8</span>
-                <span className="text-slate-500 text-xs leading-[14px]">(127 avis)</span>
+              {/* Note et Likes */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1">
+                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                  <span className="text-slate-500 text-xs">4.8</span>
+                  <span className="text-slate-500 text-xs leading-[14px]">(127 avis)</span>
+                </div>
+                {likeData.likes_count > 0 && (
+                  <div className="flex items-center space-x-1">
+                    <Heart className="w-3 h-3 text-red-500 fill-current" />
+                    <span className="text-slate-500 text-xs">{likeData.likes_count}</span>
+                  </div>
+                )}
               </div>
 
               {/* Localisation */}
@@ -306,11 +407,11 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected = false, onS
       </div>
       
       {/* Indicateur de sélection */}
-      {isSelected && (
+      {/* {isSelected && (
         <div className="absolute top-2 right-2">
           <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg animate-pulse" />
         </div>
-      )}
+      )} */}
 
       {/* Overlay de connexion */}
       {showLoginOverlay && (

@@ -57,6 +57,17 @@ class User extends Authenticatable
         return $this->hasOne(Patient::class);
     }
 
+    public function doctorLikes()
+    {
+        return $this->hasMany(DoctorLike::class);
+    }
+
+    public function likedDoctors()
+    {
+        return $this->belongsToMany(Doctor::class, 'doctor_likes')
+                    ->withTimestamps();
+    }
+
     // Scopes
     public function scopeActive($query)
     {

@@ -84,6 +84,17 @@ class Doctor extends Model
                     ->withTimestamps();
     }
 
+    public function likes()
+    {
+        return $this->hasMany(DoctorLike::class);
+    }
+
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'doctor_likes')
+                    ->withTimestamps();
+    }
+
     // Accessors
     public function getFullNameAttribute()
     {
@@ -105,5 +116,16 @@ class Doctor extends Model
     {
         // Recherche dans la chaîne de spécialisations séparées par des virgules
         return $query->where('specialization', 'like', "%{$specialization}%");
+    }
+
+    // Méthodes utilitaires pour les likes
+    public function getLikesCountAttribute()
+    {
+        return $this->likes()->count();
+    }
+
+    public function isLikedByUser($userId)
+    {
+        return $this->likes()->where('user_id', $userId)->exists();
     }
 }

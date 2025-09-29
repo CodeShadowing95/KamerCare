@@ -396,6 +396,73 @@ class ApiService {
       },
     });
   }
+
+  // Doctor Likes API methods
+  async likeDoctor(doctorId: number, token: string): Promise<{
+    success: boolean;
+    data?: any;
+    message: string;
+  }> {
+    return this.makeRequest(`/doctors/${doctorId}/like`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async unlikeDoctor(doctorId: number, token: string): Promise<{
+    success: boolean;
+    data?: any;
+    message: string;
+  }> {
+    return this.makeRequest(`/doctors/${doctorId}/unlike`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getDoctorLikes(doctorId: number): Promise<{
+    success: boolean;
+    data: any[];
+    message: string;
+  }> {
+    return this.makeRequest(`/doctors/${doctorId}/likes`);
+  }
+
+  async getDoctorLikesCount(doctorId: number): Promise<{
+    success: boolean;
+    data: { likes_count: number };
+    message: string;
+  }> {
+    return this.makeRequest(`/doctors/${doctorId}/likes/count`);
+  }
+
+  async checkIfUserLikesDoctor(doctorId: number, token: string): Promise<{
+    success: boolean;
+    data: { is_liked: boolean };
+    message: string;
+  }> {
+    return this.makeRequest(`/doctors/${doctorId}/is-liked`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getUserLikedDoctors(token: string): Promise<{
+    success: boolean;
+    data: any[];
+    message: string;
+  }> {
+    return this.makeRequest('/user/liked-doctors', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
 }
 
 export const apiService = new ApiService();

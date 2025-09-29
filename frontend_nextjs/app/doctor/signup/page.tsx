@@ -33,20 +33,20 @@ export default function DoctorSignup() {
 
   // Hook pour la gestion des villes
   const { searchCities, searchResults, loading: citiesLoading, error: citiesError } = useCities()
-  
+
   // Générer les 7 jours à partir du lendemain
   const generateWeekDays = () => {
     const days = []
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
-    
+
     for (let i = 0; i < 7; i++) {
       const currentDate = new Date(tomorrow)
       currentDate.setDate(tomorrow.getDate() + i)
-      
+
       const dateStr = currentDate.toISOString().split('T')[0] // Format YYYY-MM-DD
       const dayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' })
-      
+
       days.push({
         key: dateStr,
         label: `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} (${currentDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })})`,
@@ -55,9 +55,9 @@ export default function DoctorSignup() {
     }
     return days
   }
-  
+
   const weekDays = generateWeekDays()
-  
+
   // Initialiser consultation_hours avec les dates dynamiques
   const initializeConsultationHours = () => {
     const hours: any = {}
@@ -66,7 +66,7 @@ export default function DoctorSignup() {
     })
     return hours
   }
-  
+
   const [formData, setFormData] = useState({
     // Étape 1: Informations personnelles
     first_name: "",
@@ -104,7 +104,7 @@ export default function DoctorSignup() {
     "Informations personnelles",
     "Informations professionnelles de base",
     "Pratique médicale",
-    "Sécurité"
+    "Sécurité et confidentialité"
   ]
 
   useEffect(() => {
@@ -428,737 +428,763 @@ export default function DoctorSignup() {
           }}
         />
 
-        {/* Logo en arrière-plan */}
-        <div className="absolute -left-96 -top-36 transform -translate-y-36 opacity-15 pointer-events-none">
+        {/* Logo en arrière-plan - Responsive */}
+        <div className="absolute -left-32 sm:-left-64 lg:-left-96 -top-16 sm:-top-24 lg:-top-36 transform -translate-y-16 sm:-translate-y-24 lg:-translate-y-36 opacity-10 lg:opacity-15 pointer-events-none">
           <img
             src="/KamerCare-logo.png"
             alt="KamerCare Logo"
-            className="w-[70vw] h-[70vw] object-contain filter grayscale"
+            className="w-[50vw] sm:w-[60vw] lg:w-[70vw] h-[50vw] sm:h-[60vw] lg:h-[70vw] object-contain filter grayscale"
           />
         </div>
 
-        {/* Logo en arrière-plan 2 */}
-        <div className="absolute -right-32 -bottom-24 transform -translate-y-36 opacity-15 pointer-events-none">
+        {/* Logo en arrière-plan 2 - Responsive */}
+        <div className="absolute -right-16 sm:-right-24 lg:-right-32 -bottom-12 sm:-bottom-16 lg:-bottom-24 transform -translate-y-16 sm:-translate-y-24 lg:-translate-y-36 opacity-10 lg:opacity-15 pointer-events-none">
           <img
             src="/KamerCare-logo.png"
             alt="KamerCare Logo"
-            className="w-[40vw] h-[40vw] object-contain filter grayscale rotate-y-180"
+            className="w-[30vw] sm:w-[35vw] lg:w-[40vw] h-[30vw] sm:h-[35vw] lg:h-[40vw] object-contain filter grayscale rotate-y-180"
           />
         </div>
       </div>
 
-      {/* Bouton de retour à l'accueil */}
-      <Link href="/doctor-portal" className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-xl hover:bg-white/30 hover:border-white/40 transition-all duration-300 text-gray-800 hover:text-blue-600">
+      {/* Bouton de retour à l'accueil - Responsive */}
+      <Link href="/doctor-portal" className="absolute top-4 sm:top-6 left-4 sm:left-6 z-20 flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-xl hover:bg-white/30 hover:border-white/40 transition-all duration-300 text-gray-800 hover:text-blue-600">
         <Home className="w-4 h-4" />
-        <span className="text-xs font-medium">Retour à l'accueil</span>
+        <span className="text-xs font-medium hidden sm:inline">Retour à l'accueil</span>
       </Link>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-2">
-        <div className="w-full max-w-4xl">
-          <div className="text-center mb-4">
-            <div className="flex justify-center mb-3">
-              <div className="p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
-                <Stethoscope className="w-10 h-10 text-blue-600" />
-              </div>
-            </div>
-            <h1 className="text-3xl leading-tight md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              Rejoignez la revolution medicale
-            </h1>
-            <p className="text-base text-gray-600 mb-4">
-              Creez votre compte professionnel et rejoignez notre communaute medicale.
-            </p>
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-2 sm:p-4 lg:p-8 py-8 sm:py-12">
+        <div className="w-full max-w-7xl mx-auto">
+          {/* Layout responsive: mobile stack, desktop side-by-side */}
+          <div className="flex flex-col lg:flex-row justify-center items-start gap-6 lg:gap-8">
 
-            <div className="flex justify-center space-x-6 mb-4">
-              <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 text-green-600" />
-                <span className="text-xs sm:text-sm text-gray-700 font-medium">Inscription securisee et verifiee</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Heart className="w-5 h-5 text-red-500" />
-                <span className="text-xs sm:text-sm text-gray-700 font-medium">Acces a tous les outils medicaux</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-yellow-600" />
-                <span className="text-xs sm:text-sm text-gray-700 font-medium">Suivi patient en temps reel</span>
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-500">
-              © 2024 KamerCare. Tous droits reserves.
-            </p>
-          </div>
-
-          <Card className="backdrop-blur-sm bg-white/90 shadow-2xl border-0 rounded-3xl overflow-hidden py-0">
-            <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white p-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl md:text-3xl font-bold mb-2">
-                    Inscription Medecin
-                  </CardTitle>
-                  <CardDescription className="text-blue-100 text-lg">
-                    {stepTitles[currentStep - 1]}
-                  </CardDescription>
+            {/* Section d'introduction - Hidden on mobile, visible on desktop */}
+            <div className="hidden lg:block lg:w-1/3 xl:w-2/5 text-center lg:text-left lg:sticky lg:top-8 mt-12">
+              <div className="flex justify-center lg:justify-start mb-6">
+                <div className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
+                  <Stethoscope className="w-12 h-12 text-blue-600" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                    <UserPlus className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-4xl xl:text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                Rejoignez la révolution médicale
+              </h1>
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                Créez votre compte professionnel et rejoignez notre communauté médicale.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-8 max-w-sm mx-auto lg:mx-0">
+                <div className="flex flex-col items-center p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/70 transition-all duration-200 hover:scale-105">
+                  <Shield className="w-8 h-8 text-green-600 mb-3" />
+                  <span className="text-sm text-gray-700 font-medium text-center leading-tight">Inscription sécurisée et vérifiée</span>
+                </div>
+                <div className="flex flex-col items-center p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/70 transition-all duration-200 hover:scale-105">
+                  <Heart className="w-8 h-8 text-red-500 mb-3" />
+                  <span className="text-sm text-gray-700 font-medium text-center leading-tight">Accès à tous les outils médicaux</span>
+                </div>
+                <div className="flex flex-col items-center p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/70 transition-all duration-200 hover:scale-105">
+                  <Users className="w-8 h-8 text-blue-600 mb-3" />
+                  <span className="text-sm text-gray-700 font-medium text-center leading-tight">Suivi patient en temps réel</span>
+                </div>
+                <div className="flex flex-col items-center p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-white/20 hover:bg-white/70 transition-all duration-200 hover:scale-105">
+                  <Calendar className="w-8 h-8 text-purple-600 mb-3" />
+                  <span className="text-sm text-gray-700 font-medium text-center leading-tight">Gestion intelligente des rendez-vous</span>
+                </div>
+              </div>
+
+              <p className="text-sm text-center lg:text-left text-gray-500">
+                © 2025 KamerCare. Tous droits réservés.
+              </p>
+            </div>
+
+            {/* Formulaire principal - Responsive */}
+            <div className="w-full lg:w-2/3 xl:w-3/5">
+              {/* Mobile header - Only visible on mobile */}
+              <div className="lg:hidden text-center mb-6">
+                <div className="flex justify-center mb-4">
+                  <div className="p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
+                    <Stethoscope className="w-10 h-10 text-blue-600" />
                   </div>
                 </div>
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  Inscription Médecin
+                </h1>
+                <p className="text-gray-600 mb-4">
+                  Rejoignez notre communauté médicale
+                </p>
               </div>
-            </CardHeader>
 
-            <CardContent className="p-8">
-              {/* Step Indicator */}
-              <div className="flex justify-center mb-8 relative z-10">
-                <div className="flex items-center space-x-4">
-                  {[1, 2, 3, 4].map((step) => (
-                    <div key={step} className="flex items-center">
-                      <div className={`
-                        w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 shadow-lg
-                        ${currentStep === step
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-300 scale-110'
-                          : currentStep > step
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-300'
-                            : 'bg-gray-200 text-gray-500 shadow-gray-200'
-                        }
-                      `}>
-                        {currentStep > step ? (
-                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          step
-                        )}
-                      </div>
-                      {step < 4 && (
-                        <div className={`
-                          w-12 h-1 mx-2 rounded-full transition-all duration-300
-                          ${currentStep > step
-                            ? 'bg-gradient-to-r from-green-400 to-emerald-400'
-                            : 'bg-gray-200'
-                          }
-                        `} />
-                      )}
+              <Card className="backdrop-blur-sm bg-white/95 shadow-2xl border-0 rounded-2xl lg:rounded-3xl overflow-hidden py-0">
+                <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white p-4 sm:p-6 lg:p-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">
+                        <span className="hidden lg:inline">Inscription Médecin</span>
+                        <span className="lg:hidden">Étape {currentStep}/4</span>
+                      </CardTitle>
+                      <CardDescription className="text-blue-100 text-sm sm:text-base lg:text-lg">
+                        {stepTitles[currentStep - 1]}
+                      </CardDescription>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                  {/* Step 1: Personal Information */}
-                  {currentStep === 1 && (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3 w-full">
-                          <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-blue-100 rounded-lg mr-2">
-                              <User className="w-4 h-4 text-blue-600" />
-                            </div>
-                            Prenom *
-                          </Label>
-                          <Input
-                            id="firstName"
-                            name="firstName"
-                            value={formData.first_name}
-                            onChange={(e) => handleInputChange('first_name', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Votre prénom"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-green-100 rounded-lg mr-2">
-                              <User className="w-4 h-4 text-green-600" />
-                            </div>
-                            Nom *
-                          </Label>
-                          <Input
-                            id="lastName"
-                            name="lastName"
-                            value={formData.last_name}
-                            onChange={(e) => handleInputChange('last_name', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Votre nom"
-                            required
-                          />
-                        </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="p-2 sm:p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       </div>
+                    </div>
+                  </div>
+                </CardHeader>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-purple-100 rounded-lg mr-2">
-                              <Mail className="w-4 h-4 text-purple-600" />
-                            </div>
-                            Email *
-                          </Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="votre.email@exemple.com"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
-                              <Phone className="w-4 h-4 text-indigo-600" />
-                            </div>
-                            Telephone *
-                          </Label>
-                          <Input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="+237 6XX XXX XXX"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="dateOfBirth" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-pink-100 rounded-lg mr-2">
-                            <Calendar className="w-4 h-4 text-pink-600" />
-                          </div>
-                          Date de naissance *
-                        </Label>
-                        <Input
-                          id="dateOfBirth"
-                          name="dateOfBirth"
-                          type="date"
-                          value={formData.date_of_birth}
-                          onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
-                          className="h-10 border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                          required
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Champ ville avec auto-complétion */}
-                        <div className="space-y-3 relative">
-                          <Label htmlFor="city" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-teal-100 rounded-lg mr-2">
-                              <Building className="w-4 h-4 text-teal-600" />
-                            </div>
-                            Ville *
-                            {citiesLoading && (
-                              <div className="ml-2">
-                                <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                              </div>
-                            )}
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              id="city"
-                              name="city"
-                              value={citySearchTerm}
-                              onChange={(e) => handleCityInputChange(e.target.value)}
-                              onFocus={() => citySearchTerm.length >= 2 && setShowCitySuggestions(true)}
-                              onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
-                              className="h-10 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                              placeholder="Tapez le nom de votre ville..."
-                              required
-                              autoComplete="off"
-                            />
-
-
-                            {/* Suggestions d'auto-complétion */}
-                            {showCitySuggestions && (
-                              <div className="absolute bottom-12 left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-                                {citiesLoading ? (
-                                  <div className="p-3 text-center text-gray-500">
-                                    <div className="flex items-center justify-center space-x-2">
-                                      <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                                      <span>Recherche en cours...</span>
-                                    </div>
-                                  </div>
-                                ) : searchResults.length > 0 ? (
-                                  searchResults.map((city, index) => (
-                                    <div
-                                      key={`${city.city}-${city.region || 'unknown'}-${index}`}
-                                      className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-200 z-50"
-                                      onClick={() => handleCitySelect(city.city, city.region || '')}
-                                    >
-                                      <div className="flex items-center space-x-2">
-                                        <MapPinned className="w-4 h-4 text-teal-500" />
-                                        <span className="text-gray-900 text-xs">
-                                          {city.city}{city.region && <>, <span className="text-xs font-semibold text-teal-600">{city.region.toUpperCase()}</span></>}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))
-                                ) : citySearchTerm.length >= 2 ? (
-                                  <div className="p-3 text-xs text-center text-gray-500">
-                                    Aucune ville trouvée pour "{citySearchTerm}"
-                                  </div>
-                                ) : (
-                                  <div className="p-3 text-xs text-center text-gray-500">
-                                    Tapez au moins 2 caractères pour rechercher
-                                  </div>
-                                )}
-                              </div>
+                <CardContent className="p-4 sm:p-6 lg:p-8">
+                  {/* Step Indicator - Responsive */}
+                  <div className="flex justify-center mb-6 sm:mb-8 relative z-10">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
+                      {[1, 2, 3, 4].map((step) => (
+                        <div key={step} className="flex items-center">
+                          <div className={`
+                        w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-lg
+                        ${currentStep === step
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-300 scale-110'
+                              : currentStep > step
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-300'
+                                : 'bg-gray-200 text-gray-500 shadow-gray-200'
+                            }
+                      `}>
+                            {currentStep > step ? (
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              step
                             )}
                           </div>
-
-                          {citiesError && (
-                            <p className="text-xs text-red-500 mt-1">
-                              Erreur: {citiesError}
-                            </p>
+                          {step < 4 && (
+                            <div className={`
+                          w-6 sm:w-8 lg:w-12 h-1 mx-1 sm:mx-2 rounded-full transition-all duration-300
+                          ${currentStep > step
+                                ? 'bg-gradient-to-r from-green-400 to-emerald-400'
+                                : 'bg-gray-200'
+                              }
+                        `} />
                           )}
                         </div>
-
-                        <div className="space-y-3">
-                          <Label htmlFor="hospital" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
-                              <MapPin className="w-4 h-4 text-yellow-600" />
-                            </div>
-                            Hôpital de fonction *
-                          </Label>
-                          <HospitalSelect
-                            value={formData.hospital_id}
-                            onValueChange={(value) => handleInputChange('hospital_id', value)}
-                            placeholder="Sélectionner un hôpital ou choisir 'Aucun'"
-                            className="w-full"
-                            required
-                          />
-                        </div>
-                      </div>
-
+                      ))}
                     </div>
-                  )}
+                  </div>
 
-                  {/* Step 2: Professional Information */}
-                  {currentStep === 2 && (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 gap-6">
-                        <div className="space-y-3">
-                          <Label htmlFor="specialty" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-blue-100 rounded-lg mr-2">
-                              <Stethoscope className="w-4 h-4 text-blue-600" />
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                      {/* Step 1: Personal Information */}
+                      {currentStep === 1 && (
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="space-y-3 w-full">
+                              <Label htmlFor="firstName" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1 sm:p-1.5 bg-blue-100 rounded-lg mr-2">
+                                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                                </div>
+                                Prénom *
+                              </Label>
+                              <Input
+                                id="firstName"
+                                name="firstName"
+                                value={formData.first_name}
+                                onChange={(e) => handleInputChange('first_name', e.target.value)}
+                                className="h-10 sm:h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md text-sm sm:text-base"
+                                placeholder="Votre prénom"
+                                required
+                              />
                             </div>
-                            Spécialités médicales * (Sélectionnez une ou plusieurs spécialités)
-                          </Label>
-                          <div className="rounded-xl p-4 bg-gray-50/50 hover:bg-white transition-all duration-300 max-h-[400px] overflow-y-auto">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                              {specialties.map((specialty) => (
-                                <label key={specialty} className={`relative block p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 min-h-[100px] ${
-                                   formData.specialization.includes(specialty)
-                                     ? 'border-blue-500 bg-blue-50 shadow-md'
-                                     : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
-                                 }`}>
-                                  <input
-                                    type="checkbox"
-                                    checked={formData.specialization.includes(specialty)}
-                                    onChange={(e) => {
-                                      const currentSpecializations = [...formData.specialization];
-                                      if (e.target.checked) {
-                                        currentSpecializations.push(specialty);
-                                      } else {
-                                        const index = currentSpecializations.indexOf(specialty);
-                                        if (index > -1) {
-                                          currentSpecializations.splice(index, 1);
-                                        }
-                                      }
-                                      handleInputChange('specialization', currentSpecializations);
-                                    }}
-                                    className="sr-only"
-                                  />
-                                  <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <div className={`w-6 h-6 rounded-full border-2 mb-2 flex items-center justify-center ${formData.specialization.includes(specialty)
-                                        ? 'bg-blue-500 border-blue-500'
-                                        : 'border-gray-300'
-                                      }`}>
-                                      {formData.specialization.includes(specialty) && (
-                                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                      )}
-                                    </div>
-                                    <span className={`text-xs font-medium leading-tight break-words hyphens-auto ${
-                                       formData.specialization.includes(specialty)
-                                         ? 'text-blue-700'
-                                         : 'text-gray-700'
-                                     }`} style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>{specialty}</span>
-                                  </div>
-                                </label>
-                              ))}
+
+                            <div className="space-y-3">
+                              <Label htmlFor="lastName" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg mr-2">
+                                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                </div>
+                                Nom *
+                              </Label>
+                              <Input
+                                id="lastName"
+                                name="lastName"
+                                value={formData.last_name}
+                                onChange={(e) => handleInputChange('last_name', e.target.value)}
+                                className="h-10 sm:h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md text-sm sm:text-base"
+                                placeholder="Votre nom"
+                                required
+                              />
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      
-                      {formData.specialization.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <p className="text-xs text-gray-600 mb-2">Spécialités sélectionnées :</p>
-                          <div className="flex flex-wrap gap-1">
-                            <DoctorSpecialization 
-                              specialization={formData.specialization.join(', ')}
-                              className="text-xs"
-                              showRemoveButtons={true}
-                              onRemove={(spec) => {
-                                const currentSpecializations = formData.specialization.filter(s => s !== spec);
-                                handleInputChange('specialization', currentSpecializations);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <Label htmlFor="licenseNumber" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-purple-100 rounded-lg mr-2">
-                              <FileText className="w-4 h-4 text-purple-600" />
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="space-y-3">
+                              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1 sm:p-1.5 bg-purple-100 rounded-lg mr-2">
+                                  <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
+                                </div>
+                                Email *
+                              </Label>
+                              <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                className="h-10 sm:h-12 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md text-sm sm:text-base"
+                                placeholder="votre.email@exemple.com"
+                                required
+                              />
                             </div>
-                            Numero de licence medicale *
-                          </Label>
-                          <Input
-                            id="licenseNumber"
-                            name="licenseNumber"
-                            value={formData.license_number}
-                            onChange={(e) => handleInputChange('license_number', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                            placeholder="Ex: CM-MD-2024-001234"
-                            required
-                          />
-                        </div>
 
-                        <div className="space-y-3">
-                          <Label htmlFor="yearsOfExperience" className="text-sm font-semibold text-gray-700 flex items-center">
-                            <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
-                              <Award className="w-4 h-4 text-indigo-600" />
+                            <div className="space-y-3">
+                              <Label htmlFor="phone" className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1 sm:p-1.5 bg-indigo-100 rounded-lg mr-2">
+                                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600" />
+                                </div>
+                                Téléphone *
+                              </Label>
+                              <Input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                value={formData.phone}
+                                onChange={(e) => handleInputChange('phone', e.target.value)}
+                                className="h-10 sm:h-12 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md text-sm sm:text-base"
+                                placeholder="+237 6XX XXX XXX"
+                                required
+                              />
                             </div>
-                            Annees d'experience *
-                          </Label>
-                          <Select value={formData.years_of_experience} onValueChange={(value) => handleInputChange('years_of_experience', value)}>
-                            <SelectTrigger className="w-full h-10 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md">
-                              <SelectValue placeholder="Selectionnez vos annees d'experience" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="0-2">0-2 ans</SelectItem>
-                              <SelectItem value="3-5">3-5 ans</SelectItem>
-                              <SelectItem value="6-10">6-10 ans</SelectItem>
-                              <SelectItem value="11-15">11-15 ans</SelectItem>
-                              <SelectItem value="16-20">16-20 ans</SelectItem>
-                              <SelectItem value="20+">Plus de 20 ans</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 3: Medical Practice */}
-                  {currentStep === 3 && (
-                    <div className="space-y-6">
-                      {/* Bio */}
-                      <div className="space-y-3">
-                        <Label htmlFor="bio" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-blue-100 rounded-lg mr-2">
-                            <FileText className="w-4 h-4 text-blue-600" />
                           </div>
-                          Biographie professionnelle
-                        </Label>
-                        <Textarea
-                          id="bio"
-                          name="bio"
-                          value={formData.bio}
-                          onChange={(e) => handleInputChange('bio', e.target.value)}
-                          className="min-h-[100px] border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
-                          placeholder="Décrivez votre parcours professionnel, vos spécialisations et votre approche médicale..."
-                        />
-                      </div>
-
-                      {/* Consultation Fee */}
-                      <div className="space-y-3">
-                        <Label htmlFor="consultation_fee" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-green-100 rounded-lg mr-2">
-                            <DollarSign className="w-4 h-4 text-green-600" />
-                          </div>
-                          Tarif de consultation (FCFA)
-                        </Label>
-                        <Input
-                          id="consultation_fee"
-                          name="consultation_fee"
-                          type="number"
-                          value={formData.consultation_fee}
-                          onChange={(e) => handleInputChange('consultation_fee', e.target.value)}
-                          className="h-10 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
-                          placeholder="Ex: 15000"
-                          min="0"
-                        />
-                      </div>
-
-                      {/* Consultation Hours */}
-                      <div className="space-y-4">
-                        <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
-                            <Clock className="w-4 h-4 text-indigo-600" />
-                          </div>
-                          Horaires de consultation *
-                        </Label>
-                        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100 shadow-sm">
-                          <p className="text-xs text-indigo-700 mb-4">Définissez vos heures de consultation précises pour les 7 prochains jours à partir de demain. Vous pouvez ajouter plusieurs heures par jour. Au moins une heure doit être configurée.</p>
 
                           <div className="space-y-3">
-                            {weekDays.map(({ key, label }) => (
-                              <div key={key} className="flex items-center space-x-4 p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-all duration-200">
-                                <div className="flex items-center space-x-2 min-w-[200px]">
-                                  <Checkbox
-                                    id={`${key}_available`}
-                                    checked={formData.consultation_hours[key]?.available || false}
-                                    onCheckedChange={(checked) => handleScheduleChange(key, 'available', !!checked)}
-                                    className="border-2 border-indigo-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                                  />
-                                  <Label htmlFor={`${key}_available`} className="text-sm font-medium text-gray-700 cursor-pointer">
-                                    {label}
-                                  </Label>
-                                </div>
+                            <Label htmlFor="dateOfBirth" className="text-sm font-semibold text-gray-700 flex items-center">
+                              <div className="p-1.5 bg-pink-100 rounded-lg mr-2">
+                                <Calendar className="w-4 h-4 text-pink-600" />
+                              </div>
+                              Date de naissance *
+                            </Label>
+                            <Input
+                              id="dateOfBirth"
+                              name="dateOfBirth"
+                              type="date"
+                              value={formData.date_of_birth}
+                              onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
+                              className="h-10 border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                              required
+                            />
+                          </div>
 
-                                {formData.consultation_hours[key]?.available && (
-                                  <div className="flex-1 space-y-2">
-                                    {formData.consultation_hours[key]?.slots.map((slot: any, index: number) => (
-                                      <div key={slot.id} className="flex items-center space-x-2">
-                                        <div className="flex items-center space-x-2 flex-1">
-                                          <Label className="text-xs text-gray-600 min-w-[50px]">Heure:</Label>
-                                          <Input
-                                            type="time"
-                                            value={slot.time}
-                                            onChange={(e) => updateTimeSlot(key, slot.id, e.target.value)}
-                                            className="h-8 text-xs border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 rounded-md"
-                                            placeholder="HH:MM"
-                                          />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Champ ville avec auto-complétion */}
+                            <div className="space-y-3 relative">
+                              <Label htmlFor="city" className="text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1.5 bg-teal-100 rounded-lg mr-2">
+                                  <Building className="w-4 h-4 text-teal-600" />
+                                </div>
+                                Ville *
+                                {citiesLoading && (
+                                  <div className="ml-2">
+                                    <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                                  </div>
+                                )}
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  id="city"
+                                  name="city"
+                                  value={citySearchTerm}
+                                  onChange={(e) => handleCityInputChange(e.target.value)}
+                                  onFocus={() => citySearchTerm.length >= 2 && setShowCitySuggestions(true)}
+                                  onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
+                                  className="h-10 border-2 border-gray-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                                  placeholder="Tapez le nom de votre ville..."
+                                  required
+                                  autoComplete="off"
+                                />
+
+
+                                {/* Suggestions d'auto-complétion */}
+                                {showCitySuggestions && (
+                                  <div className="absolute bottom-12 left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                    {citiesLoading ? (
+                                      <div className="p-3 text-center text-gray-500">
+                                        <div className="flex items-center justify-center space-x-2">
+                                          <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                                          <span>Recherche en cours...</span>
                                         </div>
-                                        {(formData.consultation_hours[key]?.slots.length || 0) > 1 && (
-                                          <button
-                                            type="button"
-                                            onClick={() => removeTimeSlot(key, slot.id)}
-                                            className="h-8 w-8 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                                            title="Supprimer cette heure"
-                                          >
-                                            ×
-                                          </button>
-                                        )}
                                       </div>
-                                    ))}
-                                    <button
-                                      type="button"
-                                      onClick={() => addTimeSlot(key)}
-                                      className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-2 py-1 rounded-md transition-colors flex items-center space-x-1"
-                                    >
-                                      <span>+</span>
-                                      <span>Ajouter une heure</span>
-                                    </button>
+                                    ) : searchResults.length > 0 ? (
+                                      searchResults.map((city, index) => (
+                                        <div
+                                          key={`${city.city}-${city.region || 'unknown'}-${index}`}
+                                          className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-200 z-50"
+                                          onClick={() => handleCitySelect(city.city, city.region || '')}
+                                        >
+                                          <div className="flex items-center space-x-2">
+                                            <MapPinned className="w-4 h-4 text-teal-500" />
+                                            <span className="text-gray-900 text-xs">
+                                              {city.city}{city.region && <>, <span className="text-xs font-semibold text-teal-600">{city.region.toUpperCase()}</span></>}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ))
+                                    ) : citySearchTerm.length >= 2 ? (
+                                      <div className="p-3 text-xs text-center text-gray-500">
+                                        Aucune ville trouvée pour "{citySearchTerm}"
+                                      </div>
+                                    ) : (
+                                      <div className="p-3 text-xs text-center text-gray-500">
+                                        Tapez au moins 2 caractères pour rechercher
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
-                            ))}
+
+                              {citiesError && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  Erreur: {citiesError}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-3">
+                              <Label htmlFor="hospital" className="text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1.5 bg-yellow-100 rounded-lg mr-2">
+                                  <MapPin className="w-4 h-4 text-yellow-600" />
+                                </div>
+                                Hôpital de fonction *
+                              </Label>
+                              <HospitalSelect
+                                value={formData.hospital_id}
+                                onValueChange={(value) => handleInputChange('hospital_id', value)}
+                                placeholder="Sélectionner un hôpital ou choisir 'Aucun'"
+                                className="w-full"
+                                required
+                              />
+                            </div>
                           </div>
+
                         </div>
-                      </div>
-
-                    </div>
-                  )}
-
-                  {/* Step 4: Security */}
-                  {currentStep === 4 && (
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <Label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-red-100 rounded-lg mr-2">
-                            <Lock className="w-4 h-4 text-red-600" />
-                          </div>
-                          Mot de passe *
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            value={formData.password}
-                            onChange={(e) => handleInputChange('password', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
-                            placeholder="Mot de passe securise"
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors duration-200"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-700" />
-                            ) : (
-                              <Eye className="h-5 w-5 text-gray-500 hover:text-gray-700" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700 flex items-center">
-                          <div className="p-1.5 bg-orange-100 rounded-lg mr-2">
-                            <Lock className="w-4 h-4 text-orange-600" />
-                          </div>
-                          Confirmer le mot de passe *
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"}
-                            value={formData.confirmPassword}
-                            onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                            className="h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
-                            placeholder="Confirmer le mot de passe"
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors duration-200"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-700" />
-                            ) : (
-                              <Eye className="h-5 w-5 text-gray-500 hover:text-gray-700" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl border border-blue-100 shadow-sm">
-                        <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
-                          <div className="p-1 bg-blue-200 rounded-lg mr-2">
-                            <Shield className="w-4 h-4 text-blue-700" />
-                          </div>
-                          Criteres de securite du mot de passe
-                        </h4>
-                        <ul className="text-xs text-blue-700 space-y-1">
-                          <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Au moins 8 caracteres</li>
-                          <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Une lettre majuscule et une minuscule</li>
-                          <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Au moins un chiffre</li>
-                          <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Un caractere special (@, #, $, etc.)</li>
-                        </ul>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-xl border border-yellow-100 shadow-sm">
-                        <h4 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
-                          <div className="p-1 bg-yellow-200 rounded-lg mr-2">
-                            <AlertTriangle className="w-4 h-4 text-yellow-700" />
-                          </div>
-                          Verification des informations
-                        </h4>
-                        <p className="text-xs text-yellow-700 leading-relaxed">
-                          Vos informations professionnelles seront verifiees par notre equipe avant l'activation de votre compte. Ce processus peut prendre 24-48 heures.
-                        </p>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border border-green-100 shadow-sm">
-                          <div className="flex items-start space-x-3">
-                            <Checkbox
-                              id="agreeToTerms"
-                              checked={formData.agreeToTerms}
-                              onCheckedChange={(checked) => handleInputChange('agreeToTerms', !!checked)}
-                              className="mt-1 border-2 border-green-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                            />
-                            <Label htmlFor="agreeToTerms" className="cursor-pointer">
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                J'accepte les{" "}
-                                <a href="/terms" className="text-green-600 hover:text-green-800 font-semibold hover:underline transition-colors duration-200">
-                                  conditions d'utilisation
-                                </a>
-                                {" "}et la{" "}
-                                <a href="/privacy" className="text-green-600 hover:text-green-800 font-semibold hover:underline transition-colors duration-200">
-                                  politique de confidentialite
-                                </a>
-                                {" "}de KamerCare. Je certifie que toutes les informations fournies sont exactes et a jour.
-                              </p>
-                            </Label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Messages d'erreur et de succès */}
-                {error && (
-                  <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">!</span>
-                      </div>
-                      <p className="text-red-700 text-sm font-medium">{error}</p>
-                    </div>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">✓</span>
-                      </div>
-                      <p className="text-green-700 text-sm font-medium">{success}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between pt-8">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={prevStep}
-                    disabled={currentStep === 1}
-                    className="flex items-center text-gray-700 space-x-2 px-8 py-3 h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span className="font-medium">Precedent</span>
-                  </Button>
-
-                  {currentStep < totalSteps ? (
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      disabled={!validateStep(currentStep)}
-                      className="flex items-center space-x-2 px-8 py-3 h-12 z-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    >
-                      <span className="font-medium">Suivant</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      disabled={currentStep !== 4 || !validateAllSteps() || isLoading}
-                      className="flex items-center space-x-2 px-8 py-3 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    >
-                      {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <UserPlus className="w-4 h-4" />
                       )}
-                      <span className="font-medium">Creer mon compte</span>
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+
+                      {/* Step 2: Professional Information */}
+                      {currentStep === 2 && (
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-1 gap-6">
+                            <div className="space-y-3">
+                              <Label htmlFor="specialty" className="text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1.5 bg-blue-100 rounded-lg mr-2">
+                                  <Stethoscope className="w-4 h-4 text-blue-600" />
+                                </div>
+                                Spécialités médicales * (Sélectionnez une ou plusieurs spécialités)
+                              </Label>
+                              <div className="rounded-xl p-4 bg-gray-50/50 hover:bg-white transition-all duration-300 max-h-[400px] overflow-y-auto">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2">
+                                  {specialties.map((specialty) => (
+                                    <label key={specialty} className={`relative block p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 min-h-[100px] ${formData.specialization.includes(specialty)
+                                      ? 'border-blue-500 bg-blue-50 shadow-md'
+                                      : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                                      }`}>
+                                      <input
+                                        type="checkbox"
+                                        checked={formData.specialization.includes(specialty)}
+                                        onChange={(e) => {
+                                          const currentSpecializations = [...formData.specialization];
+                                          if (e.target.checked) {
+                                            currentSpecializations.push(specialty);
+                                          } else {
+                                            const index = currentSpecializations.indexOf(specialty);
+                                            if (index > -1) {
+                                              currentSpecializations.splice(index, 1);
+                                            }
+                                          }
+                                          handleInputChange('specialization', currentSpecializations);
+                                        }}
+                                        className="sr-only"
+                                      />
+                                      <div className="flex flex-col items-center justify-center h-full text-center">
+                                        <div className={`w-6 h-6 rounded-full border-2 mb-2 flex items-center justify-center ${formData.specialization.includes(specialty)
+                                          ? 'bg-blue-500 border-blue-500'
+                                          : 'border-gray-300'
+                                          }`}>
+                                          {formData.specialization.includes(specialty) && (
+                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                          )}
+                                        </div>
+                                        <span className={`text-xs font-medium leading-tight break-words hyphens-auto ${formData.specialization.includes(specialty)
+                                          ? 'text-blue-700'
+                                          : 'text-gray-700'
+                                          }`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{specialty}</span>
+                                      </div>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {formData.specialization.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-xs text-gray-600 mb-2">Spécialités sélectionnées :</p>
+                              <div className="flex flex-wrap gap-1">
+                                <DoctorSpecialization
+                                  specialization={formData.specialization.join(', ')}
+                                  className="text-xs"
+                                  showRemoveButtons={true}
+                                  onRemove={(spec) => {
+                                    const currentSpecializations = formData.specialization.filter(s => s !== spec);
+                                    handleInputChange('specialization', currentSpecializations);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                              <Label htmlFor="licenseNumber" className="text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1.5 bg-purple-100 rounded-lg mr-2">
+                                  <FileText className="w-4 h-4 text-purple-600" />
+                                </div>
+                                Numéro de licence médicale *
+                              </Label>
+                              <Input
+                                id="licenseNumber"
+                                name="licenseNumber"
+                                value={formData.license_number}
+                                onChange={(e) => handleInputChange('license_number', e.target.value)}
+                                className="h-10 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                                placeholder="Ex: CM-MD-2024-001234"
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-3">
+                              <Label htmlFor="yearsOfExperience" className="text-sm font-semibold text-gray-700 flex items-center">
+                                <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
+                                  <Award className="w-4 h-4 text-indigo-600" />
+                                </div>
+                                Années d'expérience *
+                              </Label>
+                              <Select value={formData.years_of_experience} onValueChange={(value) => handleInputChange('years_of_experience', value)}>
+                                <SelectTrigger className="w-full h-10 border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md">
+                                  <SelectValue placeholder="Sélectionnez vos années d'expérience" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="0-2">0-2 ans</SelectItem>
+                                  <SelectItem value="3-5">3-5 ans</SelectItem>
+                                  <SelectItem value="6-10">6-10 ans</SelectItem>
+                                  <SelectItem value="11-15">11-15 ans</SelectItem>
+                                  <SelectItem value="16-20">16-20 ans</SelectItem>
+                                  <SelectItem value="20+">Plus de 20 ans</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Step 3: Medical Practice */}
+                      {currentStep === 3 && (
+                        <div className="space-y-6">
+                          {/* Bio */}
+                          <div className="space-y-3">
+                            <Label htmlFor="bio" className="text-sm font-semibold text-gray-700 flex items-center">
+                              <div className="p-1.5 bg-blue-100 rounded-lg mr-2">
+                                <FileText className="w-4 h-4 text-blue-600" />
+                              </div>
+                              Biographie professionnelle
+                            </Label>
+                            <Textarea
+                              id="bio"
+                              name="bio"
+                              value={formData.bio}
+                              onChange={(e) => handleInputChange('bio', e.target.value)}
+                              className="min-h-[100px] border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md resize-none"
+                              placeholder="Décrivez votre parcours professionnel, vos spécialisations et votre approche médicale..."
+                            />
+                          </div>
+
+                          {/* Consultation Fee */}
+                          <div className="space-y-3">
+                            <Label htmlFor="consultation_fee" className="text-sm font-semibold text-gray-700 flex items-center">
+                              <div className="p-1.5 bg-green-100 rounded-lg mr-2">
+                                <DollarSign className="w-4 h-4 text-green-600" />
+                              </div>
+                              Tarif de consultation (FCFA)
+                            </Label>
+                            <Input
+                              id="consultation_fee"
+                              name="consultation_fee"
+                              type="number"
+                              value={formData.consultation_fee}
+                              onChange={(e) => handleInputChange('consultation_fee', e.target.value)}
+                              className="h-10 border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md"
+                              placeholder="Ex: 15000"
+                              min="0"
+                            />
+                          </div>
+
+                          {/* Consultation Hours */}
+                          <div className="space-y-4">
+                            <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                              <div className="p-1.5 bg-indigo-100 rounded-lg mr-2">
+                                <Clock className="w-4 h-4 text-indigo-600" />
+                              </div>
+                              Horaires de consultation *
+                            </Label>
+                            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100 shadow-sm">
+                              <p className="text-xs text-indigo-700 mb-4">Définissez vos heures de consultation précises pour les 7 prochains jours à partir de demain. Vous pouvez ajouter plusieurs heures par jour. Au moins une heure doit être configurée.</p>
+
+                              <div className="space-y-3">
+                                {weekDays.map(({ key, label }) => (
+                                  <div key={key} className="flex items-center space-x-4 p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-all duration-200">
+                                    <div className="flex items-center space-x-2 min-w-[200px]">
+                                      <Checkbox
+                                        id={`${key}_available`}
+                                        checked={formData.consultation_hours[key]?.available || false}
+                                        onCheckedChange={(checked) => handleScheduleChange(key, 'available', !!checked)}
+                                        className="border-2 border-indigo-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                                      />
+                                      <Label htmlFor={`${key}_available`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                                        {label}
+                                      </Label>
+                                    </div>
+
+                                    {formData.consultation_hours[key]?.available && (
+                                      <div className="flex-1 space-y-2">
+                                        {formData.consultation_hours[key]?.slots.map((slot: any, index: number) => (
+                                          <div key={slot.id} className="flex items-center space-x-2">
+                                            <div className="flex items-center space-x-2 flex-1">
+                                              <Label className="text-xs text-gray-600 min-w-[50px]">Heure:</Label>
+                                              <Input
+                                                type="time"
+                                                value={slot.time}
+                                                onChange={(e) => updateTimeSlot(key, slot.id, e.target.value)}
+                                                className="h-8 text-xs border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 rounded-md"
+                                                placeholder="HH:MM"
+                                              />
+                                            </div>
+                                            {(formData.consultation_hours[key]?.slots.length || 0) > 1 && (
+                                              <button
+                                                type="button"
+                                                onClick={() => removeTimeSlot(key, slot.id)}
+                                                className="h-8 w-8 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                                                title="Supprimer cette heure"
+                                              >
+                                                ×
+                                              </button>
+                                            )}
+                                          </div>
+                                        ))}
+                                        <button
+                                          type="button"
+                                          onClick={() => addTimeSlot(key)}
+                                          className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-2 py-1 rounded-md transition-colors flex items-center space-x-1"
+                                        >
+                                          <span>+</span>
+                                          <span>Ajouter une heure</span>
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                      )}
+
+                      {/* Step 4: Security */}
+                      {currentStep === 4 && (
+                        <div className="space-y-6">
+                          <div className="space-y-3">
+                            <Label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center">
+                              <div className="p-1.5 bg-red-100 rounded-lg mr-2">
+                                <Lock className="w-4 h-4 text-red-600" />
+                              </div>
+                              Mot de passe *
+                            </Label>
+                            <div className="relative">
+                              <Input
+                                id="password"
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                value={formData.password}
+                                onChange={(e) => handleInputChange('password', e.target.value)}
+                                className="h-10 border-2 border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
+                                placeholder="Mot de passe securise"
+                                required
+                              />
+                              <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors duration-200"
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                                ) : (
+                                  <Eye className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700 flex items-center">
+                              <div className="p-1.5 bg-orange-100 rounded-lg mr-2">
+                                <Lock className="w-4 h-4 text-orange-600" />
+                              </div>
+                              Confirmer le mot de passe *
+                            </Label>
+                            <div className="relative">
+                              <Input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={formData.confirmPassword}
+                                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                                className="h-10 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 rounded-xl transition-all duration-300 bg-gray-50/50 hover:bg-white shadow-sm hover:shadow-md pr-12"
+                                placeholder="Confirmer le mot de passe"
+                                required
+                              />
+                              <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-100 rounded-r-xl transition-colors duration-200"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              >
+                                {showConfirmPassword ? (
+                                  <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                                ) : (
+                                  <Eye className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-xl border border-blue-100 shadow-sm">
+                            <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                              <div className="p-1 bg-blue-200 rounded-lg mr-2">
+                                <Shield className="w-4 h-4 text-blue-700" />
+                              </div>
+                              Criteres de securite du mot de passe
+                            </h4>
+                            <ul className="text-xs text-blue-700 space-y-1">
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Au moins 8 caracteres</li>
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Une lettre majuscule et une minuscule</li>
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Au moins un chiffre</li>
+                              <li className="flex items-center"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>Un caractere special (@, #, $, etc.)</li>
+                            </ul>
+                          </div>
+
+                          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-xl border border-yellow-100 shadow-sm">
+                            <h4 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center">
+                              <div className="p-1 bg-yellow-200 rounded-lg mr-2">
+                                <AlertTriangle className="w-4 h-4 text-yellow-700" />
+                              </div>
+                              Verification des informations
+                            </h4>
+                            <p className="text-xs text-yellow-700 leading-relaxed">
+                              Vos informations professionnelles seront vérifiées par notre équipe avant l'activation de votre compte. Ce processus peut prendre 24-48 heures.
+                            </p>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl border border-green-100 shadow-sm">
+                              <div className="flex items-start space-x-3">
+                                <Checkbox
+                                  id="agreeToTerms"
+                                  checked={formData.agreeToTerms}
+                                  onCheckedChange={(checked) => handleInputChange('agreeToTerms', !!checked)}
+                                  className="mt-1 border-2 border-green-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                                />
+                                <Label htmlFor="agreeToTerms" className="cursor-pointer">
+                                  <p className="text-sm text-gray-700 leading-relaxed">
+                                    J'accepte les{" "}
+                                    <a href="/terms" className="text-green-600 hover:text-green-800 font-semibold hover:underline transition-colors duration-200">
+                                      conditions d'utilisation
+                                    </a>
+                                    {" "}et la{" "}
+                                    <a href="/privacy" className="text-green-600 hover:text-green-800 font-semibold hover:underline transition-colors duration-200">
+                                      politique de confidentialité
+                                    </a>
+                                    {" "}de KamerCare. Je certifie que toutes les informations fournies sont exactes et a jour.
+                                  </p>
+                                </Label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Messages d'erreur et de succès */}
+                    {error && (
+                      <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">!</span>
+                          </div>
+                          <p className="text-red-700 text-sm font-medium">{error}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {success && (
+                      <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">✓</span>
+                          </div>
+                          <p className="text-green-700 text-sm font-medium">{success}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Navigation Buttons - Responsive */}
+                    <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0 pt-6 sm:pt-8">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={prevStep}
+                        disabled={currentStep === 1}
+                        className="flex items-center justify-center text-gray-700 space-x-2 px-6 sm:px-8 py-3 h-10 sm:h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base order-2 sm:order-1"
+                      >
+                        <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="font-medium">Précédent</span>
+                      </Button>
+
+                      {currentStep < totalSteps ? (
+                        <Button
+                          type="button"
+                          onClick={nextStep}
+                          disabled={!validateStep(currentStep)}
+                          className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 h-10 sm:h-12 z-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base order-1 sm:order-2"
+                        >
+                          <span className="font-medium">Suivant</span>
+                          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          disabled={currentStep !== 4 || !validateAllSteps() || isLoading}
+                          className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 h-10 sm:h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base order-1 sm:order-2"
+                        >
+                          {isLoading ? (
+                            <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          )}
+                          <span className="font-medium">Créer mon compte</span>
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -61,6 +61,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/doctors/{doctor}/medical-records', [DoctorController::class, 'medicalRecords']);
     Route::patch('/doctors/{doctor}/toggle-availability', [DoctorController::class, 'toggleAvailability']);
     Route::get('/doctors/specializations', [DoctorController::class, 'specializations']);
+    
+    // Doctor likes routes
+    Route::post('/doctors/{doctor}/like', [DoctorController::class, 'like']);
+    Route::delete('/doctors/{doctor}/unlike', [DoctorController::class, 'unlike']);
+    Route::get('/doctors/{doctor}/likes', [DoctorController::class, 'getLikes']);
+    Route::get('/doctors/{doctor}/is-liked', [DoctorController::class, 'isLikedByUser']);
+    Route::get('/user/liked-doctors', [DoctorController::class, 'getUserLikedDoctors']);
 
     // Appointment management routes
     Route::apiResource('appointments', AppointmentController::class);
@@ -84,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public routes for getting available doctors and specializations
 Route::get('/public/doctors', [DoctorController::class, 'index']);
+Route::get('/doctors/{doctor}/likes/count', [DoctorController::class, 'getLikesCount']);
 
 // Public routes for hospitals
 Route::get('/public/hospitals', [HospitalController::class, 'index']);
